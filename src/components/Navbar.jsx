@@ -81,7 +81,7 @@ export function Navbar() {
               className="font-ui inline-flex items-center gap-1 sm:gap-1.5 rounded-full border-2 border-spidey/70 bg-spidey/10 px-3 sm:px-3.5 py-1.5 text-xs md:text-sm font-bold uppercase tracking-[0.08em] text-spidey transition-all hover:bg-spidey hover:text-white shadow-xs"
             >
               <LayoutDashboard size={14} className="shrink-0" />
-              <span className="hidden xs:inline sm:inline">Dashboard</span>
+              <span className="hidden sm:inline">Dashboard</span>
             </Link>
 
             {/* Register Now Button */}

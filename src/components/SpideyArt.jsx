@@ -155,12 +155,41 @@ export function MaskBurst({ className = "" }) {
   );
 }
 
+export function MaskBurstLeft({ className = "" }) {
+  return (
+    <div className={`pointer-events-none relative inline-block ${className}`}>
+      {/* Spider Silk Strand Hanging From Top Ceiling */}
+      <svg className="absolute -top-20 left-1/2 -translate-x-1/2 h-24 w-6 text-white/70 pointer-events-none z-0" viewBox="0 0 10 100">
+        <line x1="5" y1="0" x2="5" y2="100" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" strokeDasharray="4 2" />
+        <circle cx="5" cy="100" r="2" fill="#e11d2e" />
+      </svg>
+      <img
+        src="/hero/spidey-hang.png"
+        alt="Spider-Man Hanging Left"
+        className="pointer-events-none object-contain drop-shadow-[0_12px_28px_rgba(225,29,46,0.45)] transition-all duration-500 hover:scale-105 scale-x-[-1] -rotate-6 filter brightness-105"
+        aria-hidden="true"
+      />
+    </div>
+  );
+}
+
 export function SpideyHang({ className = "" }) {
   return (
     <img
       src="/hero/spidey-hang.png"
       alt="Spider-Man Hanging"
       className={`pointer-events-none object-contain drop-shadow-2xl ${className}`}
+      aria-hidden="true"
+    />
+  );
+}
+
+export function SpideyHangLeft({ className = "" }) {
+  return (
+    <img
+      src="/hero/spidey-leap.png"
+      alt="Spider-Man Leaping Left"
+      className={`pointer-events-none object-contain drop-shadow-[0_12px_28px_rgba(10,31,92,0.5)] scale-x-[-1] ${className}`}
       aria-hidden="true"
     />
   );

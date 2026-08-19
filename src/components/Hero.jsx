@@ -44,10 +44,10 @@ export function Hero() {
             </div>
 
             {/* Main Title */}
-            <h1 className="font-display mt-3 text-7xl leading-[0.88] text-white md:text-8xl lg:text-[7.2rem]">
+            <h1 className="font-display mt-3 text-5xl sm:text-7xl leading-[0.88] text-white md:text-8xl lg:text-[7.2rem]">
               SIH <span className="text-gold">2026</span>
             </h1>
-            <div className="font-display text-4xl leading-tight md:text-5xl">
+            <div className="font-display text-2xl sm:text-4xl leading-tight md:text-5xl">
               <span className="text-white">SMART INDIA </span>
               <span className="text-spidey font-extrabold">HACKATHON</span>
             </div>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { SectionHeading } from "./ui/SectionHeading";
-import { MaskBurst } from "./SpideyArt";
+import { MaskBurst, MaskBurstLeft } from "./SpideyArt";
 
 const stats = [
   { value: 100, suffix: "+", label: "Teams", accent: "text-spidey" },
@@ -45,7 +45,11 @@ export function About() {
 
   return (
     <section id="about" className="section-peach relative overflow-hidden px-4 py-24 md:px-6">
-      <MaskBurst className="pointer-events-none absolute -top-4 right-2 sm:right-8 w-44 sm:w-60 md:w-72 opacity-90 z-10 animate-bounce-slow" />
+      {/* Left-Side Spidey Hanging (Flipped horizontal, spider web silk thread) */}
+      <MaskBurstLeft className="pointer-events-none absolute -top-4 left-1 sm:left-4 md:left-8 w-28 sm:w-44 md:w-56 opacity-85 sm:opacity-90 z-10 animate-bounce-slow" />
+      
+      {/* Right-Side Spidey Hanging */}
+      <MaskBurst className="pointer-events-none absolute -top-4 right-1 sm:right-4 md:right-8 w-28 sm:w-44 md:w-56 opacity-85 sm:opacity-90 z-10 animate-bounce-slow" />
       <div className="mx-auto max-w-7xl">
         <SectionHeading
           eyebrow="About SIH 2026"
