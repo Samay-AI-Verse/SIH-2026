@@ -21,6 +21,22 @@ export function Register() {
   const [editing, setEditing] = useState(emptyMember());
   const [submitError, setSubmitError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showFemaleModal, setShowFemaleModal] = useState(false);
+
+  function scrollToFormTop() {
+    setTimeout(() => {
+      const container = document.getElementById("register-form-card") || document.getElementById("register-header-banner");
+      if (container) {
+        container.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }, 40);
+  }
+
+  useEffect(() => {
+    scrollToFormTop();
+  }, [step]);
 
   const [form, setForm] = useState({
     teamName: "",
@@ -117,6 +133,7 @@ export function Register() {
     });
     setEditing(emptyMember({ college: form.college, course: form.leaderCourse, branch: form.leaderBranch, year: form.leaderYear }));
     setStep(1);
+    scrollToFormTop();
   }
 
   function addOrUpdateMember() {
@@ -169,15 +186,18 @@ export function Register() {
 
     setEditing(emptyMember({ college: form.college, course: form.leaderCourse, branch: form.leaderBranch, year: form.leaderYear }));
     setMemberErrors({});
+    scrollToFormTop();
   }
 
   function handleEditMember(member) {
     if (member.id === "leader-member-id" || member.email === form.email) {
       setStep(0);
+      scrollToFormTop();
       return;
     }
     setEditing(member);
     setMemberErrors({});
+    scrollToFormTop();
   }
 
   function handleRemoveMember(memberId) {
@@ -187,7 +207,28 @@ export function Register() {
     }));
   }
 
+  function proceedToReview() {
+    const hasFemale = form.members.some((m) => String(m.gender).toLowerCase() === "female");
+    if (!hasFemale) {
+      setShowFemaleModal(true);
+      return;
+    }
+    const rosterErrors = validateTeamRoster(form.members, settings.minMembers, settings.maxMembers);
+    if (Object.keys(rosterErrors).length) {
+      setMemberErrors(rosterErrors);
+      return;
+    }
+    setStep(2);
+    scrollToFormTop();
+  }
+
   async function submitTeam() {
+    const hasFemale = form.members.some((m) => String(m.gender).toLowerCase() === "female");
+    if (!hasFemale) {
+      setShowFemaleModal(true);
+      setSubmitError("At least 1 Female member is mandatory in the 6-member team as per SIH 2026 guidelines.");
+      return;
+    }
     const rosterErrors = validateTeamRoster(form.members, settings.minMembers, settings.maxMembers);
     if (Object.keys(rosterErrors).length) {
       setMemberErrors(rosterErrors);
@@ -646,14 +687,7 @@ export function Register() {
             </Button>
             <Button
               size="lg"
-              onClick={() => {
-                const rosterErrors = validateTeamRoster(form.members, settings.minMembers, settings.maxMembers);
-                if (Object.keys(rosterErrors).length) {
-                  setMemberErrors(rosterErrors);
-                  return;
-                }
-                setStep(2);
-              }}
+              onClick={proceedToReview}
             >
               Review Team & Proceed →
             </Button>
@@ -755,6 +789,58 @@ export function Register() {
         <span>Smart India Hackathon 2026 · GTMC Nanded Chapter</span>
         <span>Organized by Student Technical Council</span>
       </div>
+
+      {/* ALL-MALE TEAM WARNING POPUP MODAL */}
+      {showFemaleModal ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg rounded-2xl border-4 border-rose-600 bg-white p-6 sm:p-8 shadow-2xl transition-all scale-100">
+            <div className="flex items-center gap-3 border-b-2 border-rose-100 pb-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600 font-black text-2xl">
+                🚫
+              </div>
+              <div>
+                <span className="text-xs font-black uppercase tracking-widest text-rose-600">SIH 2026 MANDATORY RULE</span>
+                <h3 className="font-display text-2xl text-web leading-tight">All-Male Teams Not Allowed!</h3>
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-3 text-sm text-ink/80 leading-relaxed">
+              <div className="rounded-xl border-2 border-rose-200 bg-rose-50 p-4">
+                <p className="font-bold text-rose-900 text-base flex items-center gap-2">
+                  <AlertCircle className="text-rose-600 shrink-0" size={20} />
+                  Female Member Mandatory in Every Team
+                </p>
+                <p className="mt-2 text-xs sm:text-sm text-rose-800">
+                  As per official <strong>Smart India Hackathon (SIH 2026)</strong> regulations:
+                </p>
+                <ul className="mt-2 list-disc list-inside space-y-1 text-xs sm:text-sm font-semibold text-rose-900">
+                  <li>Every 6-member team <strong>MUST include at least 1 Female Member</strong>.</li>
+                  <li>All-male (6 Male) teams <strong>cannot</strong> be registered or approved.</li>
+                </ul>
+              </div>
+
+              <p className="text-xs text-ink/70">
+                Your current team roster has <strong>0 Female members ({femaleCount} Females, {form.members.length - femaleCount} Males)</strong>.
+                Please change at least one member&apos;s gender to <strong>Female</strong> to proceed with registration.
+              </p>
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-ink/10">
+              <Button
+                size="lg"
+                onClick={() => {
+                  setShowFemaleModal(false);
+                  setStep(1);
+                  scrollToFormTop();
+                }}
+                className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold"
+              >
+                ✏️ Got it! I&apos;ll Add a Female Member
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
