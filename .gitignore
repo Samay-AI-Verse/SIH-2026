@@ -1,0 +1,37 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+firebase-debug.log*
+firebase-debug.*.log
+
+node_modules
+dist
+dist-ssr
+*.local
+.firebase
+
+# Env
+.env
+.env.local
+functions/.env
+functions/.env.sih-*
+backend/.env
+backend/data
+backend/uploads
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+functions/lib

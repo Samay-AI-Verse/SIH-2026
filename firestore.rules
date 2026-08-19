@@ -1,0 +1,90 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid))
+        : null;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+    }
+
+    function isSelf(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function isTeamMember(teamId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/teams/$(teamId))
+        && (
+          get(/databases/$(database)/documents/teams/$(teamId)).data.leaderId == request.auth.uid
+          || request.auth.uid in get(/databases/$(database)/documents/teams/$(teamId)).data.memberUids
+        );
+    }
+
+    match /users/{userId} {
+      allow read: if isSelf(userId) || isAdmin();
+      allow create: if isSelf(userId)
+        && request.resource.data.role in ['TEAM_LEADER', 'TEAM_MEMBER']
+        && !request.resource.data.keys().hasAny([
+          'paymentStatus',
+          'registrationStatus',
+          'selectedProblemId'
+        ]);
+      allow update: if isSelf(userId)
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['name', 'phone', 'updatedAt', 'photoURL']);
+      allow write: if isAdmin();
+    }
+
+    match /teams/{teamId} {
+      allow read: if isAdmin() || isTeamMember(teamId);
+      allow write: if false;
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.leaderId == request.auth.uid);
+      allow write: if false;
+    }
+
+    match /problemStatements/{problemId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /problemSelections/{selectionId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /counters/{docId} {
+      allow read, write: if false;
+    }
+
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /contacts/{contactId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+  }
+}
