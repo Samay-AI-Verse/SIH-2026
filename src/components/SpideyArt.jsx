@@ -146,12 +146,19 @@ export function WebOverlay({ className = "" }) {
 
 export function MaskBurst({ className = "" }) {
   return (
-    <img
-      src="/hero/spidey-hang.png"
-      alt="Spider-Man Hanging"
-      className={`pointer-events-none object-contain drop-shadow-2xl transition-transform duration-500 hover:scale-105 ${className}`}
-      aria-hidden="true"
-    />
+    <div className={`pointer-events-none relative inline-block ${className}`}>
+      {/* Spider Silk Strand Hanging From Top Ceiling */}
+      <svg className="absolute -top-36 left-1/2 -translate-x-1/2 h-40 w-6 text-slate-800/60 pointer-events-none z-0" viewBox="0 0 10 140">
+        <line x1="5" y1="0" x2="5" y2="140" stroke="rgba(225,29,46,0.6)" strokeWidth="1.5" strokeDasharray="4 2" />
+        <circle cx="5" cy="140" r="2.5" fill="#e11d2e" />
+      </svg>
+      <img
+        src="/hero/spidey-hang.png"
+        alt="Spider-Man Hanging Right"
+        className="pointer-events-none object-contain drop-shadow-[0_12px_28px_rgba(225,29,46,0.45)] transition-all duration-500 hover:scale-105 filter brightness-105"
+        aria-hidden="true"
+      />
+    </div>
   );
 }
 
@@ -159,9 +166,9 @@ export function MaskBurstLeft({ className = "" }) {
   return (
     <div className={`pointer-events-none relative inline-block ${className}`}>
       {/* Spider Silk Strand Hanging From Top Ceiling */}
-      <svg className="absolute -top-20 left-1/2 -translate-x-1/2 h-24 w-6 text-white/70 pointer-events-none z-0" viewBox="0 0 10 100">
-        <line x1="5" y1="0" x2="5" y2="100" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" strokeDasharray="4 2" />
-        <circle cx="5" cy="100" r="2" fill="#e11d2e" />
+      <svg className="absolute -top-36 left-1/2 -translate-x-1/2 h-40 w-6 text-slate-800/60 pointer-events-none z-0" viewBox="0 0 10 140">
+        <line x1="5" y1="0" x2="5" y2="140" stroke="rgba(225,29,46,0.6)" strokeWidth="1.5" strokeDasharray="4 2" />
+        <circle cx="5" cy="140" r="2.5" fill="#e11d2e" />
       </svg>
       <img
         src="/hero/spidey-hang.png"
