@@ -44,14 +44,14 @@ export function About() {
   }, [shown]);
 
   return (
-    <section id="about" className="section-peach relative overflow-hidden px-4 pt-6 pb-16 md:pt-8 md:pb-20 md:px-6">
-      {/* Left-Side Spidey Hanging (Flanking heading on the left) */}
-      <MaskBurstLeft className="pointer-events-none absolute top-1 left-1 sm:left-4 md:left-6 lg:left-12 w-24 sm:w-36 md:w-48 lg:w-52 opacity-90 z-10 animate-bounce-slow" />
+    <section id="about" className="section-peach relative overflow-hidden px-4 pt-6 pb-16 md:pt-10 md:pb-20 md:px-6">
+      {/* Far-Left Spidey Hanging */}
+      <MaskBurstLeft className="pointer-events-none absolute -top-4 left-1 sm:left-4 md:left-6 lg:left-12 w-28 sm:w-40 md:w-52 lg:w-60 opacity-90 z-10" />
       
-      {/* Right-Side Spidey Hanging (Flanking heading on the right) */}
-      <MaskBurst className="pointer-events-none absolute top-1 right-1 sm:right-4 md:right-6 lg:right-12 w-24 sm:w-36 md:w-48 lg:w-52 opacity-90 z-10 animate-bounce-slow" />
+      {/* Far-Right Spidey Hanging */}
+      <MaskBurst className="pointer-events-none absolute -top-4 right-1 sm:right-4 md:right-6 lg:right-12 w-28 sm:w-40 md:w-52 lg:w-60 opacity-90 z-10" />
       
-      <div className="mx-auto max-w-7xl pt-2 sm:pt-4">
+      <div className="mx-auto max-w-4xl pt-2 sm:pt-6 relative z-10 text-center">
         <SectionHeading
           eyebrow="About SIH 2026"
           title="Where ideas become impact"

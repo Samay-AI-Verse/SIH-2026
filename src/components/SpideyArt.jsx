@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 export function WebOverlay({ className = "" }) {
   return (
     <div className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`} aria-hidden="true">
@@ -146,37 +148,27 @@ export function WebOverlay({ className = "" }) {
 
 export function MaskBurst({ className = "" }) {
   return (
-    <div className={`pointer-events-none relative inline-block ${className}`}>
-      {/* Spider Silk Strand Hanging From Top Ceiling */}
-      <svg className="absolute -top-36 left-1/2 -translate-x-1/2 h-40 w-6 text-slate-800/60 pointer-events-none z-0" viewBox="0 0 10 140">
-        <line x1="5" y1="0" x2="5" y2="140" stroke="rgba(225,29,46,0.6)" strokeWidth="1.5" strokeDasharray="4 2" />
-        <circle cx="5" cy="140" r="2.5" fill="#e11d2e" />
-      </svg>
-      <img
-        src="/hero/spidey-hang.png"
-        alt="Spider-Man Hanging Right"
-        className="pointer-events-none object-contain drop-shadow-[0_12px_28px_rgba(225,29,46,0.45)] transition-all duration-500 hover:scale-105 filter brightness-105"
-        aria-hidden="true"
-      />
-    </div>
+    <motion.img
+      src="/hero/spidey-hang.png"
+      alt="Spider-Man Hanging Right"
+      animate={{ y: [0, 8, 0], rotate: [0, 1.5, -1, 0] }}
+      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      className={`pointer-events-none object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.3)] transition-transform duration-500 hover:scale-105 ${className}`}
+      aria-hidden="true"
+    />
   );
 }
 
 export function MaskBurstLeft({ className = "" }) {
   return (
-    <div className={`pointer-events-none relative inline-block ${className}`}>
-      {/* Spider Silk Strand Hanging From Top Ceiling */}
-      <svg className="absolute -top-36 left-1/2 -translate-x-1/2 h-40 w-6 text-slate-800/60 pointer-events-none z-0" viewBox="0 0 10 140">
-        <line x1="5" y1="0" x2="5" y2="140" stroke="rgba(225,29,46,0.6)" strokeWidth="1.5" strokeDasharray="4 2" />
-        <circle cx="5" cy="140" r="2.5" fill="#e11d2e" />
-      </svg>
-      <img
-        src="/hero/spidey-hang.png"
-        alt="Spider-Man Hanging Left"
-        className="pointer-events-none object-contain drop-shadow-[0_12px_28px_rgba(225,29,46,0.45)] transition-all duration-500 hover:scale-105 scale-x-[-1] -rotate-6 filter brightness-105"
-        aria-hidden="true"
-      />
-    </div>
+    <motion.img
+      src="/hero/spidey-hang.png"
+      alt="Spider-Man Hanging Left"
+      animate={{ y: [0, 8, 0], rotate: [0, -1.5, 1, 0] }}
+      transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+      className={`pointer-events-none object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.3)] transition-transform duration-500 hover:scale-105 scale-x-[-1] ${className}`}
+      aria-hidden="true"
+    />
   );
 }
 
