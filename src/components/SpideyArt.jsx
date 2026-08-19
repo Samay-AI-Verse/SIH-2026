@@ -146,13 +146,23 @@ export function WebOverlay({ className = "" }) {
 
 export function MaskBurst({ className = "" }) {
   return (
-    <svg viewBox="0 0 200 220" className={className} aria-hidden="true">
-      <ellipse cx="100" cy="110" rx="78" ry="96" fill="#e11d2e" />
-      <path d="M100 18 C58 38 36 78 36 118 C36 168 64 198 100 206 C136 198 164 168 164 118 C164 78 142 38 100 18Z" fill="#071433" />
-      <ellipse cx="68" cy="108" rx="26" ry="34" fill="#fff" transform="rotate(-18 68 108)" />
-      <ellipse cx="132" cy="108" rx="26" ry="34" fill="#fff" transform="rotate(18 132 108)" />
-      <path d="M100 28 L100 200 M52 70 Q100 92 148 70 M42 110 Q100 132 158 110 M56 156 Q100 172 144 156" stroke="#e11d2e" strokeWidth="3" fill="none" />
-    </svg>
+    <img
+      src="/hero/spidey-hang.png"
+      alt="Spider-Man Hanging"
+      className={`pointer-events-none object-contain drop-shadow-2xl transition-transform duration-500 hover:scale-105 ${className}`}
+      aria-hidden="true"
+    />
+  );
+}
+
+export function SpideyHang({ className = "" }) {
+  return (
+    <img
+      src="/hero/spidey-hang.png"
+      alt="Spider-Man Hanging"
+      className={`pointer-events-none object-contain drop-shadow-2xl ${className}`}
+      aria-hidden="true"
+    />
   );
 }
 

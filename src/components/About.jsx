@@ -45,7 +45,7 @@ export function About() {
 
   return (
     <section id="about" className="section-peach relative overflow-hidden px-4 py-24 md:px-6">
-      <MaskBurst className="pointer-events-none absolute -right-10 top-8 w-56 opacity-15" />
+      <MaskBurst className="pointer-events-none absolute -top-4 right-2 sm:right-8 w-44 sm:w-60 md:w-72 opacity-90 z-10 animate-bounce-slow" />
       <div className="mx-auto max-w-7xl">
         <SectionHeading
           eyebrow="About SIH 2026"

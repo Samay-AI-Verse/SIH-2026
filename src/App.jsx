@@ -21,6 +21,7 @@ import { AdminSelections } from "./admin/AdminSelections";
 import { AdminSettings, AdminUsers } from "./admin/AdminSettings";
 import { AdminStudents } from "./admin/AdminStudents";
 import { AdminBudget } from "./admin/AdminBudget";
+import { AdminFinalTeams } from "./admin/AdminFinalTeams";
 
 
 const Payment = lazy(() => import("./pages/Payment").then((m) => ({ default: m.Payment })));
@@ -59,6 +60,7 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="registrations" element={<AdminRegistrations />} />
             <Route path="teams" element={<AdminTeams />} />
+            <Route path="final-teams" element={<AdminFinalTeams />} />
             <Route path="students" element={<AdminStudents />} />
             <Route path="budget" element={<AdminBudget />} />
             <Route path="payments" element={<AdminPayments />} />

@@ -29,17 +29,17 @@ export function Navbar() {
   }
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-3 sm:px-4 md:px-6 pt-2.5 sm:pt-3 pointer-events-none">
+    <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-3 sm:px-4 md:px-6 pt-1.5 sm:pt-2 pointer-events-none">
       <div
         className={cn(
           "pointer-events-auto w-full max-w-6xl transition-all duration-300",
-          "rounded-2xl sm:rounded-full border-2 border-web/20 bg-white/95 px-3.5 py-2 sm:px-5 sm:py-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.12)] backdrop-blur-xl",
+          "rounded-2xl sm:rounded-full border-2 border-web/20 bg-white/95 px-3 py-1 sm:px-4 sm:py-1 shadow-[0_6px_25px_rgba(0,0,0,0.1)] backdrop-blur-xl",
           open ? "rounded-2xl shadow-2xl" : ""
         )}
       >
         <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo Section */}
-          <Link to="/" className="shrink-0">
+          <Link to="/" className="shrink-0 flex items-center">
             <SihLogo variant="light" size="md" />
           </Link>
 

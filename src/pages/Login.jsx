@@ -35,7 +35,7 @@ export function Login() {
     }
     return (
       <div className="relative mx-auto flex min-h-svh max-w-md flex-col justify-center px-4 py-24">
-        <MaskBurst className="pointer-events-none absolute -right-16 top-16 w-48 opacity-20" />
+        <MaskBurst className="pointer-events-none absolute -top-2 right-0 w-36 sm:w-48 opacity-85 z-10" />
         <p className="text-xs font-black tracking-[0.28em] text-spidey">SIH 2026 · GTMC NANDED</p>
         <h1 className="mt-3 font-display text-5xl text-web comic-pop">{mode === "login" ? "Welcome back" : "Create your account"}</h1>
         <p className="mt-3 text-ink/60">Only authenticated users can register a team of 6.</p>

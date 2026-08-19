@@ -1,4 +1,4 @@
-import { api, getAdminToken, setAdminToken } from "../lib/api";
+import { api, getAdminToken, setAdminToken, API_BASE } from "../lib/api";
 
 export async function createTeamRegistration(form) {
   const payload = {
@@ -40,7 +40,7 @@ export async function fetchTeamBundle(teamId) {
 export async function uploadPaymentProof(file) {
   const formData = new FormData();
   formData.append("file", file);
-  const response = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/payments/upload-direct`, {
+  const response = await fetch(`${API_BASE}/api/payments/upload-direct`, {
     method: "POST",
     body: formData,
   });
@@ -109,7 +109,7 @@ const tableListeners = new Set();
 
 function getSharedEventSource() {
   if (!sharedEventSource || sharedEventSource.readyState === EventSource.CLOSED) {
-    const baseUrl = import.meta.env.VITE_API_URL || "";
+    const baseUrl = API_BASE;
     sharedEventSource = new EventSource(`${baseUrl}/api/live`);
 
     sharedEventSource.addEventListener("change", (event) => {

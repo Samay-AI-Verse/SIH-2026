@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
-import { BadgeCheck, LayoutDashboard, LogOut, Puzzle, Settings, Shield, Wallet, IndianRupee, GraduationCap, Menu, X } from "lucide-react";
+import { BadgeCheck, LayoutDashboard, LogOut, Puzzle, Settings, Shield, Wallet, IndianRupee, GraduationCap, Menu, X, Trophy } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { ColorMesh } from "../components/ColorMesh";
 import { WebOverlay } from "../components/SpideyArt";
@@ -11,6 +11,7 @@ const links = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/registrations", label: "Registrations & Teams", icon: Shield },
   { to: "/admin/selections", label: "Selections & Approvals", icon: BadgeCheck },
+  { to: "/admin/final-teams", label: "Final Approved Teams 🏆", icon: Trophy },
   { to: "/admin/students", label: "Student Explorer", icon: GraduationCap },
   { to: "/admin/budget", label: "Budget & Ledger", icon: IndianRupee },
   { to: "/admin/payments", label: "Payment Verification", icon: Wallet },
@@ -32,7 +33,6 @@ export function AdminLayout() {
         <WebOverlay />
         <Link to="/admin" className="relative flex items-center gap-2">
           <SihLogo variant="dark" size="sm" />
-          <span className="text-[10px] font-black uppercase tracking-wider text-gold">Admin Portal</span>
         </Link>
 
         <button
@@ -54,7 +54,6 @@ export function AdminLayout() {
               <div className="flex items-center justify-between pb-4 border-b border-white/10">
                 <div>
                   <SihLogo variant="dark" size="sm" />
-                  <p className="mt-1 text-[9px] font-black uppercase tracking-[0.2em] text-gold">GTMC Nanded Organizer</p>
                 </div>
                 <button onClick={() => setMobileMenuOpen(false)} className="rounded-lg p-1 text-white/70 hover:text-white">
                   <X size={18} />
@@ -100,15 +99,14 @@ export function AdminLayout() {
       )}
 
       {/* Desktop Sidebar (>= lg) */}
-      <aside className="hidden lg:relative lg:flex lg:flex-col lg:justify-between overflow-hidden web-bg p-6 text-white lg:min-h-svh border-r-2 border-web/20">
+      <aside className="hidden lg:relative lg:flex lg:flex-col lg:justify-between overflow-hidden web-bg p-4 sm:p-5 text-white lg:min-h-svh border-r-2 border-web/20">
         <WebOverlay />
         <div className="relative">
-          <Link to="/admin" className="block">
-            <SihLogo variant="dark" size="md" />
+          <Link to="/admin" className="flex items-center justify-center py-1 text-center w-full">
+            <SihLogo variant="dark" size="lg" />
           </Link>
-          <p className="mt-2 text-[10px] font-black uppercase tracking-[0.22em] text-gold">GTMC Nanded Organizer Portal</p>
 
-          <nav className="mt-8 space-y-1.5">
+          <nav className="mt-3 space-y-1">
             {links.map((link) => (
               <NavLink
                 key={link.to}
