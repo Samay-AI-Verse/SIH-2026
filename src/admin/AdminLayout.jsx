@@ -10,6 +10,7 @@ const links = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/registrations", label: "Registrations", icon: Shield },
   { to: "/admin/teams", label: "Teams & Roster", icon: Users },
+  { to: "/admin/selections", label: "Selections & Approvals", icon: BadgeCheck },
   { to: "/admin/students", label: "Student Explorer", icon: GraduationCap },
   { to: "/admin/budget", label: "Budget & Ledger", icon: IndianRupee },
   { to: "/admin/payments", label: "Payment Verification", icon: Wallet },

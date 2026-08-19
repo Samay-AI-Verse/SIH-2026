@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Search, Sparkles, Lightbulb } from "lucide-react";
+import { Search, Sparkles, Lightbulb, RotateCcw } from "lucide-react";
 import { ProblemCard } from "./ProblemCard";
 import { SectionHeading } from "./ui/SectionHeading";
 import { Skeleton } from "./ui/Skeleton";
@@ -27,6 +27,19 @@ export function ProblemExplorer({ compact = false, canSelect = false, selectedPr
     const technologies = useMemo(() => ["All", ...new Set(problems.flatMap((item) => item.technologies || []))], [problems]);
     const organizations = useMemo(() => ["All", ...new Set(problems.map((item) => item.organization))], [problems]);
     const difficulties = useMemo(() => ["All", ...new Set(problems.map((item) => item.difficulty))], [problems]);
+
+    const hasActiveFilters = Boolean(
+      search || category !== "All" || technology !== "All" || organization !== "All" || difficulty !== "All" || availability !== "All"
+    );
+
+    const resetFilters = () => {
+      setSearch("");
+      setCategory("All");
+      setTechnology("All");
+      setOrganization("All");
+      setDifficulty("All");
+      setAvailability("All");
+    };
 
     const visible = problems.filter((item) => {
         if (availability === "OPEN INNOVATION") {
@@ -106,12 +119,30 @@ export function ProblemExplorer({ compact = false, canSelect = false, selectedPr
             ))}
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            {filters.map((item) => (
-              <button key={item} onClick={() => setAvailability(item)} className={`rounded-md px-4 py-2 text-xs font-black tracking-[0.16em] uppercase transition ${availability === item ? "bg-spidey text-white shadow-[4px_4px_0_#071433]" : "bg-white text-web hover:bg-gold"}`}>
-                {item}
-              </button>
-            ))}
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              {filters.map((item) => (
+                <button key={item} onClick={() => setAvailability(item)} className={`rounded-md px-4 py-2 text-xs font-black tracking-[0.16em] uppercase transition ${availability === item ? "bg-spidey text-white shadow-[4px_4px_0_#071433]" : "bg-white text-web hover:bg-gold"}`}>
+                  {item}
+                </button>
+              ))}
+            </div>
+
+            {!loading && (
+              <div className="flex items-center gap-3 text-xs font-bold text-ink/80">
+                <span>
+                  Showing <strong className="text-web">{list.length}</strong> of <strong className="text-web">{problems.length}</strong> problem statements
+                </span>
+                {hasActiveFilters && (
+                  <button
+                    onClick={resetFilters}
+                    className="inline-flex items-center gap-1 rounded-md border-2 border-spidey bg-spidey/10 px-2.5 py-1 text-xs font-black text-spidey hover:bg-spidey hover:text-white transition"
+                  >
+                    <RotateCcw size={12} /> Clear Filters
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {loading ? (
@@ -126,7 +157,16 @@ export function ProblemExplorer({ compact = false, canSelect = false, selectedPr
             </div>
           )}
 
-          {!loading && list.length === 0 ? (<p className="mt-10 text-center text-ink/50">No problem statements match these filters.</p>) : null}
+          {!loading && list.length === 0 ? (
+            <div className="mt-10 text-center space-y-3">
+              <p className="text-ink/60 font-bold">No problem statements match your active filters.</p>
+              {hasActiveFilters && (
+                <Button variant="secondary" onClick={resetFilters} className="text-xs font-black py-2 px-4">
+                  <RotateCcw size={14} className="mr-1.5" /> Clear All Filters
+                </Button>
+              )}
+            </div>
+          ) : null}
           {compact && !loading ? (
             <div className="mt-10 text-center">
               <Button to="/problems">View all {problems.length} problem statements</Button>

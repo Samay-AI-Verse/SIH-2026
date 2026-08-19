@@ -66,19 +66,23 @@ export function AdminRegistrations() {
                 <td className="px-4 py-3">{team.selectedProblemId || "—"}</td>
                 <td className="px-4 py-3">{formatDate(team.registeredAt)}</td>
                 <td className="px-4 py-3">
-                  <div className="flex flex-wrap gap-2">
-                    {team.paymentStatus !== "SUCCESS" && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {team.registrationStatus !== "CONFIRMED" && team.paymentStatus !== "SUCCESS" ? (
                       <button
-                        className="rounded bg-emerald-600 px-2 py-1 text-xs font-black text-white hover:bg-emerald-700"
-                        onClick={() => adminVerifyPayment(team.id, "SUCCESS", "Manual Admin Approval").then(load)}
+                        className="rounded-lg border border-web bg-emerald-600 px-2.5 py-1 text-xs font-black text-white hover:bg-emerald-700 shadow-sm transition"
+                        onClick={() => adminVerifyPayment(team.id, "SUCCESS", "Approved by Admin for Hackathon Finale").then(load)}
                       >
-                        Approve
+                        ✓ Approve for Hackathon
                       </button>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-green-100 border border-green-600 px-2 py-0.5 text-xs font-black text-green-800">
+                        ✓ APPROVED
+                      </span>
                     )}
-                    <a className="text-saffron font-bold" href={`mailto:${team.email}`}>
+                    <a className="text-saffron font-bold text-xs hover:underline" href={`mailto:${team.email}`}>
                       Contact
                     </a>
-                    <button className="text-rose font-bold" onClick={() => adminCancelTeam(team.id).then(load)}>
+                    <button className="text-rose font-bold text-xs hover:underline" onClick={() => adminCancelTeam(team.id).then(load)}>
                       Cancel
                     </button>
                   </div>
