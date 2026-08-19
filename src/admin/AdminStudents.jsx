@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo } from "react";
-import { GraduationCap, Search, Filter, ShieldCheck, Mail, Phone, Building, User, Award, Eye, X, CheckCircle, Clock } from "lucide-react";
-import { adminFetchStudents, adminFetchRegistrations, adminVerifyPayment } from "../services/apiService";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { GraduationCap, Search, Filter, ShieldCheck, Mail, Phone, Building, User, Award, Eye, X, CheckCircle, Clock, Trash2, RefreshCw } from "lucide-react";
+import { adminFetchStudents, adminFetchRegistrations, adminVerifyPayment, adminDeleteTeam, subscribeTable } from "../services/apiService";
 import { Skeleton } from "../components/ui/Skeleton";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { formatINR } from "../utils/cn";
@@ -15,25 +15,31 @@ export function AdminStudents() {
   const [roleFilter, setRoleFilter] = useState("ALL");
   const [genderFilter, setGenderFilter] = useState("ALL");
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+
+  const loadData = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    try {
+      const [studData, teamData] = await Promise.all([
+        adminFetchStudents().catch(() => []),
+        adminFetchRegistrations().catch(() => [])
+      ]);
+      setStudents(studData || []);
+      setTeams(teamData || []);
+    } catch (err) {
+      console.error("Failed to load students data:", err);
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      try {
-        const [studData, teamData] = await Promise.all([
-          adminFetchStudents().catch(() => []),
-          adminFetchRegistrations().catch(() => [])
-        ]);
-        setStudents(studData || []);
-        setTeams(teamData || []);
-      } catch (err) {
-        console.error("Failed to load students data:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
+    loadData(true);
+    const unsubscribe = subscribeTable("all", () => {
+      loadData(false);
+    });
+    return () => unsubscribe();
+  }, [loadData]);
 
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
@@ -197,12 +203,21 @@ export function AdminStudents() {
       {/* Student List Table */}
       <div className="overflow-hidden rounded-2xl border-3 border-web bg-white shadow-[6px_6px_0_#071433]">
         <div className="p-4 bg-web text-white flex items-center justify-between">
-          <p className="font-display text-2xl tracking-wide">
+          <p className="font-display text-2xl tracking-wide flex items-center gap-3">
             Registered Students List ({filteredStudents.length})
           </p>
-          <span className="text-xs font-bold uppercase tracking-wider bg-gold text-ink px-2.5 py-0.5 rounded-full">
-            GTMC Nanded Roster
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => loadData(true)}
+              className="inline-flex items-center gap-1 rounded-full bg-white/10 hover:bg-white/20 text-white px-3 py-1 text-xs font-bold transition"
+              title="Refresh Data"
+            >
+              <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
+            </button>
+            <span className="text-xs font-bold uppercase tracking-wider bg-gold text-ink px-2.5 py-0.5 rounded-full">
+              GTMC NANDED ROSTER
+            </span>
+          </div>
         </div>
 
         {loading ? (
@@ -278,15 +293,34 @@ export function AdminStudents() {
                         <StatusBadge status={s.paymentStatus} />
                       </td>
 
-                      <td className="px-4 py-3.5 text-right">
+                      <td className="px-4 py-3.5 text-right flex items-center justify-end gap-2">
                         {targetTeam && (
                           <button
                             onClick={() => setSelectedTeam(targetTeam)}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-web bg-web/10 px-3 py-1.5 text-xs font-black uppercase text-web hover:bg-web hover:text-white transition"
+                            className="inline-flex items-center gap-1 rounded-lg border border-web bg-web/10 px-2.5 py-1.5 text-xs font-black uppercase text-web hover:bg-web hover:text-white transition"
                           >
                             <Eye size={13} /> View Team
                           </button>
                         )}
+                        <button
+                          disabled={deletingId === s.teamId}
+                          onClick={async () => {
+                            if (!window.confirm(`Are you sure you want to permanently delete Team '${s.teamName}' and all its members from database?`)) return;
+                            setDeletingId(s.teamId);
+                            try {
+                              await adminDeleteTeam(s.teamId);
+                              await loadData(false);
+                            } catch (err) {
+                              alert("Failed to delete team: " + err.message);
+                            } finally {
+                              setDeletingId(null);
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 rounded-lg border border-red-500 bg-red-50 text-red-600 px-2 py-1.5 text-xs font-black uppercase hover:bg-red-600 hover:text-white transition disabled:opacity-50"
+                          title="Delete Team & Members"
+                        >
+                          <Trash2 size={13} />
+                        </button>
                       </td>
                     </tr>
                   );

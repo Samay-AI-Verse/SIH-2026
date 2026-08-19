@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Sparkles, Search, ShieldCheck, Download, AlertCircle, Building, Mail, Phone, Clock } from "lucide-react";
+import { CheckCircle2, Sparkles, Search, ShieldCheck, Download, AlertCircle, Building, Mail, Phone, Clock, Trophy, Users } from "lucide-react";
 import { adminFetchTeams, fetchProblems, adminVerifyPayment, subscribeTable } from "../services/apiService";
 import { SAMPLE_PROBLEMS } from "../utils/constants";
 import { downloadCsv, formatDate } from "../utils/cn";
@@ -9,7 +9,7 @@ export function AdminSelections() {
   const [problems, setProblems] = useState(SAMPLE_PROBLEMS);
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("SELECTED_ONLY"); // "ALL", "SELECTED_ONLY", "OPEN_INNOVATION"
+  const [filter, setFilter] = useState("SELECTED_ONLY"); // "ALL", "SELECTED_ONLY", "OPEN_INNOVATION", "FINAL_APPROVED"
   const [search, setSearch] = useState("");
 
   async function load() {
@@ -32,6 +32,10 @@ export function AdminSelections() {
 
   const openInnoTeams = useMemo(() => {
     return teams.filter((t) => t.is_open_innovation || t.selectedProblemId === "OPEN_INNOVATION");
+  }, [teams]);
+
+  const approvedTeams = useMemo(() => {
+    return teams.filter((t) => t.registrationStatus === "CONFIRMED" || t.paymentStatus === "SUCCESS");
   }, [teams]);
 
   const allocation = useMemo(() => {
@@ -65,6 +69,20 @@ export function AdminSelections() {
     });
   }, [allocation, filter, search]);
 
+  const filteredApprovedTeams = useMemo(() => {
+    return approvedTeams.filter((t) => {
+      const q = search.toLowerCase().trim();
+      return (
+        !q ||
+        (t.teamName || "").toLowerCase().includes(q) ||
+        (t.registrationId || "").toLowerCase().includes(q) ||
+        (t.leaderName || "").toLowerCase().includes(q) ||
+        (t.college || "").toLowerCase().includes(q) ||
+        (t.selectedProblemTitle || "").toLowerCase().includes(q)
+      );
+    });
+  }, [approvedTeams, search]);
+
   const handleApprove = async (teamId) => {
     try {
       await adminVerifyPayment(teamId, "SUCCESS", "Approved by Admin for Hackathon Grand Finale");
@@ -75,7 +93,7 @@ export function AdminSelections() {
   };
 
   const selectedTeamsCount = teams.filter((t) => t.selectedProblemId).length;
-  const confirmedTeamsCount = teams.filter((t) => t.registrationStatus === "CONFIRMED" || t.paymentStatus === "SUCCESS").length;
+  const confirmedTeamsCount = approvedTeams.length;
 
   return (
     <div className="space-y-6">
@@ -85,38 +103,60 @@ export function AdminSelections() {
           <div className="inline-flex items-center gap-1.5 rounded-full border border-web/20 bg-gold/30 px-3 py-0.5 text-xs font-black text-web">
             <ShieldCheck size={14} /> ADMIN SELECTION & APPROVAL MANAGER
           </div>
-          <h1 className="mt-1 font-display text-3xl text-web">Problem Selections & Team Approvals</h1>
+          <h1 className="mt-1 font-display text-3xl text-web">Problem Selections & Final Approved Teams</h1>
           <p className="text-xs font-bold text-ink/70">
-            Review problem statements selected by teams, inspect Open Innovation custom ideas, and grant final Hackathon Grand Finale approvals.
+            Review problem statement allocations, inspect Open Innovation ideas, and filter the Final Approved List of Finale Candidates.
           </p>
         </div>
 
         <Button
           variant="secondary"
           className="shrink-0 text-xs font-black"
-          onClick={() =>
-            downloadCsv(
-              "sih-problem-allocations.csv",
-              allocation
-                .filter(({ teams: t }) => t.length > 0)
-                .map(({ problem, teams: assigned }) => ({
-                  problemCode: problem.code || problem.id,
-                  problemTitle: problem.title,
-                  organization: problem.organization,
-                  category: problem.category,
-                  teamA_RegId: assigned[0]?.registrationId || "",
-                  teamA_Name: assigned[0]?.teamName || "",
-                  teamA_College: assigned[0]?.college || "",
-                  teamA_Status: assigned[0]?.registrationStatus || "",
-                  teamB_RegId: assigned[1]?.registrationId || "",
-                  teamB_Name: assigned[1]?.teamName || "",
-                  teamB_College: assigned[1]?.college || "",
-                  teamB_Status: assigned[1]?.registrationStatus || "",
-                }))
-            )
-          }
+          onClick={() => {
+            if (filter === "FINAL_APPROVED") {
+              downloadCsv(
+                "sih-final-approved-candidates.csv",
+                approvedTeams.flatMap((team) =>
+                  (team.members || []).map((m) => ({
+                    registrationId: team.registrationId,
+                    teamName: team.teamName,
+                    college: team.college,
+                    problemStatement: team.selectedProblemTitle || "Open Innovation",
+                    studentName: m.name,
+                    role: m.isLeader ? "Leader" : "Member",
+                    gender: m.gender,
+                    email: m.email,
+                    phone: m.phone,
+                    branch: m.branch || team.leaderBranch,
+                    year: m.year || team.leaderYear,
+                  }))
+                )
+              );
+            } else {
+              downloadCsv(
+                "sih-problem-allocations.csv",
+                allocation
+                  .filter(({ teams: t }) => t.length > 0)
+                  .map(({ problem, teams: assigned }) => ({
+                    problemCode: problem.code || problem.id,
+                    problemTitle: problem.title,
+                    organization: problem.organization,
+                    category: problem.category,
+                    teamA_RegId: assigned[0]?.registrationId || "",
+                    teamA_Name: assigned[0]?.teamName || "",
+                    teamA_College: assigned[0]?.college || "",
+                    teamA_Status: assigned[0]?.registrationStatus || "",
+                    teamB_RegId: assigned[1]?.registrationId || "",
+                    teamB_Name: assigned[1]?.teamName || "",
+                    teamB_College: assigned[1]?.college || "",
+                    teamB_Status: assigned[1]?.registrationStatus || "",
+                  }))
+              );
+            }
+          }}
         >
-          <Download size={14} className="mr-1.5" /> Export Allocations CSV
+          <Download size={14} className="mr-1.5" />
+          {filter === "FINAL_APPROVED" ? "Export Approved Candidates CSV" : "Export Allocations CSV"}
         </Button>
       </div>
 
@@ -128,10 +168,15 @@ export function AdminSelections() {
           <p className="text-[11px] text-ink/60 mt-0.5">Out of {teams.length} registered teams</p>
         </div>
 
-        <div className="rounded-2xl border-2 border-green-500/30 bg-green-50/50 p-4 shadow-sm">
-          <p className="text-xs font-bold text-green-700 uppercase">Hackathon Approved</p>
-          <p className="mt-1 font-display text-2xl text-green-800">{confirmedTeamsCount}</p>
-          <p className="text-[11px] text-green-600 mt-0.5">Eligible for Finale</p>
+        <div
+          onClick={() => setFilter("FINAL_APPROVED")}
+          className="cursor-pointer rounded-2xl border-3 border-emerald-600 bg-emerald-50 p-4 shadow-sm transition hover:scale-102"
+        >
+          <p className="text-xs font-black text-emerald-800 uppercase flex items-center gap-1">
+            <Trophy size={14} /> Hackathon Approved
+          </p>
+          <p className="mt-1 font-display text-2xl text-emerald-800">{confirmedTeamsCount}</p>
+          <p className="text-[11px] text-emerald-700 font-bold mt-0.5">Click to View Final Candidates</p>
         </div>
 
         <div className="rounded-2xl border-2 border-amber-500/30 bg-amber-50/50 p-4 shadow-sm">
@@ -152,6 +197,7 @@ export function AdminSelections() {
         <div className="flex flex-wrap gap-2">
           {[
             { id: "SELECTED_ONLY", label: "Selected Statements Only" },
+            { id: "FINAL_APPROVED", label: `🏆 Final Approved List (${confirmedTeamsCount})` },
             { id: "OPEN_INNOVATION", label: `Open Innovation (${openInnoTeams.length})` },
             { id: "ALL", label: "All 101 Problem Statements" },
           ].map((tab) => (
@@ -180,6 +226,77 @@ export function AdminSelections() {
           />
         </div>
       </div>
+
+      {/* FINAL APPROVED LIST TAB */}
+      {filter === "FINAL_APPROVED" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-2xl text-web flex items-center gap-2">
+              <Trophy className="text-gold" size={24} /> Final Approved Candidates & Teams List ({filteredApprovedTeams.length})
+            </h2>
+            <span className="text-xs font-bold uppercase tracking-wider bg-emerald-100 border border-emerald-600 text-emerald-800 px-3 py-1 rounded-full">
+              GTMC Nanded Grand Finale Finalists
+            </span>
+          </div>
+
+          {filteredApprovedTeams.length === 0 ? (
+            <p className="text-sm font-bold text-ink/60 py-10 text-center bg-white rounded-2xl border-2 border-dashed border-web/20">
+              No approved finalist teams found. Verify team payments to approve them for the Hackathon Finale!
+            </p>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {filteredApprovedTeams.map((team) => (
+                <div key={team.id} className="rounded-2xl border-3 border-emerald-600 bg-white p-5 shadow-comic space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span className="font-mono text-xs font-black text-white bg-emerald-600 px-2 py-0.5 rounded border border-emerald-700">
+                        {team.registrationId}
+                      </span>
+                      <h3 className="font-display text-2xl text-web mt-1">{team.teamName}</h3>
+                      <p className="text-xs font-bold text-ink/70 flex items-center gap-1 mt-0.5">
+                        <Building size={12} /> {team.college}
+                      </p>
+                    </div>
+
+                    <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-black border border-green-600 bg-green-100 text-green-800">
+                      <CheckCircle2 size={13} /> APPROVED FINALLY
+                    </span>
+                  </div>
+
+                  <div className="rounded-xl border-2 border-web/20 bg-slate-50 p-3 text-xs space-y-1">
+                    <p className="font-black text-web">Problem Statement / Category:</p>
+                    <p className="font-bold text-ink">
+                      {team.isOpenInnovation
+                        ? `🚀 Open Innovation: ${team.openInnovationTitle || "Custom Project Idea"}`
+                        : team.selectedProblemTitle || "General Category"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border-2 border-web/10 bg-emerald-50/50 p-3">
+                    <p className="text-[11px] font-black text-emerald-800 uppercase mb-1.5 flex items-center gap-1">
+                      <Users size={12} /> 6-Member Candidate Roster:
+                    </p>
+                    <ul className="grid grid-cols-2 gap-1.5 text-xs">
+                      {team.members?.map((m, idx) => (
+                        <li key={m.id || idx} className="truncate font-semibold text-slate-700">
+                          • {m.name} {m.isLeader ? <span className="text-[9px] font-black text-amber-700">(L)</span> : ""}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs font-bold text-slate-600">
+                    <span>Leader Contact: {team.email}</span>
+                    <a href={`mailto:${team.email}`} className="text-spidey hover:underline font-black">
+                      Mail Team
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* OPEN INNOVATION SUBMISSIONS SECTION */}
       {filter === "OPEN_INNOVATION" && (
@@ -260,7 +377,7 @@ export function AdminSelections() {
       )}
 
       {/* STANDARD PROBLEM STATEMENT ALLOCATIONS */}
-      {filter !== "OPEN_INNOVATION" && (
+      {filter !== "OPEN_INNOVATION" && filter !== "FINAL_APPROVED" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-xl text-web">
@@ -345,3 +462,4 @@ export function AdminSelections() {
     </div>
   );
 }
+

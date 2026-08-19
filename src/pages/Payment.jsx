@@ -21,8 +21,7 @@ export function Payment() {
   const [paymentMode, setPaymentMode] = useState("ONLINE"); // ONLINE or OFFLINE_CASH
   const [paidClicked, setPaidClicked] = useState(false);
   const [utr, setUtr] = useState("");
-  const [collectorName, setCollectorName] = useState("Onkar Bhaskar Nagargoje");
-  const [customCollector, setCustomCollector] = useState("");
+  const [collectorName, setCollectorName] = useState("");
   const [receiptNo, setReceiptNo] = useState("");
   const [proofFile, setProofFile] = useState(null);
   const [proofPreview, setProofPreview] = useState("");
@@ -30,14 +29,6 @@ export function Payment() {
   const [busy, setBusy] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
-
-  const committeeMembers = [
-    "Onkar Bhaskar Nagargoje",
-    "Samay (Team Lead)",
-    "Prathamesh (Coordinator)",
-    "Sahil (Coordinator)",
-    "Other Committee Member"
-  ];
 
   useEffect(() => {
     setTeam(loaded);
@@ -86,8 +77,6 @@ export function Payment() {
   const waiting = submitted || team.paymentStatus === PAYMENT_STATUS.PROCESSING;
   const rejected = team.paymentStatus === PAYMENT_STATUS.FAILED;
 
-  const activeCollector = collectorName === "Other Committee Member" ? customCollector : collectorName;
-
   return (
     <div className="mx-auto max-w-2xl px-4 py-24 sm:py-28">
       {/* Header */}
@@ -134,14 +123,24 @@ export function Payment() {
 
       {waiting ? (
         <div className="mt-6 space-y-6">
-          <div className="surface-card p-6 border-2 border-web bg-amber-50/70 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-200 text-amber-900 mb-3">
-              <Clock size={24} />
+          <div className="surface-card p-6 sm:p-8 border-3 border-web bg-amber-50/90 text-center shadow-[6px_6px_0_#071433]">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-200 text-amber-900 mb-3 border-2 border-web">
+              <Clock size={28} />
             </div>
-            <p className="font-display text-2xl text-web">Payment Submitted — Awaiting Verification</p>
-            <p className="mt-2 text-xs sm:text-sm leading-relaxed text-ink/75 max-w-lg mx-auto">
+            <p className="font-display text-3xl text-web">Payment Submitted — Awaiting Verification</p>
+            <p className="mt-2 text-xs sm:text-sm leading-relaxed text-ink/80 max-w-lg mx-auto font-medium">
               Your payment submission has been received by GTMC Hackathon organizers. Once cross-verified, your team status will become <strong>CONFIRMED</strong>!
             </p>
+
+            {/* Go to Dashboard Action Button */}
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link
+                to={`/dashboard?regId=${team.registrationId}&email=${encodeURIComponent(team.email || "")}`}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border-3 border-web bg-gold px-7 py-3.5 font-ui text-sm font-black uppercase text-web shadow-[4px_4px_0_#071433] hover:bg-gold/90 hover:-translate-y-0.5 active:translate-y-0 transition"
+              >
+                🚀 Go to Team Dashboard →
+              </Link>
+            </div>
           </div>
 
           {/* WhatsApp Community Card */}
@@ -313,8 +312,8 @@ export function Payment() {
                 event.preventDefault();
                 setError("");
 
-                if (!activeCollector.trim()) {
-                  setError("Please select or enter the Organizing Committee member who collected your cash fee.");
+                if (!collectorName.trim()) {
+                  setError("Please enter the name of the person / committee member who collected your cash fee.");
                   return;
                 }
 
@@ -340,7 +339,7 @@ export function Payment() {
                     uploadedUrl,
                     uploadedKey,
                     "OFFLINE_CASH",
-                    activeCollector.trim(),
+                    collectorName.trim(),
                     receiptNo.trim().toUpperCase()
                   );
 
@@ -366,30 +365,20 @@ export function Payment() {
               </div>
 
               <div className="space-y-4">
-                <Field label="Who collected your cash fee? *" error={!activeCollector ? "Collector name is required" : ""}>
-                  <select
-                    className="w-full rounded-xl border-2 border-web/40 bg-white p-3 text-sm font-semibold text-ink focus:border-web focus:outline-none"
+                <Field label="Who collected your cash fee? *" error={!collectorName.trim() && error ? error : ""}>
+                  <TextInput
+                    placeholder="Enter name of person / committee member who collected cash"
                     value={collectorName}
-                    onChange={(e) => setCollectorName(e.target.value)}
-                  >
-                    {committeeMembers.map((name) => (
-                      <option key={name} value={name}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(e) => {
+                      setCollectorName(e.target.value);
+                      setError("");
+                    }}
+                    required
+                  />
+                  <p className="text-[11px] text-ink/50 mt-1">
+                    Enter the full name of the organizing committee member or person to whom you paid the cash fee.
+                  </p>
                 </Field>
-
-                {collectorName === "Other Committee Member" && (
-                  <Field label="Enter Committee Member Name *">
-                    <TextInput
-                      placeholder="e.g. Volunteer Name"
-                      value={customCollector}
-                      onChange={(e) => setCustomCollector(e.target.value)}
-                      required
-                    />
-                  </Field>
-                )}
 
                 <Field label="Cash Receipt / Slip Number *" error={!receiptNo.trim() && error ? error : ""}>
                   <TextInput

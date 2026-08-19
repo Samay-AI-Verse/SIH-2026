@@ -17,15 +17,21 @@ import {
   Building,
   GraduationCap,
   Copy,
-  Check
+  Check,
+  Edit3,
+  X,
+  Save,
+  User
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Field, TextInput } from "../components/ui/Field";
 import { PageLoader } from "../components/ui/Skeleton";
+import { Modal } from "../components/ui/Modal";
 import { WhatsAppCard } from "../components/WhatsAppCard";
 import { api } from "../lib/api";
 import { formatINR } from "../utils/cn";
 import { getTeamSession } from "../lib/session";
+import { updateTeamMember, fetchTeamBundle } from "../services/apiService";
 
 export function TeamDashboard() {
   const [searchParams] = useSearchParams();
@@ -38,8 +44,22 @@ export function TeamDashboard() {
   const [regId, setRegId] = useState(initialRegId);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
   const [data, setData] = useState(null);
   const [copiedId, setCopiedId] = useState(false);
+
+  // Edit Member Modal State
+  const [editingMember, setEditingMember] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    gender: "Male",
+    branch: "",
+    year: "3rd Year"
+  });
+  const [savingMember, setSavingMember] = useState(false);
+  const [memberMessage, setMemberMessage] = useState("");
 
   async function handleLookup(e) {
     if (e) e.preventDefault();
@@ -303,55 +323,88 @@ export function TeamDashboard() {
                 <h3 className="font-display text-xl sm:text-2xl text-web flex items-center gap-2">
                   <Users size={20} /> Team Members ({data.members?.length || 6})
                 </h3>
-                <span className="text-xs font-bold text-ink/60">
-                  Roster: 6 Members (incl. Female candidate)
+                <span className="text-xs font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                  ✏️ Roster Editable until registration cutoff
                 </span>
               </div>
+
+              {memberMessage && (
+                <div className="mt-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 p-3 text-xs font-bold text-emerald-800 flex items-center justify-between">
+                  <span>{memberMessage}</span>
+                  <button onClick={() => setMemberMessage("")} className="text-emerald-800 hover:text-black">✕</button>
+                </div>
+              )}
 
               <div className="mt-3 sm:mt-4 grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {data.members?.map((member, index) => (
                   <div
                     key={member.id || index}
-                    className={`relative rounded-2xl border-2 sm:border-3 p-4 sm:p-5 shadow-comic transition-all ${
+                    className={`relative rounded-2xl border-2 sm:border-3 p-4 sm:p-5 shadow-comic transition-all flex flex-col justify-between ${
                       member.is_leader || index === 0
                         ? "border-web bg-gold/15"
                         : "border-web/40 bg-white hover:border-web"
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="inline-flex items-center gap-1 rounded-md bg-web px-2 py-0.5 text-[10px] sm:text-[11px] font-black text-white">
-                        {member.is_leader || index === 0 ? (
-                          <><Crown size={11} className="text-gold" /> LEADER</>
-                        ) : (
-                          `MEMBER ${index + 1}`
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-web px-2 py-0.5 text-[10px] sm:text-[11px] font-black text-white">
+                          {member.is_leader || index === 0 ? (
+                            <><Crown size={11} className="text-gold" /> LEADER</>
+                          ) : (
+                            `MEMBER ${index + 1}`
+                          )}
+                        </span>
+                        <span className="text-xs font-bold text-ink/60">
+                          {member.gender}
+                        </span>
+                      </div>
+
+                      <h4 className="mt-2 font-display text-base sm:text-lg text-web">
+                        {member.name || member.full_name}
+                      </h4>
+
+                      <div className="mt-2.5 space-y-1 text-xs text-ink/80">
+                        {member.email && (
+                          <p className="flex items-center gap-1.5 truncate">
+                            <Mail size={12} className="shrink-0 text-web/60" /> {member.email}
+                          </p>
                         )}
-                      </span>
-                      <span className="text-xs font-bold text-ink/60">
-                        {member.gender}
-                      </span>
+                        {member.phone && (
+                          <p className="flex items-center gap-1.5">
+                            <Phone size={12} className="shrink-0 text-web/60" /> {member.phone}
+                          </p>
+                        )}
+                        {(member.branch || member.year) && (
+                          <p className="flex items-center gap-1.5 text-ink font-semibold">
+                            <GraduationCap size={12} className="shrink-0 text-web/60" />
+                            {[member.branch, member.year].filter(Boolean).join(" • ")}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
-                    <h4 className="mt-2 font-display text-base sm:text-lg text-web">
-                      {member.name || member.full_name}
-                    </h4>
-
-                    <div className="mt-2.5 space-y-1 text-xs text-ink/80">
-                      {member.email && (
-                        <p className="flex items-center gap-1.5 truncate">
-                          <Mail size={12} className="shrink-0 text-web/60" /> {member.email}
-                        </p>
-                      )}
-                      {member.phone && (
-                        <p className="flex items-center gap-1.5">
-                          <Phone size={12} className="shrink-0 text-web/60" /> {member.phone}
-                        </p>
-                      )}
-                      {(member.branch || member.year) && (
-                        <p className="flex items-center gap-1.5 text-ink font-semibold">
-                          <GraduationCap size={12} className="shrink-0 text-web/60" />
-                          {[member.branch, member.year].filter(Boolean).join(" • ")}
-                        </p>
-                      )}
+                    {/* Edit Member Action */}
+                    <div className="mt-4 pt-3 border-t border-web/15 flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">
+                        {member.is_leader ? "Primary Contact" : "Roster Member"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingMember(member);
+                          setEditForm({
+                            name: member.name || member.full_name || "",
+                            email: member.email || "",
+                            phone: member.phone || "",
+                            gender: member.gender || "Male",
+                            branch: member.branch || "",
+                            year: member.year || "3rd Year"
+                          });
+                        }}
+                        className="inline-flex items-center gap-1 rounded-lg border-2 border-web/30 bg-white hover:bg-gold/40 px-2.5 py-1 text-xs font-black uppercase text-web transition shadow-xs"
+                      >
+                        <Edit3 size={12} /> Edit Details
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -378,6 +431,127 @@ export function TeamDashboard() {
           </div>
         )}
       </div>
+
+      {/* EDIT MEMBER MODAL */}
+      {editingMember && (
+        <Modal open={Boolean(editingMember)} onClose={() => setEditingMember(null)} labelledBy="edit-member-title">
+          <div className="space-y-4 text-left">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-spidey bg-gold/30 px-2.5 py-0.5 rounded-md">
+                  UPDATE ROSTER MEMBER
+                </span>
+                <h3 id="edit-member-title" className="font-display text-2xl text-web mt-1">
+                  Edit Member Details
+                </h3>
+              </div>
+              <button
+                onClick={() => setEditingMember(null)}
+                className="rounded-full bg-slate-100 p-1.5 text-slate-500 hover:bg-slate-200 hover:text-black transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 font-medium">
+              Update details for <strong>{editingMember.name || editingMember.full_name}</strong> ({editingMember.is_leader ? "Team Leader" : "Team Member"}). Changes will be saved directly to your team roster.
+            </p>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setSavingMember(true);
+                try {
+                  await updateTeamMember(data.team.id, editingMember.id, {
+                    full_name: editForm.name.trim(),
+                    gender: editForm.gender,
+                    branch: editForm.branch.trim(),
+                    year: editForm.year.trim()
+                  });
+                  // Refresh team bundle
+                  const refreshed = await fetchTeamBundle(data.team.id);
+                  if (refreshed) {
+                    setData({ team: refreshed, members: refreshed.members || [] });
+                  }
+                  setMemberMessage(`✅ Successfully updated details for ${editForm.name.trim()}!`);
+                  setEditingMember(null);
+                } catch (err) {
+                  alert(err instanceof Error ? err.message : "Failed to update member details.");
+                } finally {
+                  setSavingMember(false);
+                }
+              }}
+              className="space-y-4 pt-1"
+            >
+              {/* Full Name */}
+              <Field label="Full Name *">
+                <TextInput
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  placeholder="Enter full student name"
+                  required
+                />
+              </Field>
+
+              {/* Gender & Study Year (2-column layout) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <Field label="Gender *">
+                  <select
+                    className="w-full rounded-xl border-2 border-web/30 bg-white p-3 text-xs sm:text-sm font-bold text-ink focus:border-web focus:outline-none"
+                    value={editForm.gender}
+                    onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </Field>
+
+                <Field label="Study Year *">
+                  <select
+                    className="w-full rounded-xl border-2 border-web/30 bg-white p-3 text-xs sm:text-sm font-bold text-ink focus:border-web focus:outline-none"
+                    value={editForm.year}
+                    onChange={(e) => setEditForm({ ...editForm, year: e.target.value })}
+                  >
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                  </select>
+                </Field>
+              </div>
+
+              {/* Department / Branch (Full Width) */}
+              <Field label="Department / Branch">
+                <TextInput
+                  placeholder="e.g. Computer Science & Engineering (CSE)"
+                  value={editForm.branch}
+                  onChange={(e) => setEditForm({ ...editForm, branch: e.target.value })}
+                />
+              </Field>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-3">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="flex-1 py-3 text-xs font-black uppercase"
+                  onClick={() => setEditingMember(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={savingMember}
+                  className="flex-1 py-3 text-xs sm:text-sm font-black uppercase tracking-wider bg-web text-white hover:bg-spidey transition shadow-comic"
+                >
+                  {savingMember ? "Saving..." : "Save Member Details ✓"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

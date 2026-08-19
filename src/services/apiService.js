@@ -83,6 +83,18 @@ export async function fetchSettings() {
   return api("/api/settings");
 }
 
+export async function lookupDashboard(email, teamName = "") {
+  const data = await api("/api/dashboard/lookup", {
+    method: "POST",
+    body: JSON.stringify({ email, team_name: teamName }),
+  });
+  if (!data?.team) return null;
+  return {
+    team: mapTeam(data.team, data.members || []),
+    members: data.members || [],
+  };
+}
+
 export async function fetchProblems() {
   const data = await api("/api/problems");
   return (data || []).map(mapProblem);
@@ -92,11 +104,51 @@ export async function submitContact(payload) {
   await api("/api/contact", { method: "POST", body: JSON.stringify(payload) });
 }
 
+let sharedEventSource = null;
+const tableListeners = new Set();
+
+function getSharedEventSource() {
+  if (!sharedEventSource || sharedEventSource.readyState === EventSource.CLOSED) {
+    const baseUrl = import.meta.env.VITE_API_URL || "";
+    sharedEventSource = new EventSource(`${baseUrl}/api/live`);
+
+    sharedEventSource.addEventListener("change", (event) => {
+      tableListeners.forEach((fn) => {
+        try {
+          fn(event);
+        } catch {
+          // ignore callback error
+        }
+      });
+    });
+
+    sharedEventSource.onerror = () => {
+      // Browser EventSource automatically handles reconnection
+    };
+  }
+  return sharedEventSource;
+}
+
 export function subscribeTable(_table, onChange) {
-  const source = new EventSource(`${import.meta.env.VITE_API_URL || ""}/api/live`);
-  source.addEventListener("change", () => onChange());
-  source.onerror = () => undefined;
-  return () => source.close();
+  tableListeners.add(onChange);
+  getSharedEventSource();
+
+  return () => {
+    tableListeners.delete(onChange);
+    if (tableListeners.size === 0 && sharedEventSource) {
+      try {
+        sharedEventSource.close();
+      } catch {
+        // ignore close error
+      }
+      sharedEventSource = null;
+    }
+  };
+}
+
+
+export async function adminFetchStats() {
+  return api("/api/admin/stats");
 }
 
 export async function adminFetchTeams() {
@@ -127,9 +179,18 @@ export async function adminVerifyPayment(teamId, status = "SUCCESS", notes = "Ap
   });
 }
 
-export async function adminCancelTeam(teamId) {
-  await api(`/api/admin/teams/${teamId}/cancel`, { method: "POST" });
+export async function adminCancelTeam(teamId, refund = false, notes = "") {
+  return api(`/api/admin/teams/${teamId}/cancel`, {
+    method: "POST",
+    body: JSON.stringify({ refund, admin_notes: notes }),
+  });
 }
+
+export async function adminDeleteTeam(teamId) {
+  return api(`/api/admin/teams/${teamId}`, { method: "DELETE" });
+}
+
+
 
 export async function adminUpdateSettings(patch) {
   await api("/api/admin/settings", { method: "POST", body: JSON.stringify(patch) });
@@ -247,4 +308,11 @@ export async function adminDeleteExpense(expenseId) {
 
 export async function adminFetchProblemsAnalytics() {
   return api("/api/admin/problems/analytics");
+}
+
+export async function updateTeamMember(teamId, memberId, payload) {
+  return api(`/api/teams/${teamId}/members/${memberId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
 }

@@ -208,28 +208,39 @@ export function PaymentSuccess() {
       </div>
 
       {/* 3. Next Steps & CTAs */}
-      <div className="mt-8 surface-card p-6 border-2 border-web bg-cream text-center sm:text-left flex flex-wrap items-center justify-between gap-4">
+      <div className="mt-8 surface-card p-6 border-3 border-web bg-gold/20 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[4px_4px_0_#071433]">
         <div>
           <h3 className="font-display text-2xl text-web flex items-center gap-2 justify-center sm:justify-start">
-            <Sparkles className="text-spidey" size={20} /> Next: Select Problem Statement
+            <Sparkles className="text-spidey" size={20} /> Next Steps: Problem Statement & Dashboard
           </h3>
           <p className="mt-1 text-xs sm:text-sm text-ink/75">
-            Only 2 teams can choose each problem statement. Explore and lock your team&apos;s choice now!
+            View team status on your Team Dashboard or explore problem statements.
           </p>
         </div>
-        <Link to="/problems">
-          <Button size="lg" className="w-full sm:w-auto">
-            Choose Problem Statement →
-          </Button>
-        </Link>
+        <div className="flex flex-wrap items-center justify-center gap-2.5 w-full sm:w-auto">
+          <Link to={`/dashboard?regId=${registrationId || team?.registrationId || ""}`}>
+            <Button variant="secondary" size="lg" className="w-full sm:w-auto">
+              🚀 Go to Dashboard
+            </Button>
+          </Link>
+          <Link to="/problems">
+            <Button size="lg" className="w-full sm:w-auto">
+              Choose Problem →
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      <div className="mt-6 flex justify-center gap-4">
-        <Link to="/register" className="text-xs font-bold text-ink/60 hover:text-spidey transition">
+      <div className="mt-6 flex justify-center items-center gap-4 text-xs font-bold text-ink/60">
+        <Link to={`/dashboard?regId=${registrationId || team?.registrationId || ""}`} className="hover:text-spidey transition">
+          View Dashboard
+        </Link>
+        <span className="text-ink/30">•</span>
+        <Link to="/register" className="hover:text-spidey transition">
           + Register another team
         </Link>
         <span className="text-ink/30">•</span>
-        <Link to="/" className="text-xs font-bold text-ink/60 hover:text-spidey transition">
+        <Link to="/" className="hover:text-spidey transition">
           Back to Homepage
         </Link>
       </div>

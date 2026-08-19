@@ -9,24 +9,25 @@ import { Problems } from "./pages/Problems";
 import { Privacy, Terms } from "./pages/Legal";
 import { AdminLogin } from "./pages/AdminLogin";
 
+import { ProblemDetailsPage } from "./pages/ProblemDetails";
+import { TeamDashboard } from "./pages/TeamDashboard";
+import { AdminLayout } from "./admin/AdminLayout";
+import { AdminDashboard } from "./admin/AdminDashboard";
+import { AdminRegistrations, AdminTeams } from "./admin/AdminRegistrations";
+import { AdminPayments } from "./admin/AdminPayments";
+import { AdminDecisions } from "./admin/AdminDecisions";
+import { AdminProblems } from "./admin/AdminProblems";
+import { AdminSelections } from "./admin/AdminSelections";
+import { AdminSettings, AdminUsers } from "./admin/AdminSettings";
+import { AdminStudents } from "./admin/AdminStudents";
+import { AdminBudget } from "./admin/AdminBudget";
+
+
 const Payment = lazy(() => import("./pages/Payment").then((m) => ({ default: m.Payment })));
 const PaymentVerify = lazy(() => import("./pages/PaymentSuccess").then((m) => ({ default: m.PaymentVerify })));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess").then((m) => ({ default: m.PaymentSuccess })));
 const PaymentFailed = lazy(() => import("./pages/PaymentSuccess").then((m) => ({ default: m.PaymentFailed })));
-import { ProblemDetailsPage } from "./pages/ProblemDetails";
-import { TeamDashboard } from "./pages/TeamDashboard";
-const AdminLayout = lazy(() => import("./admin/AdminLayout").then((m) => ({ default: m.AdminLayout })));
-const AdminDashboard = lazy(() => import("./admin/AdminDashboard").then((m) => ({ default: m.AdminDashboard })));
-const AdminRegistrations = lazy(() => import("./admin/AdminRegistrations").then((m) => ({ default: m.AdminRegistrations })));
-const AdminTeams = lazy(() => import("./admin/AdminRegistrations").then((m) => ({ default: m.AdminTeams })));
-const AdminPayments = lazy(() => import("./admin/AdminPayments").then((m) => ({ default: m.AdminPayments })));
-const AdminDecisions = lazy(() => import("./admin/AdminDecisions").then((m) => ({ default: m.AdminDecisions })));
-const AdminProblems = lazy(() => import("./admin/AdminProblems").then((m) => ({ default: m.AdminProblems })));
-const AdminSelections = lazy(() => import("./admin/AdminSelections").then((m) => ({ default: m.AdminSelections })));
-const AdminSettings = lazy(() => import("./admin/AdminSettings").then((m) => ({ default: m.AdminSettings })));
-const AdminUsers = lazy(() => import("./admin/AdminSettings").then((m) => ({ default: m.AdminUsers })));
-const AdminStudents = lazy(() => import("./admin/AdminStudents").then((m) => ({ default: m.AdminStudents })));
-const AdminBudget = lazy(() => import("./admin/AdminBudget").then((m) => ({ default: m.AdminBudget })));
+
 
 function FallBack() {
   return <PageLoader label="Loading..." />;

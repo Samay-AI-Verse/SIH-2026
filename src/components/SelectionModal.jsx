@@ -170,23 +170,52 @@ export function SelectionModal({ problem, phase, error, team, onCancel, onConfir
 
           {/* Open Innovation Form Fields */}
           {isOpenInno && (
-            <div className="space-y-3 rounded-2xl border-2 border-spidey/30 bg-spidey/5 p-4">
-              <Field label="Project / Idea Title *" error={localError}>
-                <TextInput
-                  placeholder="e.g. AI Autonomous Drone for Crop Health Monitoring"
+            <div className="space-y-4 rounded-2xl border-3 border-spidey/30 bg-gradient-to-b from-spidey/5 to-gold/10 p-5 shadow-inner">
+              <div className="flex items-center justify-between border-b border-spidey/15 pb-2">
+                <span className="font-display text-lg text-web flex items-center gap-2">
+                  <Sparkles size={18} className="text-spidey animate-pulse" /> Open Innovation Project Details
+                </span>
+                <span className="text-[10px] font-black uppercase tracking-wider bg-gold text-web px-2.5 py-0.5 rounded-full">
+                  Unlimited Capacity
+                </span>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-spidey flex items-center justify-between">
+                  <span>PROJECT / IDEA TITLE *</span>
+                  <span className="text-[11px] text-slate-500 font-semibold uppercase font-mono">{innoTitle.length}/100</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. AI Autonomous Drone for Precision Agriculture & Crop Health Monitoring"
                   value={innoTitle}
                   onChange={(e) => setInnoTitle(e.target.value)}
+                  maxLength={100}
+                  className="w-full rounded-xl border-3 border-web/40 bg-white p-3.5 text-sm sm:text-base font-bold text-web placeholder:text-slate-400 focus:border-web focus:bg-white focus:outline-none focus:ring-4 focus:ring-gold/30 shadow-xs transition"
                   required
                 />
-              </Field>
+              </div>
+
               <div>
-                <label className="mb-1 block text-xs font-black uppercase tracking-wider text-ink">
-                  Abstract / Proposed Architecture (Optional)
-                </label>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label className="block text-xs font-black uppercase tracking-wider text-ink flex items-center gap-1.5">
+                    <span>ABSTRACT / PROPOSED ARCHITECTURE</span>
+                    <span className="text-[10px] font-bold text-slate-400 normal-case">(OPTIONAL BUT RECOMMENDED)</span>
+                  </label>
+                  <span className="text-[11px] text-slate-500 font-semibold font-mono">{innoDesc.length} chars</span>
+                </div>
+                <div className="mb-2 rounded-lg bg-white/70 border border-web/20 p-2 text-[11px] font-semibold text-slate-600 flex items-center gap-1.5">
+                  <Sparkles size={13} className="text-gold shrink-0" />
+                  <span>Tip: Describe problem scope, solution approach, hardware/software stack, and expected impact.</span>
+                </div>
                 <textarea
-                  rows={3}
-                  className="w-full rounded-xl border-2 border-web/40 bg-white p-2.5 text-xs font-semibold focus:border-web focus:outline-none"
-                  placeholder="Briefly describe your solution approach and technology stack..."
+                  rows={6}
+                  className="w-full rounded-xl border-3 border-web/40 bg-white p-3.5 text-xs sm:text-sm font-medium text-ink placeholder:text-slate-400 focus:border-web focus:outline-none focus:ring-4 focus:ring-gold/30 shadow-xs transition leading-relaxed"
+                  placeholder={`Briefly describe your team's custom innovation project:
+• Problem Statement & Target Domain
+• Proposed Technical Solution & Workflow
+• Key Tech Stack (e.g. React, FastAPI, Python AI, IoT, Cloudflare)
+• Innovation & Impact...`}
                   value={innoDesc}
                   onChange={(e) => setInnoDesc(e.target.value)}
                 />
@@ -201,18 +230,18 @@ export function SelectionModal({ problem, phase, error, team, onCancel, onConfir
           </p>
 
           {(error || localError) ? (
-            <div className="rounded-xl border border-rose-400 bg-rose-50 p-2.5 text-xs font-bold text-rose-700 flex items-center gap-1.5">
-              <AlertCircle size={15} /> {error || localError}
+            <div className="rounded-xl border-2 border-rose-400 bg-rose-50 p-3 text-xs font-bold text-rose-700 flex items-center gap-2">
+              <AlertCircle size={16} className="shrink-0 text-rose-600" /> {error || localError}
             </div>
           ) : null}
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-2">
-            <Button variant="secondary" className="flex-1" onClick={onCancel}>
+            <Button variant="secondary" className="flex-1 py-3 text-xs font-black uppercase" onClick={onCancel}>
               Cancel
             </Button>
             <Button
-              className="flex-1"
+              className="flex-1 py-3 text-xs sm:text-sm font-black uppercase tracking-wider bg-spidey text-white hover:bg-web transition shadow-comic"
               onClick={handleConfirm}
               disabled={phase === "loading" || !currentTeam}
             >
