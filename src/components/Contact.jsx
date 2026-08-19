@@ -164,10 +164,10 @@ export function Contact() {
                   <Mail size={14} className="text-spidey" /> Official Email
                 </p>
                 <a
-                  href="mailto:sih@gtmcnanded.in"
+                  href="mailto:samaypowade9@gmail.com"
                   className="mt-1 font-bold text-sm text-web hover:underline block"
                 >
-                  sih@gtmcnanded.in
+                  samaypowade9@gmail.com
                 </a>
               </div>
 
