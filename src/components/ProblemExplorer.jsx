@@ -98,10 +98,10 @@ export function ProblemExplorer({ compact = false, canSelect = false, selectedPr
           </div>
 
           {/* Filters & Explorer */}
-          <div className="mt-10 grid gap-3 surface-card p-4 md:grid-cols-2 lg:grid-cols-6">
-            <label className="relative lg:col-span-2">
+          <div className="mt-8 grid gap-2.5 surface-card p-3 sm:p-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-6">
+            <label className="relative sm:col-span-2 lg:col-span-2">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40"/>
-              <TextInput className="pl-10" placeholder="Search problem statements" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search problem statements"/>
+              <TextInput className="pl-10 text-xs sm:text-sm" placeholder="Search problem statements" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search problem statements"/>
             </label>
             {[
               ["Category", category, setCategory, categories],
@@ -109,7 +109,7 @@ export function ProblemExplorer({ compact = false, canSelect = false, selectedPr
               ["Organization", organization, setOrganization, organizations],
               ["Difficulty", difficulty, setDifficulty, difficulties],
             ].map(([label, value, setter, options]) => (
-              <select key={String(label)} aria-label={String(label)} className="rounded-md border-2 border-web bg-white px-3 py-3 text-sm text-ink transition hover:border-spidey" value={String(value)} onChange={(event) => setter(event.target.value)}>
+              <select key={String(label)} aria-label={String(label)} className="w-full rounded-md border-2 border-web bg-white px-3 py-2.5 text-xs sm:text-sm font-semibold text-ink transition hover:border-spidey focus:outline-none" value={String(value)} onChange={(event) => setter(event.target.value)}>
                 {options.map((option) => (
                   <option key={option} value={option}>
                     {option === "All" ? String(label) : option}
@@ -119,17 +119,25 @@ export function ProblemExplorer({ compact = false, canSelect = false, selectedPr
             ))}
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0 pt-1 -mx-1 px-1 shrink-0">
               {filters.map((item) => (
-                <button key={item} onClick={() => setAvailability(item)} className={`rounded-md px-4 py-2 text-xs font-black tracking-[0.16em] uppercase transition ${availability === item ? "bg-spidey text-white shadow-[4px_4px_0_#071433]" : "bg-white text-web hover:bg-gold"}`}>
+                <button
+                  key={item}
+                  onClick={() => setAvailability(item)}
+                  className={`shrink-0 rounded-md px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-black tracking-[0.12em] uppercase transition ${
+                    availability === item
+                      ? "bg-spidey text-white shadow-[3px_3px_0_#071433]"
+                      : "bg-white text-web hover:bg-gold border border-web/20"
+                  }`}
+                >
                   {item}
                 </button>
               ))}
             </div>
 
             {!loading && (
-              <div className="flex items-center gap-3 text-xs font-bold text-ink/80">
+              <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 text-xs font-bold text-ink/80">
                 <span>
                   Showing <strong className="text-web">{list.length}</strong> of <strong className="text-web">{problems.length}</strong> problem statements
                 </span>

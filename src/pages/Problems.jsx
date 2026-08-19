@@ -44,10 +44,10 @@ export function Problems() {
   }
 
   return (
-    <div className="pt-24 min-h-screen pb-16">
+    <div className="pt-28 sm:pt-32 md:pt-36 min-h-screen pb-16">
       {/* Top Team Verification & Header Banner */}
-      <div className="mx-auto max-w-5xl px-4 pt-6">
-        <div className="rounded-3xl border-3 border-web bg-white p-6 shadow-[6px_6px_0_#071433] space-y-4">
+      <div className="mx-auto max-w-5xl px-3 sm:px-4 pt-2 sm:pt-4">
+        <div className="rounded-3xl border-3 border-web bg-white p-4 sm:p-6 shadow-[6px_6px_0_#071433] space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
             <div>
               <span className="inline-flex items-center gap-1.5 text-xs font-black tracking-widest text-spidey uppercase">
