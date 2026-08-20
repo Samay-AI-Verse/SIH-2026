@@ -275,10 +275,13 @@ export function AdminFinalTeams() {
               {filteredTeams.map((team, idx) => {
                 const members = team.members || [];
                 const leader = members.find((m) => m.is_leader) || members[0] || {};
-                const isOpenInno = Boolean(team.is_open_innovation);
+                const isOpenInno = Boolean(team.is_open_innovation || team.isOpenInnovation);
+                const hasSelectedProb = Boolean(team.selected_problem_id || team.selectedProblemId);
                 const probTitle = isOpenInno
-                  ? team.open_innovation_title || "Custom Open Innovation Project"
-                  : team.selected_problem_title || "Allocated Problem Statement";
+                  ? team.open_innovation_title || team.openInnovationTitle || "Custom Open Innovation Project"
+                  : hasSelectedProb
+                  ? team.selected_problem_title || team.selectedProblemTitle
+                  : "Not Selected Yet";
 
                 return (
                   <tr key={team.id || idx} className="hover:bg-slate-50 transition">
@@ -307,16 +310,20 @@ export function AdminFinalTeams() {
                         <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase bg-gold text-web px-2 py-0.5 rounded border border-web/20">
                           <Sparkles size={11} /> OPEN INNOVATION
                         </span>
-                      ) : (
+                      ) : hasSelectedProb ? (
                         <span className="inline-flex items-center gap-1 font-mono text-[11px] font-black uppercase bg-spidey text-white px-2 py-0.5 rounded">
-                          {team.selected_problem_code || "STATEMENT"}
+                          {team.selected_problem_code || team.selectedProblemCode || "STATEMENT"}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase bg-slate-100 text-slate-400 px-2 py-0.5 rounded border border-slate-200">
+                          NOT SELECTED
                         </span>
                       )}
                     </td>
 
                     {/* Title */}
                     <td className="p-3.5">
-                      <p className="font-bold text-xs text-web line-clamp-2 max-w-xs leading-snug">
+                      <p className={`font-bold text-xs line-clamp-2 max-w-xs leading-snug ${hasSelectedProb || isOpenInno ? "text-web" : "text-slate-400 italic"}`}>
                         {probTitle}
                       </p>
                     </td>
