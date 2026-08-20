@@ -8,11 +8,15 @@ import {
   FileSpreadsheet,
   Crown,
   Eye,
-  X
+  X,
+  Phone,
+  Mail,
+  Pencil
 } from "lucide-react";
 import { adminFetchTeams, subscribeTable } from "../services/apiService";
 import { downloadCsv, formatDate } from "../utils/cn";
 import { Button } from "../components/ui/Button";
+import { EditMemberModal } from "../components/ui/EditMemberModal";
 
 export function AdminFinalTeams() {
   const [teams, setTeams] = useState([]);
@@ -20,6 +24,7 @@ export function AdminFinalTeams() {
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL"); // "ALL", "OPEN_INNO", "PS_ALLOCATED"
   const [selectedTeamModal, setSelectedTeamModal] = useState(null);
+  const [editingMember, setEditingMember] = useState(null); // { teamId, member }
 
   async function load() {
     setLoading(true);
@@ -408,15 +413,18 @@ export function AdminFinalTeams() {
             {/* Full Roster Table */}
             <div className="space-y-2">
               <h4 className="font-display text-lg text-web">Full 6-Member Team Roster</h4>
-              <div className="overflow-hidden rounded-2xl border-2 border-web/20">
+              <div className="overflow-x-auto rounded-2xl border-2 border-web/20">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-web text-white font-black uppercase text-[10px] tracking-wider">
                     <tr>
                       <th className="p-3">#</th>
                       <th className="p-3">Member Name</th>
                       <th className="p-3">Role</th>
+                      <th className="p-3">Contact Phone</th>
+                      <th className="p-3">Email Address</th>
                       <th className="p-3">Gender</th>
                       <th className="p-3">Branch & Year</th>
+                      <th className="p-3 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 bg-white font-semibold">
@@ -433,12 +441,46 @@ export function AdminFinalTeams() {
                             <span className="text-slate-500 font-bold">MEMBER</span>
                           )}
                         </td>
+                        <td className="p-3">
+                          {mem.phone || selectedTeamModal.leader_phone ? (
+                            <a
+                              href={`tel:${mem.phone || selectedTeamModal.leader_phone}`}
+                              className="inline-flex items-center gap-1 font-mono font-bold text-xs text-spidey hover:underline bg-spidey/10 px-2 py-0.5 rounded"
+                            >
+                              <Phone size={11} /> {mem.phone || selectedTeamModal.leader_phone}
+                            </a>
+                          ) : (
+                            <span className="text-slate-400 italic">No phone</span>
+                          )}
+                        </td>
+                        <td className="p-3">
+                          {mem.email || selectedTeamModal.leader_email ? (
+                            <a
+                              href={`mailto:${mem.email || selectedTeamModal.leader_email}`}
+                              className="font-mono text-xs text-slate-700 hover:underline"
+                            >
+                              {mem.email || selectedTeamModal.leader_email}
+                            </a>
+                          ) : (
+                            <span className="text-slate-400 italic">—</span>
+                          )}
+                        </td>
                         <td className="p-3 font-bold">
                           <span className={mem.gender === "Female" ? "text-pink-600" : "text-blue-600"}>
                             {mem.gender || "Male"}
                           </span>
                         </td>
-                        <td className="p-3">{[mem.branch, mem.year].filter(Boolean).join(" • ")}</td>
+                        <td className="p-3">{[mem.branch, mem.year].filter(Boolean).join(" • ") || "2nd Year"}</td>
+                        <td className="p-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => setEditingMember({ teamId: selectedTeamModal.id, member: mem })}
+                            className="inline-flex items-center gap-1 rounded-lg border border-amber-500 bg-gold/20 hover:bg-gold px-2 py-1 text-[11px] font-black uppercase text-web transition shadow-2xs"
+                            title="Edit Student Member Profile"
+                          >
+                            <Pencil size={11} /> Edit
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -456,6 +498,15 @@ export function AdminFinalTeams() {
             </div>
           </div>
         </div>
+      )}
+      {/* EDIT MEMBER MODAL */}
+      {editingMember && (
+        <EditMemberModal
+          teamId={editingMember.teamId}
+          member={editingMember.member}
+          onClose={() => setEditingMember(null)}
+          onSuccess={() => load()}
+        />
       )}
     </div>
   );
