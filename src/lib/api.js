@@ -1,6 +1,6 @@
 export const API_BASE = (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim())
   ? import.meta.env.VITE_API_URL.trim()
-  : "https://sih-2026-backend.onrender.com";
+  : "https://sih-2026-990895080781.asia-south1.run.app";
 export const isApiConfigured = true;
 
 const TOKEN_KEY = "sih_admin_token";
