@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CheckCircle2, Crown, Pencil, Plus, Trash2, Users, AlertCircle, Phone, Mail, ShieldCheck, GraduationCap, Layers } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Field, SelectInput, TextInput } from "../components/ui/Field";
 import { useSettings } from "../hooks/useSettings";
-import { INDIAN_STATES, STREAMS_CONFIG, BRANCHES } from "../utils/constants";
+import { STREAMS_CONFIG, BRANCHES } from "../utils/constants";
 import { emptyMember, validateMember, validateTeamInfo, validateTeamRoster } from "../utils/validation";
 import { createTeamRegistration } from "../services/apiService";
 import { saveTeamSession } from "../lib/session";
