@@ -311,7 +311,7 @@ export function Register() {
             <div className="mt-5">
               <Field label="Team Name" error={errors.teamName}>
                 <TextInput
-                  placeholder="e.g. Byte Busters"
+                  placeholder="e.g. TeamSamay"
                   value={form.teamName}
                   onChange={(e) => {
                     setForm({ ...form, teamName: e.target.value });

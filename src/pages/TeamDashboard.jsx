@@ -146,7 +146,7 @@ export function TeamDashboard() {
             <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
               <Field label="Team Name (Optional)">
                 <TextInput
-                  placeholder="e.g. Cyber Titans"
+                  placeholder="e.g. TeamSamay"
                   value={teamName}
                   onChange={(e) => setTeamName(e.target.value)}
                 />
