@@ -1,9 +1,10 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { GraduationCap, Search, Filter, ShieldCheck, Mail, Phone, Building, User, Award, Eye, X, CheckCircle, Clock, Trash2, RefreshCw } from "lucide-react";
+import { GraduationCap, Search, Filter, ShieldCheck, Mail, Phone, Building, User, Award, Eye, X, CheckCircle, Clock, Trash2, RefreshCw, Pencil } from "lucide-react";
 import { adminFetchStudents, adminFetchRegistrations, adminVerifyPayment, adminDeleteTeam, subscribeTable } from "../services/apiService";
 import { Skeleton } from "../components/ui/Skeleton";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { formatINR } from "../utils/cn";
+import { EditMemberModal } from "../components/ui/EditMemberModal";
 
 export function AdminStudents() {
   const [students, setStudents] = useState([]);
@@ -15,6 +16,7 @@ export function AdminStudents() {
   const [roleFilter, setRoleFilter] = useState("ALL");
   const [genderFilter, setGenderFilter] = useState("ALL");
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const [editingStudent, setEditingStudent] = useState(null); // { teamId, member }
   const [deletingId, setDeletingId] = useState(null);
 
   const loadData = useCallback(async (showLoading = true) => {
@@ -294,12 +296,19 @@ export function AdminStudents() {
                       </td>
 
                       <td className="px-4 py-3.5 text-right flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setEditingStudent({ teamId: s.teamId, member: s })}
+                          className="inline-flex items-center gap-1 rounded-lg border border-amber-500 bg-gold/20 hover:bg-gold px-2.5 py-1.5 text-xs font-black uppercase text-web transition shadow-2xs"
+                          title="Edit Student Details"
+                        >
+                          <Pencil size={13} /> Edit
+                        </button>
                         {targetTeam && (
                           <button
                             onClick={() => setSelectedTeam(targetTeam)}
                             className="inline-flex items-center gap-1 rounded-lg border border-web bg-web/10 px-2.5 py-1.5 text-xs font-black uppercase text-web hover:bg-web hover:text-white transition"
                           >
-                            <Eye size={13} /> View Team
+                            <Eye size={13} /> Team
                           </button>
                         )}
                         <button
@@ -419,6 +428,15 @@ export function AdminStudents() {
             </div>
           </div>
         </div>
+      )}
+      {/* EDIT MEMBER MODAL */}
+      {editingStudent && (
+        <EditMemberModal
+          teamId={editingStudent.teamId}
+          member={editingStudent.member}
+          onClose={() => setEditingStudent(null)}
+          onSuccess={() => loadData(false)}
+        />
       )}
     </div>
   );

@@ -1,9 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
-import { Search, Eye, X, CheckCircle2, AlertTriangle, Download, Shield, Mail, Phone, Building, User, RefreshCw, Trash2, RotateCcw } from "lucide-react";
+import { Search, Eye, X, CheckCircle2, AlertTriangle, Download, Shield, Mail, Phone, Building, User, RefreshCw, Trash2, RotateCcw, Pencil, Image as ImageIcon } from "lucide-react";
 import { adminCancelTeam, adminFetchTeams, adminVerifyPayment, adminDeleteTeam, subscribeTable } from "../services/apiService";
 import { downloadCsv, formatDate } from "../utils/cn";
 import { Button } from "../components/ui/Button";
 import { StatusBadge } from "../components/ui/StatusBadge";
+import { EditMemberModal } from "../components/ui/EditMemberModal";
+import { ImageLightbox } from "../components/ui/ImageLightbox";
 
 export function AdminRegistrations() {
   const [teams, setTeams] = useState([]);
@@ -16,6 +18,8 @@ export function AdminRegistrations() {
   const [cancelBusy, setCancelBusy] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [cancelNotes, setCancelNotes] = useState("");
+  const [editingMember, setEditingMember] = useState(null); // { teamId, member }
+  const [lightboxUrl, setLightboxUrl] = useState("");
 
   async function load() {
     setLoading(true);
@@ -340,18 +344,28 @@ export function AdminRegistrations() {
                 {selectedTeam.members?.map((m, idx) => (
                   <div
                     key={m.id || idx}
-                    className={`rounded-xl border-2 p-3 text-xs ${
+                    className={`rounded-xl border-2 p-3 text-xs relative ${
                       m.isLeader ? "border-web bg-gold/20" : "border-slate-200 bg-white"
                     }`}
                   >
-                    <div className="flex items-center justify-between font-bold text-ink">
-                      <span>{m.name}</span>
+                    <div className="flex items-center justify-between font-bold text-ink pr-6">
+                      <span>{m.name || m.full_name}</span>
                       {m.isLeader ? (
                         <span className="rounded bg-gold px-1.5 py-0.5 text-[9px] font-black text-web">LEADER</span>
                       ) : (
                         <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[9px] font-black text-slate-700">MEMBER</span>
                       )}
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditingMember({ teamId: selectedTeam.id, member: m })}
+                      className="absolute right-2.5 top-2.5 rounded-lg border border-web/20 bg-white p-1 text-slate-600 hover:bg-gold hover:text-web transition shadow-2xs"
+                      title="Edit Student Member Profile"
+                    >
+                      <Pencil size={13} />
+                    </button>
+
                     <div className="mt-1 text-slate-600 flex items-center justify-between">
                       <span>{m.gender} • {m.year || selectedTeam.leaderYear}</span>
                       <span>{m.branch || selectedTeam.leaderBranch}</span>
@@ -518,6 +532,23 @@ export function AdminRegistrations() {
             </div>
           </div>
         </div>
+      )}
+      {/* EDIT MEMBER MODAL */}
+      {editingMember && (
+        <EditMemberModal
+          teamId={editingMember.teamId}
+          member={editingMember.member}
+          onClose={() => setEditingMember(null)}
+          onSuccess={() => load()}
+        />
+      )}
+
+      {/* IMAGE LIGHTBOX */}
+      {lightboxUrl && (
+        <ImageLightbox
+          imageUrl={lightboxUrl}
+          onClose={() => setLightboxUrl("")}
+        />
       )}
     </div>
   );

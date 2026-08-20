@@ -12,11 +12,13 @@ import {
   Eye, 
   Search, 
   RefreshCw,
-  Crown
+  Crown,
+  ZoomIn
 } from "lucide-react";
 import { adminFetchPayments, adminFetchTeams, adminUpdatePayment, subscribeTable } from "../services/apiService";
 import { formatDate, formatINR } from "../utils/cn";
 import { Button } from "../components/ui/Button";
+import { ImageLightbox } from "../components/ui/ImageLightbox";
 
 export function AdminPayments() {
   const [payments, setPayments] = useState([]);
@@ -27,8 +29,9 @@ export function AdminPayments() {
   const [statusFilter, setStatusFilter] = useState("PENDING"); // "PENDING", "SUCCESS", "FAILED", "ALL"
   const [query, setQuery] = useState("");
 
-  // Inspection Modal State
+  // Inspection & Lightbox Modal State
   const [inspectItem, setInspectItem] = useState(null); // { item, team, members, isOffline, collector, receiptNum, proofUrl }
+  const [activeLightboxUrl, setActiveLightboxUrl] = useState("");
 
   async function load() {
     try {
@@ -455,30 +458,51 @@ export function AdminPayments() {
               {/* Screenshot Proof Box */}
               <div className="rounded-2xl border-2 border-web/20 bg-slate-50 p-4 flex flex-col justify-between">
                 <div>
-                  <span className="text-[10px] font-black uppercase text-spidey block mb-1 flex items-center gap-1">
-                    <ImageIcon size={14} /> Cloudflare R2 Screenshot Proof
-                  </span>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase text-spidey flex items-center gap-1">
+                      <ImageIcon size={14} /> Payment Proof Screenshot (Cloudflare R2)
+                    </span>
+                    {inspectItem.proofUrl && (
+                      <span className="text-[9px] font-black uppercase text-amber-700 bg-gold/30 px-2 py-0.5 rounded">
+                        🔍 Click Image to Zoom
+                      </span>
+                    )}
+                  </div>
                   {inspectItem.proofUrl ? (
                     <div className="space-y-2">
-                      <div className="overflow-hidden rounded-xl border-2 border-web/30 bg-slate-900 h-28 flex items-center justify-center">
+                      <div
+                        onClick={() => setActiveLightboxUrl(inspectItem.proofUrl)}
+                        className="group relative overflow-hidden rounded-xl border-2 border-web/30 bg-slate-900 h-56 flex items-center justify-center cursor-pointer transition hover:border-web"
+                      >
                         <img
                           src={inspectItem.proofUrl}
                           alt="Payment Proof Screenshot"
-                          className="h-full w-full object-contain"
+                          className="h-full w-full object-contain group-hover:scale-105 transition duration-200"
                         />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-black uppercase gap-1">
+                          <ZoomIn size={18} /> Click for Full Screen Lightbox
+                        </div>
                       </div>
-                      <a
-                        href={inspectItem.proofUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs font-black uppercase text-spidey hover:underline"
-                      >
-                        Open Full Image Attachment <ExternalLink size={12} />
-                      </a>
+                      <div className="flex items-center justify-between pt-1">
+                        <button
+                          onClick={() => setActiveLightboxUrl(inspectItem.proofUrl)}
+                          className="inline-flex items-center gap-1 text-xs font-black uppercase text-web hover:text-spidey transition"
+                        >
+                          <ZoomIn size={13} /> Full Screen Preview
+                        </button>
+                        <a
+                          href={inspectItem.proofUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs font-black uppercase text-spidey hover:underline"
+                        >
+                          Open in Tab <ExternalLink size={12} />
+                        </a>
+                      </div>
                     </div>
                   ) : (
-                    <div className="rounded-xl border-2 border-dashed border-slate-300 bg-white p-6 text-center text-slate-400 text-xs font-bold">
-                      Direct UTR Number Verification (No Screenshot Attached)
+                    <div className="rounded-xl border-2 border-dashed border-slate-300 bg-white p-12 text-center text-slate-400 text-xs font-bold">
+                      Direct UTR / Cash Verification (No Image Screenshot Attached)
                     </div>
                   )}
                 </div>
@@ -531,6 +555,13 @@ export function AdminPayments() {
             </div>
           </div>
         </div>
+      )}
+      {/* IMAGE LIGHTBOX MODAL */}
+      {activeLightboxUrl && (
+        <ImageLightbox
+          imageUrl={activeLightboxUrl}
+          onClose={() => setActiveLightboxUrl("")}
+        />
       )}
     </div>
   );
