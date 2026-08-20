@@ -34,7 +34,7 @@ export function AdminDashboard() {
   const stats = useMemo(() => {
     const totalTeams = serverStats?.total_teams ?? teams.length;
     // Calculate total candidate students: total members across all teams
-    const totalCandidates = serverStats?.total_candidates ?? teams.reduce((sum, t) => sum + (t.members?.length || 6), 0);
+    const totalCandidates = serverStats?.total_candidates ?? teams.reduce((sum, t) => sum + (t.members?.length || 0), 0);
     const confirmed = serverStats?.paid_teams ?? teams.filter((item) => item.registrationStatus === "CONFIRMED" || item.paymentStatus === "SUCCESS").length;
     const pending = serverStats?.pending_teams ?? payments.filter((item) => item.status === "PROCESSING" || item.status === "PENDING").length;
     const revenue = serverStats?.total_revenue ?? budget?.total_revenue ?? payments.filter((item) => item.status === "SUCCESS").reduce((sum, item) => sum + Number(item.amount || 0), 0);
