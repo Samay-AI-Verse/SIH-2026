@@ -42,11 +42,14 @@ export function AdminFinalTeams() {
   // Filter ONLY final approved & confirmed teams
   const finalTeams = useMemo(() => {
     return teams.filter((t) => {
-      const isConfirmed = t.payment_status === "SUCCESS" || t.registration_status === "CONFIRMED" || t.paymentStatus === "SUCCESS";
+      const isConfirmed = t.payment_status === "SUCCESS" || t.registration_status === "CONFIRMED" || t.paymentStatus === "SUCCESS" || t.registrationStatus === "CONFIRMED";
       if (!isConfirmed) return false;
 
-      if (categoryFilter === "OPEN_INNO") return Boolean(t.is_open_innovation);
-      if (categoryFilter === "PS_ALLOCATED") return Boolean(t.selected_problem_code && !t.is_open_innovation);
+      const isOpenInno = Boolean(t.is_open_innovation || t.isOpenInnovation);
+      const hasProb = Boolean((t.selected_problem_id || t.selectedProblemId) && !isOpenInno);
+
+      if (categoryFilter === "OPEN_INNO") return isOpenInno;
+      if (categoryFilter === "PS_ALLOCATED") return hasProb;
       return true;
     });
   }, [teams, categoryFilter]);
@@ -57,14 +60,13 @@ export function AdminFinalTeams() {
     const q = query.toLowerCase().trim();
     return finalTeams.filter((t) => {
       return (
-        t.team_name?.toLowerCase().includes(q) ||
-        t.teamName?.toLowerCase().includes(q) ||
-        t.registration_id?.toLowerCase().includes(q) ||
-        t.leader_name?.toLowerCase().includes(q) ||
-        t.leader_email?.toLowerCase().includes(q) ||
-        t.selected_problem_code?.toLowerCase().includes(q) ||
-        t.selected_problem_title?.toLowerCase().includes(q) ||
-        t.open_innovation_title?.toLowerCase().includes(q)
+        (t.team_name || t.teamName || "")?.toLowerCase().includes(q) ||
+        (t.registration_id || t.registrationId || "")?.toLowerCase().includes(q) ||
+        (t.leader_name || t.leaderName || "")?.toLowerCase().includes(q) ||
+        (t.leader_email || t.email || "")?.toLowerCase().includes(q) ||
+        (t.selected_problem_code || t.selectedProblemCode || "")?.toLowerCase().includes(q) ||
+        (t.selected_problem_title || t.selectedProblemTitle || "")?.toLowerCase().includes(q) ||
+        (t.open_innovation_title || t.openInnovationTitle || "")?.toLowerCase().includes(q)
       );
     });
   }, [finalTeams, query]);
@@ -75,11 +77,11 @@ export function AdminFinalTeams() {
   }, [finalTeams]);
 
   const openInnoCount = useMemo(() => {
-    return finalTeams.filter((t) => t.is_open_innovation).length;
+    return finalTeams.filter((t) => Boolean(t.is_open_innovation || t.isOpenInnovation)).length;
   }, [finalTeams]);
 
   const psAllocatedCount = useMemo(() => {
-    return finalTeams.filter((t) => t.selected_problem_code && !t.is_open_innovation).length;
+    return finalTeams.filter((t) => Boolean((t.selected_problem_id || t.selectedProblemId) && !(t.is_open_innovation || t.isOpenInnovation))).length;
   }, [finalTeams]);
 
   // CSV Export Handler

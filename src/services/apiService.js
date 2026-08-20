@@ -225,34 +225,64 @@ function mapTeam(team, members) {
   const leaderCourse = team.leader_course || team.leaderCourse || team.course || "";
   const leaderBranch = team.leader_branch || team.leaderBranch || team.branch || "";
   const leaderYear = team.leader_year || team.leaderYear || team.year || "";
+  const problemId = team.selected_problem_id || team.selectedProblemId || "";
+  const problemTitle = team.selected_problem_title || team.selectedProblemTitle || "";
+  const problemCode = team.selected_problem_code || team.selectedProblemCode || problemId;
+  const isOpenInno = Boolean(team.is_open_innovation || team.isOpenInnovation);
+  const openInnoTitle = team.open_innovation_title || team.openInnovationTitle || "";
+  const openInnoDesc = team.open_innovation_description || team.openInnovationDescription || "";
 
   return {
     id: team.id,
     registrationId: team.registration_id || team.registrationId,
+    registration_id: team.registration_id || team.registrationId,
     teamName: team.team_name || team.teamName,
+    team_name: team.team_name || team.teamName,
     college: team.college,
     university: team.university,
     city: team.city,
     state: team.state,
     leaderName: team.leader_name || team.leaderName,
+    leader_name: team.leader_name || team.leaderName,
     email: team.leader_email || team.leaderEmail || team.email,
+    leader_email: team.leader_email || team.leaderEmail || team.email,
     phone: team.leader_phone || team.leaderPhone || team.phone,
+    leader_phone: team.leader_phone || team.leaderPhone || team.phone,
     leaderGender: team.leader_gender || team.leaderGender,
+    leader_gender: team.leader_gender || team.leaderGender,
     leaderCourse: leaderCourse,
+    leader_course: leaderCourse,
     leaderBranch: leaderBranch,
+    leader_branch: leaderBranch,
     leaderYear: leaderYear,
+    leader_year: leaderYear,
     course: leaderCourse,
     stream: leaderCourse,
     branch: leaderBranch,
     year: leaderYear,
     registrationStatus: team.registration_status || team.registrationStatus,
+    registration_status: team.registration_status || team.registrationStatus,
     paymentStatus: team.payment_status || team.paymentStatus,
-    selectedProblemId: team.selected_problem_id || team.selectedProblemId,
-    selectedProblemTitle: team.selected_problem_title || team.selectedProblemTitle,
+    payment_status: team.payment_status || team.paymentStatus,
+    selectedProblemId: problemId,
+    selected_problem_id: problemId,
+    selectedProblemTitle: problemTitle,
+    selected_problem_title: problemTitle,
+    selectedProblemCode: problemCode,
+    selected_problem_code: problemCode,
+    isOpenInnovation: isOpenInno,
+    is_open_innovation: isOpenInno,
+    openInnovationTitle: openInnoTitle,
+    open_innovation_title: openInnoTitle,
+    openInnovationDescription: openInnoDesc,
+    open_innovation_description: openInnoDesc,
     registeredAt: team.registered_at || team.registeredAt,
+    registered_at: team.registered_at || team.registeredAt,
+    created_at: team.registered_at || team.registeredAt || team.created_at,
     members: (members || []).map((member) => ({
       id: member.id,
       name: member.full_name || member.name,
+      full_name: member.full_name || member.name,
       email: member.email,
       phone: member.phone,
       gender: member.gender,
@@ -262,7 +292,9 @@ function mapTeam(team, members) {
       branch: member.branch || leaderBranch,
       year: member.year || leaderYear,
       studentId: member.student_id || member.studentId || "",
+      student_id: member.student_id || member.studentId || "",
       isLeader: Boolean(member.is_leader),
+      is_leader: Boolean(member.is_leader),
     })),
   };
 }
