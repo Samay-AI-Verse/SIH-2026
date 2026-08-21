@@ -55,21 +55,25 @@ export async function api(path, options = {}) {
       const response = await fetchWithTimeout(fullUrl, requestOptions, 15000);
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const errorMsg = data.detail || data.error || (Array.isArray(data.details) ? data.details[0]?.msg : null) || "Request failed.";
-        throw new Error(errorMsg);
+        let errorMsg = "Request failed.";
+        if (typeof data.detail === "string" && data.detail.trim()) {
+          errorMsg = data.detail.trim();
+        } else if (Array.isArray(data.detail) && data.detail.length > 0) {
+          const first = data.detail[0];
+          errorMsg = first?.msg || first?.message || "Validation error occurred.";
+        } else if (data.error) {
+          errorMsg = typeof data.error === "string" ? data.error : JSON.stringify(data.error);
+        } else if (Array.isArray(data.details) && data.details.length > 0) {
+          errorMsg = data.details[0]?.msg || "Validation error occurred.";
+        }
+        const err = new Error(errorMsg);
+        err.isHttpError = true;
+        throw err;
       }
       return data;
     } catch (err) {
       lastError = err;
-      const isNetworkError =
-        !err.response &&
-        (err.name === "AbortError" ||
-          err.message === "Failed to fetch" ||
-          err.message === "Load failed" ||
-          err.message === "NetworkError when attempting to fetch resource.");
-
-      if (!isNetworkError) {
-        // Validation / HTTP status code error thrown explicitly
+      if (err.isHttpError) {
         throw err;
       }
       // If network error, loop will proceed to next target fallback URL
@@ -89,4 +93,5 @@ export async function api(path, options = {}) {
 
   throw lastError || new Error("Failed to communicate with the server.");
 }
+
 
