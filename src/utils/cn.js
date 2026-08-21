@@ -25,6 +25,26 @@ export function formatDate(value) {
         timeStyle: "short",
     }).format(date);
 }
+
+export function formatDateTime(value) {
+    return formatDate(value);
+}
+
+export function formatDateOnly(value) {
+    if (!value) return "—";
+    const date = value instanceof Date
+        ? value
+        : typeof value === "string" || typeof value === "number"
+            ? new Date(value)
+            : value?.seconds
+                ? new Date(value.seconds * 1000)
+                : new Date(value);
+    if (Number.isNaN(date.getTime())) return "—";
+    return new Intl.DateTimeFormat("en-IN", {
+        dateStyle: "medium"
+    }).format(date);
+}
+
 export function toCsv(rows) {
     if (!rows.length)
         return "";

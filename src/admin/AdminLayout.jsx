@@ -16,8 +16,10 @@ const links = [
   { to: "/admin/budget", label: "Budget & Ledger", icon: IndianRupee },
   { to: "/admin/payments", label: "Payment Verification", icon: Wallet },
   { to: "/admin/problems", label: "Problem Statements", icon: Puzzle },
+  { to: "/admin/security", label: "Security & Admin Audit 🔒", icon: Shield },
   { to: "/admin/settings", label: "Settings", icon: Settings },
 ];
+
 
 export function AdminLayout() {
   const navigate = useNavigate();

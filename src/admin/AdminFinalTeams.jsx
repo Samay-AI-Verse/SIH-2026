@@ -298,6 +298,7 @@ export function AdminFinalTeams() {
               <tr>
                 <th className="p-3.5">#</th>
                 <th className="p-3.5">Registration & Team</th>
+                <th className="p-3.5">Reg Date & Time</th>
                 <th className="p-3.5">Institution / College</th>
                 <th className="p-3.5">Problem Type & Code</th>
                 <th className="p-3.5">Allocated Project / Problem Title</th>
@@ -312,6 +313,7 @@ export function AdminFinalTeams() {
                 const leader = members.find((m) => m.is_leader) || members[0] || {};
                 const isOpenInno = Boolean(team.is_open_innovation || team.isOpenInnovation);
                 const hasSelectedProb = Boolean(team.selected_problem_id || team.selectedProblemId);
+                const regDateTime = team.registered_at || team.registeredAt || team.created_at;
                 const probTitle = isOpenInno
                   ? team.open_innovation_title || team.openInnovationTitle || "Custom Open Innovation Project"
                   : hasSelectedProb
@@ -333,6 +335,12 @@ export function AdminFinalTeams() {
                         </h4>
                       </div>
                     </td>
+
+                    {/* Registration Date & Time */}
+                    <td className="p-3.5 font-mono text-[11px] font-bold text-slate-700 whitespace-nowrap">
+                      {formatDate(regDateTime)}
+                    </td>
+
 
                     {/* Institution */}
                     <td className="p-3.5 font-bold text-slate-700">

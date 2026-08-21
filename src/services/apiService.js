@@ -385,3 +385,29 @@ export async function updateTeamMember(teamId, memberId, payload) {
     body: JSON.stringify(payload),
   });
 }
+
+export async function adminFetchDailyAnalytics() {
+  return api("/api/admin/analytics/daily");
+}
+
+export async function adminFetchAdmins() {
+  return api("/api/admin/users");
+}
+
+export async function adminCreateAdmin(data) {
+  return api("/api/admin/users", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function adminRevokeAdmin(adminId) {
+  return api(`/api/admin/users/${adminId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function adminFetchLoginLogs() {
+  return api("/api/admin/logs/login");
+}
+

@@ -229,6 +229,7 @@ export function AdminRegistrations() {
               <thead className="bg-slate-100 font-ui text-xs font-black uppercase tracking-wider text-slate-700 border-b-2 border-web/20">
                 <tr>
                   <th className="px-4 py-3">Reg ID & Team Name</th>
+                  <th className="px-4 py-3">Reg Date & Time</th>
                   <th className="px-4 py-3">College & Leader</th>
                   <th className="px-4 py-3">Roster</th>
                   <th className="px-4 py-3">Status</th>
@@ -240,6 +241,7 @@ export function AdminRegistrations() {
                 {filteredTeams.map((team) => {
                   const isConfirmed = team.registrationStatus === "CONFIRMED" || team.paymentStatus === "SUCCESS";
                   const isCancelled = (team.registrationStatus || "").includes("CANCELLED") || (team.paymentStatus || "").includes("CANCELLED") || team.paymentStatus === "REFUNDED";
+                  const regDateTime = team.registeredAt || team.registered_at || team.created_at;
 
                   return (
                     <tr key={team.id} className="hover:bg-amber-50/50 transition">
@@ -249,6 +251,11 @@ export function AdminRegistrations() {
                         </span>
                         <span className="font-bold text-base text-web">{team.teamName}</span>
                       </td>
+
+                      <td className="px-4 py-3.5 text-xs font-mono font-bold text-slate-700 whitespace-nowrap">
+                        {formatDate(regDateTime)}
+                      </td>
+
 
                       <td className="px-4 py-3.5 text-xs">
                         <div className="font-bold text-ink">{team.college}</div>

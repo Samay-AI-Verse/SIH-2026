@@ -3,7 +3,7 @@ import { GraduationCap, Search, Filter, ShieldCheck, Mail, Phone, Building, User
 import { adminFetchStudents, adminFetchRegistrations, adminVerifyPayment, adminDeleteTeam, subscribeTable } from "../services/apiService";
 import { Skeleton } from "../components/ui/Skeleton";
 import { StatusBadge } from "../components/ui/StatusBadge";
-import { formatINR } from "../utils/cn";
+import { formatINR, formatDate } from "../utils/cn";
 import { EditMemberModal } from "../components/ui/EditMemberModal";
 
 export function AdminStudents() {
@@ -238,6 +238,7 @@ export function AdminStudents() {
               <thead className="bg-slate-100 font-ui text-xs font-black uppercase tracking-wider text-slate-700 border-b-2 border-web/20">
                 <tr>
                   <th className="px-4 py-3">Student Name & Role</th>
+                  <th className="px-4 py-3">Reg Date & Time</th>
                   <th className="px-4 py-3">Team & Reg ID</th>
                   <th className="px-4 py-3">Contact (Email & Phone)</th>
                   <th className="px-4 py-3">Degree & Branch</th>
@@ -249,6 +250,7 @@ export function AdminStudents() {
               <tbody className="divide-y divide-slate-200">
                 {filteredStudents.map((s) => {
                   const targetTeam = teams.find((t) => t.id === s.teamId);
+                  const regDateTime = targetTeam?.registeredAt || targetTeam?.registered_at || targetTeam?.created_at;
                   return (
                     <tr key={s.id} className="hover:bg-amber-50/50 transition">
                       <td className="px-4 py-3.5">
@@ -271,6 +273,11 @@ export function AdminStudents() {
                           {s.studentId && <span>• ID: {s.studentId}</span>}
                         </div>
                       </td>
+
+                      <td className="px-4 py-3.5 text-xs font-mono font-bold text-slate-700 whitespace-nowrap">
+                        {formatDate(regDateTime)}
+                      </td>
+
 
                       <td className="px-4 py-3.5">
                         <div className="font-bold text-web">{s.teamName}</div>

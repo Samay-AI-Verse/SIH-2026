@@ -22,6 +22,7 @@ import { AdminSettings, AdminUsers } from "./admin/AdminSettings";
 import { AdminStudents } from "./admin/AdminStudents";
 import { AdminBudget } from "./admin/AdminBudget";
 import { AdminFinalTeams } from "./admin/AdminFinalTeams";
+import { AdminSecurity } from "./admin/AdminSecurity";
 
 
 const Payment = lazy(() => import("./pages/Payment").then((m) => ({ default: m.Payment })));
@@ -68,6 +69,7 @@ export default function App() {
             <Route path="problems" element={<AdminProblems />} />
             <Route path="selections" element={<AdminSelections />} />
             <Route path="users" element={<AdminStudents />} />
+            <Route path="security" element={<AdminSecurity />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
         </Route>
@@ -77,3 +79,4 @@ export default function App() {
     </Suspense>
   );
 }
+
