@@ -40,16 +40,12 @@ export async function fetchTeamBundle(teamId) {
 export async function uploadPaymentProof(file) {
   const formData = new FormData();
   formData.append("file", file);
-  const response = await fetch(`${API_BASE}/api/payments/upload-direct`, {
+  return api("/api/payments/upload-direct", {
     method: "POST",
     body: formData,
   });
-  if (!response.ok) {
-    const errData = await response.json().catch(() => ({}));
-    throw new Error(errData.detail || "Failed to upload payment proof screenshot.");
-  }
-  return response.json();
 }
+
 
 export async function submitPaymentUtr(teamId, utr, proofUrl = "", proofKey = "", paymentMode = "ONLINE", collectorName = "", receiptNo = "") {
   return api("/api/payments/utr", {
@@ -106,25 +102,42 @@ export async function submitContact(payload) {
 
 let sharedEventSource = null;
 const tableListeners = new Set();
+let sseErrorCount = 0;
 
 function getSharedEventSource() {
+  if (typeof window === "undefined" || !window.EventSource) return null;
+  if (sseErrorCount >= 3) return null;
+
   if (!sharedEventSource || sharedEventSource.readyState === EventSource.CLOSED) {
-    const baseUrl = API_BASE;
-    sharedEventSource = new EventSource(`${baseUrl}/api/live`);
+    try {
+      const baseUrl = API_BASE;
+      sharedEventSource = new EventSource(`${baseUrl}/api/live`);
 
-    sharedEventSource.addEventListener("change", (event) => {
-      tableListeners.forEach((fn) => {
-        try {
-          fn(event);
-        } catch {
-          // ignore callback error
-        }
+      sharedEventSource.addEventListener("change", (event) => {
+        sseErrorCount = 0;
+        tableListeners.forEach((fn) => {
+          try {
+            fn(event);
+          } catch {
+            // ignore callback error
+          }
+        });
       });
-    });
 
-    sharedEventSource.onerror = () => {
-      // Browser EventSource automatically handles reconnection
-    };
+      sharedEventSource.onerror = () => {
+        sseErrorCount++;
+        if (sseErrorCount >= 3 && sharedEventSource) {
+          try {
+            sharedEventSource.close();
+          } catch {
+            // ignore close error
+          }
+          sharedEventSource = null;
+        }
+      };
+    } catch {
+      sharedEventSource = null;
+    }
   }
   return sharedEventSource;
 }
@@ -145,6 +158,7 @@ export function subscribeTable(_table, onChange) {
     }
   };
 }
+
 
 
 export async function adminFetchStats() {

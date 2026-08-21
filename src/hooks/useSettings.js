@@ -24,8 +24,8 @@ export function useSettings() {
         .finally(() => setLoading(false));
     }
     load();
-    return subscribeTable("settings", load);
   }, []);
+
 
   return { settings, loading };
 }
