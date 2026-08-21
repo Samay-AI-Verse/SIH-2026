@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
-import { Search, Eye, X, CheckCircle2, AlertTriangle, Download, Shield, Mail, Phone, Building, User, RefreshCw, Trash2, RotateCcw, Pencil, Image as ImageIcon } from "lucide-react";
-import { adminCancelTeam, adminFetchTeams, adminVerifyPayment, adminDeleteTeam, subscribeTable } from "../services/apiService";
+import { Search, Eye, X, CheckCircle2, AlertTriangle, Download, Shield, Mail, Phone, Building, User, RefreshCw, Trash2, RotateCcw, Pencil, Image as ImageIcon, Copy, Check } from "lucide-react";
+import { adminCancelTeam, adminFetchTeams, adminVerifyPayment, adminDeleteTeam, adminUpdateTeamName, subscribeTable } from "../services/apiService";
 import { downloadCsv, formatDate } from "../utils/cn";
 import { Button } from "../components/ui/Button";
 import { StatusBadge } from "../components/ui/StatusBadge";
@@ -20,6 +20,30 @@ export function AdminRegistrations() {
   const [cancelNotes, setCancelNotes] = useState("");
   const [editingMember, setEditingMember] = useState(null); // { teamId, member }
   const [lightboxUrl, setLightboxUrl] = useState("");
+
+  // Team Name Edit State
+  const [editingTeamName, setEditingTeamName] = useState(false);
+  const [newTeamName, setNewTeamName] = useState("");
+  const [savingNameBusy, setSavingNameBusy] = useState(false);
+  const [copiedUtr, setCopiedUtr] = useState(false);
+
+  async function handleSaveTeamName() {
+    if (!newTeamName.trim() || newTeamName.trim().length < 3) {
+      alert("Team name must be at least 3 characters long");
+      return;
+    }
+    setSavingNameBusy(true);
+    try {
+      await adminUpdateTeamName(selectedTeam.id, newTeamName.trim());
+      setSelectedTeam((prev) => (prev ? { ...prev, teamName: newTeamName.trim(), team_name: newTeamName.trim() } : null));
+      setEditingTeamName(false);
+      await load();
+    } catch (err) {
+      alert("Failed to update team name: " + (err?.message || "Unknown error"));
+    } finally {
+      setSavingNameBusy(false);
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -253,7 +277,10 @@ export function AdminRegistrations() {
                         <div className="flex flex-wrap items-center justify-end gap-2">
                           {/* View Details Button */}
                           <button
-                            onClick={() => setSelectedTeam(team)}
+                            onClick={() => {
+                              setSelectedTeam(team);
+                              setEditingTeamName(false);
+                            }}
                             className="inline-flex items-center gap-1 rounded-lg border-2 border-web/20 bg-white px-2.5 py-1 text-xs font-black text-web hover:bg-gold transition shadow-xs"
                           >
                             <Eye size={13} /> Details
@@ -304,7 +331,10 @@ export function AdminRegistrations() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
           <div className="relative w-full max-w-3xl rounded-3xl border-4 border-web bg-white p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200">
             <button
-              onClick={() => setSelectedTeam(null)}
+              onClick={() => {
+                setSelectedTeam(null);
+                setEditingTeamName(false);
+              }}
               className="absolute right-4 top-4 rounded-full border-2 border-web bg-slate-100 p-2 text-ink hover:bg-spidey hover:text-white transition"
             >
               <X size={20} />
@@ -314,16 +344,130 @@ export function AdminRegistrations() {
               <div className="rounded-xl border-2 border-web bg-gold p-3 font-display text-2xl text-web">
                 {selectedTeam.registrationId}
               </div>
-              <div>
-                <h2 className="font-display text-3xl text-web">{selectedTeam.teamName}</h2>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <div className="flex-1">
+                {editingTeamName ? (
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    <input
+                      type="text"
+                      value={newTeamName}
+                      onChange={(e) => setNewTeamName(e.target.value)}
+                      className="rounded-xl border-2 border-web bg-slate-50 px-3 py-1.5 text-base font-bold text-ink focus:bg-white focus:outline-none"
+                      placeholder="Enter new team name..."
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      disabled={savingNameBusy}
+                      onClick={handleSaveTeamName}
+                      className="rounded-lg border-2 border-emerald-700 bg-emerald-600 px-3 py-1.5 text-xs font-black text-white hover:bg-emerald-700 transition"
+                    >
+                      {savingNameBusy ? "Saving..." : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingTeamName(false)}
+                      className="rounded-lg border-2 border-slate-300 bg-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-300 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-display text-3xl text-web">{selectedTeam.teamName}</h2>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewTeamName(selectedTeam.teamName || "");
+                        setEditingTeamName(true);
+                      }}
+                      className="rounded-lg border border-web/30 bg-slate-100 p-1.5 text-slate-700 hover:bg-gold hover:text-web transition shadow-2xs"
+                      title="Edit / Correct Team Name (As Admin)"
+                    >
+                      <Pencil size={15} />
+                    </button>
+                  </div>
+                )}
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">
                   {selectedTeam.college} · Leader: {selectedTeam.leaderName}
                 </p>
               </div>
             </div>
 
+            {/* Payment Details Card (Mode, UTR & Proof Image) */}
+            <div className="mt-5 rounded-2xl border-2 border-web/20 bg-amber-50/60 p-4">
+              <div className="flex items-center justify-between border-b border-amber-200/60 pb-2 mb-3">
+                <span className="text-xs font-black uppercase tracking-wider text-web flex items-center gap-1.5">
+                  <Shield size={14} className="text-spidey" /> Payment Details & Verification
+                </span>
+                <StatusBadge status={selectedTeam.paymentStatus || selectedTeam.registrationStatus} />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-bold text-slate-700">
+                {/* Payment Mode */}
+                <div className="rounded-xl border border-amber-200 bg-white p-3 space-y-1">
+                  <span className="text-[10px] font-black uppercase text-slate-400 block">Payment Mode</span>
+                  <span className="font-extrabold text-web text-sm block">
+                    {selectedTeam.paymentMode === "OFFLINE_CASH" || selectedTeam.payment_mode === "OFFLINE_CASH"
+                      ? "💵 Offline Cash Collection"
+                      : "💳 Online (UPI / QR / Bank)"}
+                  </span>
+                  {(selectedTeam.collectorName || selectedTeam.collector_name) && (
+                    <div className="text-[11px] text-slate-500 font-semibold">
+                      Collected by: <span className="text-web">{selectedTeam.collectorName || selectedTeam.collector_name}</span>
+                    </div>
+                  )}
+                  {(selectedTeam.receiptNo || selectedTeam.receipt_no) && (
+                    <div className="text-[11px] font-mono text-slate-500">
+                      Receipt #: {selectedTeam.receiptNo || selectedTeam.receipt_no}
+                    </div>
+                  )}
+                </div>
+
+                {/* UTR / Transaction ID */}
+                <div className="rounded-xl border border-amber-200 bg-white p-3 space-y-1">
+                  <span className="text-[10px] font-black uppercase text-slate-400 block">UTR / Transaction ID</span>
+                  <div className="flex items-center justify-between gap-1 pt-0.5">
+                    <span className="font-mono text-xs font-black text-spidey truncate">
+                      {selectedTeam.paymentUtr || selectedTeam.payment_utr || selectedTeam.payment?.utr || selectedTeam.payment?.transaction_id || "Not Provided"}
+                    </span>
+                    {(selectedTeam.paymentUtr || selectedTeam.payment_utr || selectedTeam.payment?.utr || selectedTeam.payment?.transaction_id) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const utrVal = selectedTeam.paymentUtr || selectedTeam.payment_utr || selectedTeam.payment?.utr || selectedTeam.payment?.transaction_id;
+                          navigator.clipboard?.writeText(utrVal);
+                          setCopiedUtr(true);
+                          setTimeout(() => setCopiedUtr(false), 2000);
+                        }}
+                        className="rounded bg-slate-100 p-1 text-slate-600 hover:bg-gold hover:text-web transition shrink-0"
+                        title="Copy UTR"
+                      >
+                        {copiedUtr ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Payment Proof Image / Screenshot */}
+                <div className="rounded-xl border border-amber-200 bg-white p-3 space-y-1">
+                  <span className="text-[10px] font-black uppercase text-slate-400 block">Proof Screenshot / Receipt</span>
+                  {(selectedTeam.paymentProofUrl || selectedTeam.payment_proof_url || selectedTeam.payment?.proof_url) ? (
+                    <button
+                      type="button"
+                      onClick={() => setLightboxUrl(selectedTeam.paymentProofUrl || selectedTeam.payment_proof_url || selectedTeam.payment?.proof_url)}
+                      className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-spidey/30 bg-spidey/10 px-2.5 py-1 text-xs font-black text-spidey hover:bg-spidey hover:text-white transition mt-0.5"
+                    >
+                      <ImageIcon size={14} /> View Screenshot
+                    </button>
+                  ) : (
+                    <span className="text-slate-400 font-semibold italic block pt-1">No screenshot uploaded</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Problem Statement Info */}
-            <div className="mt-5 rounded-2xl border-2 border-web/20 bg-slate-50 p-4">
+            <div className="mt-4 rounded-2xl border-2 border-web/20 bg-slate-50 p-4">
               <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Selected Problem / Open Innovation</p>
               <p className="mt-1 font-bold text-web text-base">
                 {selectedTeam.isOpenInnovation
@@ -338,7 +482,7 @@ export function AdminRegistrations() {
             </div>
 
             {/* Roster Breakdown (6 Members) */}
-            <div className="mt-6">
+            <div className="mt-5">
               <h3 className="font-display text-xl text-web mb-3">Team Members Roster ({selectedTeam.members?.length || 6})</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {selectedTeam.members?.map((m, idx) => (

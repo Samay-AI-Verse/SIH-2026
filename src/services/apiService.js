@@ -204,7 +204,12 @@ export async function adminDeleteTeam(teamId) {
   return api(`/api/admin/teams/${teamId}`, { method: "DELETE" });
 }
 
-
+export async function adminUpdateTeamName(teamId, teamName) {
+  return api(`/api/admin/teams/${teamId}/name`, {
+    method: "PUT",
+    body: JSON.stringify({ team_name: teamName }),
+  });
+}
 
 export async function adminUpdateSettings(patch) {
   await api("/api/admin/settings", { method: "POST", body: JSON.stringify(patch) });
@@ -245,6 +250,13 @@ function mapTeam(team, members) {
   const isOpenInno = Boolean(team.is_open_innovation || team.isOpenInnovation);
   const openInnoTitle = team.open_innovation_title || team.openInnovationTitle || "";
   const openInnoDesc = team.open_innovation_description || team.openInnovationDescription || "";
+
+  const paymentObj = team.payment || null;
+  const paymentMode = paymentObj?.payment_mode || team.payment_mode || team.paymentMode || "ONLINE";
+  const paymentProofUrl = paymentObj?.proof_url || team.payment_proof_url || team.paymentProofUrl || team.proof_url || null;
+  const paymentUtr = paymentObj?.utr || paymentObj?.transaction_id || team.payment_utr || team.paymentUtr || team.transaction_id || "";
+  const collectorName = paymentObj?.collector_name || team.collector_name || team.collectorName || null;
+  const receiptNo = paymentObj?.receipt_no || team.receipt_no || team.receiptNo || null;
 
   return {
     id: team.id,
@@ -293,6 +305,17 @@ function mapTeam(team, members) {
     registeredAt: team.registered_at || team.registeredAt,
     registered_at: team.registered_at || team.registeredAt,
     created_at: team.registered_at || team.registeredAt || team.created_at,
+    payment: paymentObj,
+    paymentMode,
+    payment_mode: paymentMode,
+    paymentProofUrl,
+    payment_proof_url: paymentProofUrl,
+    paymentUtr,
+    payment_utr: paymentUtr,
+    collectorName,
+    collector_name: collectorName,
+    receiptNo,
+    receipt_no: receiptNo,
     members: (members || []).map((member) => ({
       id: member.id,
       name: member.full_name || member.name,
