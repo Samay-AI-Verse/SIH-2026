@@ -62,12 +62,13 @@ export async function submitPaymentUtr(teamId, utr, proofUrl = "", proofKey = ""
   });
 }
 
-export async function selectProblem({ problemId, teamId, openInnovationTitle, openInnovationDescription, isOpenInnovation }) {
+export async function selectProblem({ problemId, problemTitle, teamId, openInnovationTitle, openInnovationDescription, isOpenInnovation }) {
   return api("/api/problems/select", {
     method: "POST",
     body: JSON.stringify({
       team_id: teamId,
       problem_id: problemId,
+      problem_title: problemTitle,
       is_open_innovation: isOpenInnovation,
       open_innovation_title: openInnovationTitle,
       open_innovation_description: openInnovationDescription,

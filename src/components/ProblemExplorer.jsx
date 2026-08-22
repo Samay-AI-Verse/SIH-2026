@@ -1,186 +1,179 @@
-import { useMemo, useState } from "react";
-import { Search, Sparkles, Lightbulb, RotateCcw } from "lucide-react";
-import { ProblemCard } from "./ProblemCard";
+import { ExternalLink, Lightbulb, Sparkles, FileText, CheckCircle2, ArrowRight, ShieldCheck, Info } from "lucide-react";
 import { SectionHeading } from "./ui/SectionHeading";
-import { Skeleton } from "./ui/Skeleton";
-import { TextInput } from "./ui/Field";
 import { Button } from "./ui/Button";
-import { useProblems } from "../hooks/useProblems";
-import { PROBLEM_STATEMENTS_PDF, OPEN_INNOVATION_PROBLEM } from "../utils/constants";
-
-const filters = ["All", "AVAILABLE", "OPEN INNOVATION", "FULL", "LOCKED"];
+import { SIH_OFFICIAL_WEBSITE_URL, OPEN_INNOVATION_PROBLEM } from "../utils/constants";
 
 export function ProblemExplorer({ compact = false, canSelect = false, selectedProblemId, onSelect }) {
-    const { problems, loading } = useProblems();
-    const [search, setSearch] = useState("");
-    const [category, setCategory] = useState("All");
-    const [technology, setTechnology] = useState("All");
-    const [organization, setOrganization] = useState("All");
-    const [difficulty, setDifficulty] = useState("All");
-    const [availability, setAvailability] = useState("All");
+  const isSelectedPS = Boolean(selectedProblemId && selectedProblemId !== "OPEN_INNOVATION");
+  const isSelectedOpenInno = Boolean(selectedProblemId === "OPEN_INNOVATION");
 
-    const openInnoProblem = useMemo(() => {
-      return problems.find((p) => p.id === "OPEN_INNOVATION" || p.isOpenInnovation) || OPEN_INNOVATION_PROBLEM;
-    }, [problems]);
+  return (
+    <section id="problems" className="section-lilac px-4 py-12 md:py-20 md:px-6">
+      <div className="mx-auto max-w-6xl">
+        <SectionHeading
+          eyebrow="SIH 2026 Problem Statement Allocation Workflow"
+          title="How Problem Statement Selection Works"
+          copy="Follow the simple step-by-step process to choose your official SIH 2026 Problem Statement or submit your custom project idea under Open Innovation."
+        />
 
-    const categories = useMemo(() => ["All", ...new Set(problems.map((item) => item.category))], [problems]);
-    const technologies = useMemo(() => ["All", ...new Set(problems.flatMap((item) => item.technologies || []))], [problems]);
-    const organizations = useMemo(() => ["All", ...new Set(problems.map((item) => item.organization))], [problems]);
-    const difficulties = useMemo(() => ["All", ...new Set(problems.map((item) => item.difficulty))], [problems]);
-
-    const hasActiveFilters = Boolean(
-      search || category !== "All" || technology !== "All" || organization !== "All" || difficulty !== "All" || availability !== "All"
-    );
-
-    const resetFilters = () => {
-      setSearch("");
-      setCategory("All");
-      setTechnology("All");
-      setOrganization("All");
-      setDifficulty("All");
-      setAvailability("All");
-    };
-
-    const visible = problems.filter((item) => {
-        if (availability === "OPEN INNOVATION") {
-          return item.id === "OPEN_INNOVATION" || item.isOpenInnovation || item.category === "Open Innovation";
-        }
-        const haystack = `${item.title} ${item.description} ${item.code} ${item.organization} ${item.category} ${(item.technologies || []).join(" ")}`.toLowerCase();
-        const matchesSearch = haystack.includes(search.toLowerCase());
-        return (
-            matchesSearch &&
-            (category === "All" || item.category === category) &&
-            (technology === "All" || item.technologies?.includes(technology)) &&
-            (organization === "All" || item.organization === organization) &&
-            (difficulty === "All" || item.difficulty === difficulty) &&
-            (availability === "All" || item.status === availability)
-        );
-    });
-
-    const list = compact ? visible.slice(0, 6) : visible;
-
-    return (
-      <section id="problems" className="section-lilac px-4 py-24 md:px-6">
-        <div className="mx-auto max-w-7xl">
-          <SectionHeading eyebrow="Problem statements & Open Theme" title="Find your challenge or submit your own idea" copy="Choose from 100+ official SIH problem statements or submit your custom project idea under Open Innovation."/>
-          
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button variant="secondary" href={PROBLEM_STATEMENTS_PDF} target="_blank" rel="noreferrer">
-              Download Problem Statements PDF
-            </Button>
+        {/* STEP-BY-STEP PROFESSIONAL INFOGRAPHIC GUIDE */}
+        <div className="mt-8 rounded-3xl border-3 border-web bg-white p-6 sm:p-8 shadow-comic space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+            <h3 className="font-display text-xl sm:text-2xl text-web flex items-center gap-2">
+              <Info className="text-spidey shrink-0" size={24} /> Step-by-Step Selection Procedure
+            </h3>
+            <span className="inline-flex items-center gap-1 text-xs font-black uppercase bg-gold/30 text-web px-3 py-1 rounded-full border border-web/20">
+              Max Quota: 5 Teams / Ideas Per Problem Statement
+            </span>
           </div>
 
-          {/* DEDICATED THEME: OPEN INNOVATION HERO CARD */}
-          <div className="relative mt-8 overflow-hidden rounded-3xl border-4 border-web bg-gradient-to-r from-cream via-amber-50 to-gold/30 p-6 md:p-8 shadow-comic">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="space-y-2 max-w-2xl">
-                <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-web bg-gold px-3.5 py-1 text-xs font-black tracking-widest text-web">
-                  <Sparkles size={15} /> DEDICATED THEME: OPEN INNOVATION
-                </span>
-                <h3 className="font-display text-2xl md:text-3xl text-web comic-pop flex items-center gap-2">
-                  <Lightbulb className="text-amber-500 shrink-0" size={28} /> Have Your Own Unique Project Idea?
-                </h3>
-                <p className="text-xs md:text-sm font-semibold text-ink/80 leading-relaxed">
-                  Have a custom project outside the listed problem statements? Choose <strong>Open Innovation</strong> to submit your team's custom problem title, abstract, tech stack, and architecture solution!
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 shrink-0 w-full md:w-auto">
-                <Button
-                  variant="primary"
-                  className="w-full md:w-auto text-xs sm:text-sm font-black py-3 px-6 shadow-comic bg-web text-white hover:bg-web/90"
-                  onClick={() => onSelect?.(openInnoProblem)}
-                  disabled={!canSelect}
-                >
-                  <Sparkles size={16} className="mr-2 text-gold" /> Select Open Innovation
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Filters & Explorer */}
-          <div className="mt-8 grid gap-2.5 surface-card p-3 sm:p-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-6">
-            <label className="relative sm:col-span-2 lg:col-span-2">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40"/>
-              <TextInput className="pl-10 text-xs sm:text-sm" placeholder="Search problem statements" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search problem statements"/>
-            </label>
-            {[
-              ["Category", category, setCategory, categories],
-              ["Technology", technology, setTechnology, technologies],
-              ["Organization", organization, setOrganization, organizations],
-              ["Difficulty", difficulty, setDifficulty, difficulties],
-            ].map(([label, value, setter, options]) => (
-              <select key={String(label)} aria-label={String(label)} className="w-full rounded-md border-2 border-web bg-white px-3 py-2.5 text-xs sm:text-sm font-semibold text-ink transition hover:border-spidey focus:outline-none" value={String(value)} onChange={(event) => setter(event.target.value)}>
-                {options.map((option) => (
-                  <option key={option} value={option}>
-                    {option === "All" ? String(label) : option}
-                  </option>
-                ))}
-              </select>
-            ))}
-          </div>
-
-          <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0 pt-1 -mx-1 px-1 shrink-0">
-              {filters.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setAvailability(item)}
-                  className={`shrink-0 rounded-md px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-black tracking-[0.12em] uppercase transition ${
-                    availability === item
-                      ? "bg-spidey text-white shadow-[3px_3px_0_#071433]"
-                      : "bg-white text-web hover:bg-gold border border-web/20"
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Step 1 */}
+            <div className="rounded-2xl border-2 border-web/20 bg-slate-50 p-4 relative space-y-2">
+              <span className="absolute -top-3 left-4 rounded-full bg-web px-2.5 py-0.5 text-[10px] font-black text-gold">STEP 1</span>
+              <p className="pt-1 text-xs font-black uppercase text-web">Browse Official SIH PS</p>
+              <p className="text-xs text-slate-600 font-semibold leading-relaxed">
+                Visit the official portal <strong className="text-spidey">sih.gov.in/sih2026PS</strong> to find problem statements.
+              </p>
             </div>
 
-            {!loading && (
-              <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 text-xs font-bold text-ink/80">
-                <span>
-                  Showing <strong className="text-web">{list.length}</strong> of <strong className="text-web">{problems.length}</strong> problem statements
+            {/* Step 2 */}
+            <div className="rounded-2xl border-2 border-web/20 bg-slate-50 p-4 relative space-y-2">
+              <span className="absolute -top-3 left-4 rounded-full bg-web px-2.5 py-0.5 text-[10px] font-black text-gold">STEP 2</span>
+              <p className="pt-1 text-xs font-black uppercase text-web">Copy PS ID & Title</p>
+              <p className="text-xs text-slate-600 font-semibold leading-relaxed">
+                Copy your desired Problem Statement ID (e.g. <span className="font-mono font-bold text-spidey">SIH1547</span>) & exact Title.
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="rounded-2xl border-2 border-web/20 bg-slate-50 p-4 relative space-y-2">
+              <span className="absolute -top-3 left-4 rounded-full bg-web px-2.5 py-0.5 text-[10px] font-black text-gold">STEP 3</span>
+              <p className="pt-1 text-xs font-black uppercase text-web">Verify Team Email</p>
+              <p className="text-xs text-slate-600 font-semibold leading-relaxed">
+                Enter registered Leader Email on this website to authenticate your team's access.
+              </p>
+            </div>
+
+            {/* Step 4 */}
+            <div className="rounded-2xl border-2 border-web/20 bg-slate-50 p-4 relative space-y-2">
+              <span className="absolute -top-3 left-4 rounded-full bg-web px-2.5 py-0.5 text-[10px] font-black text-gold">STEP 4</span>
+              <p className="pt-1 text-xs font-black uppercase text-web">Lock Your Selection</p>
+              <p className="text-xs text-slate-600 font-semibold leading-relaxed">
+                Confirm your selection! Up to <strong className="text-spidey">5 teams</strong> can choose the same problem statement.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* TWO TRACK SELECTION CARDS */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* OPTION 1: OFFICIAL SIH PROBLEM STATEMENT */}
+          <div className="relative overflow-hidden rounded-3xl border-4 border-web bg-white p-6 sm:p-8 shadow-comic flex flex-col justify-between transition hover:-translate-y-1">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-web bg-spidey/10 px-3.5 py-1 text-xs font-black tracking-widest text-spidey uppercase">
+                  <FileText size={15} /> OPTION 1: OFFICIAL SIH PS
                 </span>
-                {hasActiveFilters && (
-                  <button
-                    onClick={resetFilters}
-                    className="inline-flex items-center gap-1 rounded-md border-2 border-spidey bg-spidey/10 px-2.5 py-1 text-xs font-black text-spidey hover:bg-spidey hover:text-white transition"
-                  >
-                    <RotateCcw size={12} /> Clear Filters
-                  </button>
+                {isSelectedPS && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 border border-emerald-300">
+                    <CheckCircle2 size={14} /> Selected
+                  </span>
                 )}
               </div>
-            )}
+
+              <h3 className="font-display text-2xl sm:text-3xl text-web comic-pop">
+                Official SIH 2026 Problem Statement
+              </h3>
+
+              <p className="text-xs sm:text-sm font-semibold text-slate-600 leading-relaxed">
+                Multiple problem statements are available on the official SIH portal. Enter your PS ID & Title to confirm your allocation.
+              </p>
+
+              <div className="rounded-2xl border-2 border-web/20 bg-slate-50 p-4 space-y-3">
+                <p className="text-xs font-bold text-web flex items-center justify-between">
+                  <span>Browse Official Problem Statements:</span>
+                  <span className="text-[10px] font-black uppercase text-spidey bg-gold/30 px-2 py-0.5 rounded">Max 5 Teams / PS</span>
+                </p>
+                <a
+                  href={SIH_OFFICIAL_WEBSITE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 w-full rounded-xl border-2 border-web bg-gold/20 px-4 py-2.5 text-xs font-black uppercase text-web hover:bg-gold transition shadow-xs"
+                >
+                  <ExternalLink size={14} /> Open sih.gov.in/sih2026PS ↗
+                </a>
+                <p className="text-[11px] font-semibold text-slate-500">
+                  Find your PS ID on the portal, then click below to enter details and lock it for your team.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-slate-100">
+              <Button
+                variant="primary"
+                className="w-full text-xs sm:text-sm font-black py-3.5 px-6 shadow-comic bg-web text-white hover:bg-spidey transition"
+                onClick={() =>
+                  onSelect?.({
+                    id: "CUSTOM_PS",
+                    code: "OFFICIAL_SIH_PS",
+                    title: "Official SIH 2026 Problem Statement",
+                    isOpenInnovation: false,
+                  })
+                }
+                disabled={!canSelect}
+              >
+                Select & Enter Problem Statement ID <ArrowRight size={16} className="ml-2" />
+              </Button>
+            </div>
           </div>
 
-          {loading ? (
-            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {Array.from({ length: 6 }).map((_, index) => (<Skeleton key={index} className="h-80"/>))}
-            </div>
-          ) : (
-            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {list.map((problem) => (
-                <ProblemCard key={problem.id} problem={problem} canSelect={canSelect} selectedProblemId={selectedProblemId} onSelect={onSelect}/>
-              ))}
-            </div>
-          )}
+          {/* OPTION 2: OPEN INNOVATION Track */}
+          <div className="relative overflow-hidden rounded-3xl border-4 border-web bg-gradient-to-br from-amber-50 via-cream to-gold/20 p-6 sm:p-8 shadow-comic flex flex-col justify-between transition hover:-translate-y-1">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-web bg-gold px-3.5 py-1 text-xs font-black tracking-widest text-web uppercase">
+                  <Sparkles size={15} /> OPTION 2: OPEN THEME
+                </span>
+                {isSelectedOpenInno && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 border border-emerald-300">
+                    <CheckCircle2 size={14} /> Selected
+                  </span>
+                )}
+              </div>
 
-          {!loading && list.length === 0 ? (
-            <div className="mt-10 text-center space-y-3">
-              <p className="text-ink/60 font-bold">No problem statements match your active filters.</p>
-              {hasActiveFilters && (
-                <Button variant="secondary" onClick={resetFilters} className="text-xs font-black py-2 px-4">
-                  <RotateCcw size={14} className="mr-1.5" /> Clear All Filters
-                </Button>
-              )}
+              <h3 className="font-display text-2xl sm:text-3xl text-web comic-pop flex items-center gap-2">
+                <Lightbulb className="text-amber-500 shrink-0" size={28} /> Open Innovation Track
+              </h3>
+
+              <p className="text-xs sm:text-sm font-semibold text-slate-700 leading-relaxed">
+                Have your own custom project idea outside the official SIH problem statements? Submit your team's custom problem title, abstract, tech stack, and solution under Open Innovation!
+              </p>
+
+              <div className="rounded-2xl border-2 border-web/20 bg-white/80 p-4 space-y-2">
+                <div className="flex items-center gap-2 text-xs font-bold text-web">
+                  <Sparkles size={14} className="text-spidey shrink-0" />
+                  <span>Unlimited Capacity & Open Tech Stack</span>
+                </div>
+                <p className="text-[11px] font-semibold text-slate-600">
+                  Ideal for original innovations in AI, Web3, IoT, Healthcare, FinTech, Sustainability, and Robotics.
+                </p>
+              </div>
             </div>
-          ) : null}
-          {compact && !loading ? (
-            <div className="mt-10 text-center">
-              <Button to="/problems">View all {problems.length} problem statements</Button>
+
+            <div className="mt-8 pt-4 border-t border-web/10">
+              <Button
+                variant="primary"
+                className="w-full text-xs sm:text-sm font-black py-3.5 px-6 shadow-comic bg-spidey text-white hover:bg-web transition"
+                onClick={() => onSelect?.(OPEN_INNOVATION_PROBLEM)}
+                disabled={!canSelect}
+              >
+                <Sparkles size={16} className="mr-2 text-gold" /> Select Open Innovation <ArrowRight size={16} className="ml-2" />
+              </Button>
             </div>
-          ) : null}
+          </div>
         </div>
-      </section>
-    );
+      </div>
+    </section>
+  );
 }

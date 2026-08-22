@@ -97,6 +97,7 @@ export const DEFAULT_SETTINGS = {
 };
 export const WHATSAPP_GROUP_URL = "https://chat.whatsapp.com/Ex6wG7jEomRE70UUAw9AGa";
 export const ORGANIZER_CONTACT_NUMBER = "+91 9511841275";
+export const SIH_OFFICIAL_WEBSITE_URL = "https://sih.gov.in/sih2026PS";
 export const PROBLEM_STATEMENTS_PDF = "/docs/SIH-Themes-and-Problem-Statements.pdf";
 export const OPEN_INNOVATION_PROBLEM = {
     id: "OPEN_INNOVATION",
@@ -146,7 +147,7 @@ export const FAQ_ITEMS = [
     },
     {
         q: "How does problem selection work?",
-        a: "After payment is verified, lock exactly one problem statement. Each statement can be taken by only two teams. Counts update live, and the third team is blocked.",
+        a: "Browse problem statements on the official SIH portal (sih.gov.in/sih2026PS). Enter your chosen Problem Statement ID & Title to confirm selection. A maximum of 5 teams can select the same problem statement.",
     },
     {
         q: "Can we change our selected problem?",
@@ -154,7 +155,7 @@ export const FAQ_ITEMS = [
     },
     {
         q: "How many teams can select one problem?",
-        a: "A maximum of two teams can select any problem statement. When the second team locks it, the problem becomes FULL automatically.",
+        a: "A maximum of 5 teams / ideas can select the same problem statement ID. When the 5th team locks it, the problem statement becomes FULL automatically.",
     },
     {
         q: "What happens if payment fails?",
@@ -191,8 +192,8 @@ export const RULES = [
         body: "Only a confirmed team can select a problem, after payment is verified. The team may hold exactly one active selection.",
     },
     {
-        title: "Two-team maximum",
-        body: "Each problem statement can be claimed by at most two teams. When the second team locks it, it becomes FULL in real time and no more teams can select it.",
+        title: "Five-team maximum",
+        body: "Each problem statement can be claimed by at most 5 teams / ideas. When the 5th team locks it, it becomes FULL in real time and no more teams can select it.",
     },
     {
         title: "Selection finality",

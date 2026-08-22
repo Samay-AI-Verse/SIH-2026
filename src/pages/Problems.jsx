@@ -109,7 +109,7 @@ export function Problems() {
             <div className="rounded-2xl border-2 border-web bg-gold/20 p-4 text-xs font-bold text-web flex items-center gap-2">
               <ShieldCheck size={18} className="text-spidey flex-shrink-0" />
               <span>
-                Team <strong className="text-web">{activeTeam?.teamName || activeTeam?.team_name}</strong> is verified! Click <strong>"Select Problem Statement"</strong> on any available statement card below to lock it for your team. Each problem statement is capped at max 2 teams.
+                Team <strong className="text-web">{activeTeam?.teamName || activeTeam?.team_name}</strong> is verified! Browse the official SIH portal for problem statements, then click <strong>"Select & Submit PS ID"</strong> below to lock your selection. Each problem statement is capped at a maximum of <strong>5 teams / ideas</strong>.
               </span>
             </div>
           ) : (
@@ -148,7 +148,8 @@ export function Problems() {
           try {
             const targetTeamId = details.teamId || activeTeam?.id;
             await selectProblem({
-              problemId: selected.id,
+              problemId: details.problemId || selected.id,
+              problemTitle: details.problemTitle || selected.title,
               teamId: targetTeamId,
               openInnovationTitle: details.openInnovationTitle,
               openInnovationDescription: details.openInnovationDescription,
@@ -156,7 +157,7 @@ export function Problems() {
             });
             setPhase("success");
           } catch (err) {
-            setError(err instanceof Error ? err.message : "This problem statement has already reached its maximum quota of 2 teams.");
+            setError(err instanceof Error ? err.message : "Submission failed. Please try again.");
             setPhase("error");
           }
         }}

@@ -1,16 +1,21 @@
 import { useState, useEffect } from "react";
-import { CircleCheck, Sparkles, User, Mail, ShieldCheck, CheckCircle2, Lock, AlertCircle, ArrowRight, Building } from "lucide-react";
+import { CircleCheck, Sparkles, User, Mail, ShieldCheck, CheckCircle2, AlertCircle, ExternalLink, FileText, Lightbulb } from "lucide-react";
 import { motion } from "framer-motion";
 import { Modal } from "./ui/Modal";
 import { Button } from "./ui/Button";
-import { Field, TextInput } from "./ui/Field";
 import { lookupDashboard } from "../services/apiService";
 import { saveTeamSession } from "../lib/session";
+import { SIH_OFFICIAL_WEBSITE_URL } from "../utils/constants";
 
 export function SelectionModal({ problem, phase, error, team, onCancel, onConfirm, onTeamVerified }) {
-  const isOpenInno = problem?.id === "OPEN_INNOVATION" || problem?.isOpenInnovation;
+  const initialIsOpenInno = problem?.id === "OPEN_INNOVATION" || problem?.isOpenInnovation;
+  const [isOpenInno, setIsOpenInno] = useState(initialIsOpenInno);
+
+  const [psIdInput, setPsIdInput] = useState("");
+  const [psTitleInput, setPsTitleInput] = useState("");
   const [innoTitle, setInnoTitle] = useState("");
   const [innoDesc, setInnoDesc] = useState("");
+
   const [leaderEmailInput, setLeaderEmailInput] = useState("");
   const [verifyingEmail, setVerifyingEmail] = useState(false);
   const [verifiedTeam, setVerifiedTeam] = useState(team || null);
@@ -19,6 +24,10 @@ export function SelectionModal({ problem, phase, error, team, onCancel, onConfir
   useEffect(() => {
     setVerifiedTeam(team || null);
   }, [team]);
+
+  useEffect(() => {
+    setIsOpenInno(problem?.id === "OPEN_INNOVATION" || problem?.isOpenInnovation);
+  }, [problem]);
 
   async function handleVerifyEmail(e) {
     e?.preventDefault();
@@ -50,17 +59,39 @@ export function SelectionModal({ problem, phase, error, team, onCancel, onConfir
       setLocalError("Please verify your registered Leader Email ID before locking a problem statement.");
       return;
     }
-    if (isOpenInno && !innoTitle.trim()) {
-      setLocalError("Please enter your project title for Open Innovation.");
-      return;
+
+    if (isOpenInno) {
+      if (!innoTitle.trim()) {
+        setLocalError("Please enter your project title for Open Innovation.");
+        return;
+      }
+      setLocalError("");
+      onConfirm({
+        teamId: activeTeam.id,
+        problemId: "OPEN_INNOVATION",
+        problemTitle: innoTitle.trim(),
+        openInnovationTitle: innoTitle.trim(),
+        openInnovationDescription: innoDesc.trim(),
+        isOpenInnovation: true,
+      });
+    } else {
+      const cleanedPsId = psIdInput.trim().toUpperCase();
+      if (!cleanedPsId) {
+        setLocalError("Please enter the official Problem Statement ID (e.g. SIH1547).");
+        return;
+      }
+      if (!psTitleInput.trim()) {
+        setLocalError("Please enter the Problem Statement Title from the official SIH portal.");
+        return;
+      }
+      setLocalError("");
+      onConfirm({
+        teamId: activeTeam.id,
+        problemId: cleanedPsId,
+        problemTitle: psTitleInput.trim(),
+        isOpenInnovation: false,
+      });
     }
-    setLocalError("");
-    onConfirm({
-      teamId: activeTeam.id,
-      openInnovationTitle: innoTitle.trim(),
-      openInnovationDescription: innoDesc.trim(),
-      isOpenInnovation: isOpenInno,
-    });
   }
 
   const currentTeam = verifiedTeam || team;
@@ -73,16 +104,16 @@ export function SelectionModal({ problem, phase, error, team, onCancel, onConfir
             <CircleCheck className="mx-auto mb-4 h-16 w-16 text-emerald-600 drop-shadow-md" />
           </motion.div>
           <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-black tracking-widest text-emerald-800 uppercase">
-            PROBLEM STATEMENT OFFICIALLY LOCKED
+            SELECTION OFFICIALLY LOCKED
           </span>
           <h2 id="selection-title" className="mt-3 font-display text-3xl md:text-4xl text-web">
             Selection Confirmed For {currentTeam?.teamName || "Your Team"}!
           </h2>
 
           <div className="mt-4 rounded-2xl border-2 border-web bg-slate-50 p-4 text-left space-y-1">
-            <p className="text-[10px] font-black uppercase text-slate-500">Locked Problem Statement</p>
-            <p className="font-display text-2xl text-spidey">{isOpenInno ? "OPEN INNOVATION" : problem?.code}</p>
-            <p className="font-bold text-sm text-web">{isOpenInno ? (innoTitle || "Custom Innovation Project") : problem?.title}</p>
+            <p className="text-[10px] font-black uppercase text-slate-500">Locked Selection</p>
+            <p className="font-display text-2xl text-spidey">{isOpenInno ? "OPEN INNOVATION" : (psIdInput || problem?.code || "SIH PS")}</p>
+            <p className="font-bold text-sm text-web">{isOpenInno ? (innoTitle || "Custom Innovation Project") : (psTitleInput || problem?.title)}</p>
           </div>
 
           <Button className="mt-6 w-full" onClick={onCancel}>
@@ -94,25 +125,33 @@ export function SelectionModal({ problem, phase, error, team, onCancel, onConfir
           {/* Header Banner */}
           <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div>
-              {isOpenInno ? (
-                <span className="inline-flex items-center gap-1 text-[10px] font-black tracking-widest text-spidey bg-gold/30 px-2.5 py-0.5 rounded-lg border border-web/30">
-                  <Sparkles size={12} /> OPEN INNOVATION SUBMISSION
-                </span>
-              ) : (
-                <span className="text-[10px] font-black tracking-[0.2em] text-spidey uppercase">CONFIRM PROBLEM SELECTION</span>
-              )}
-              <h2 id="selection-title" className="font-display text-3xl text-web leading-none mt-1">
-                {isOpenInno ? "Submit Custom Idea" : problem?.code}
+              <span className="inline-flex items-center gap-1 text-[10px] font-black tracking-widest text-spidey bg-gold/30 px-2.5 py-0.5 rounded-lg border border-web/30 uppercase">
+                {isOpenInno ? <Sparkles size={12} /> : <FileText size={12} />}
+                {isOpenInno ? "OPEN INNOVATION SUBMISSION" : "OFFICIAL SIH PS SUBMISSION"}
+              </span>
+              <h2 id="selection-title" className="font-display text-2xl md:text-3xl text-web leading-none mt-1">
+                {isOpenInno ? "Submit Custom Idea" : "Enter Official Problem Details"}
               </h2>
             </div>
-            <span className="rounded-xl border-2 border-web bg-web px-3 py-1 font-mono text-xs font-black text-gold">
-              {problem?.selectedCount || 0}/2 Teams
-            </span>
-          </div>
 
-          <p className="text-xs text-slate-700 font-medium leading-relaxed">
-            {isOpenInno ? problem?.description : problem?.title}
-          </p>
+            {/* Mode Switcher Pills */}
+            <div className="flex bg-slate-100 p-1 rounded-xl border border-web/20">
+              <button
+                type="button"
+                onClick={() => setIsOpenInno(false)}
+                className={`px-3 py-1 text-xs font-black rounded-lg transition ${!isOpenInno ? "bg-web text-white" : "text-slate-600 hover:text-web"}`}
+              >
+                SIH PS
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsOpenInno(true)}
+                className={`px-3 py-1 text-xs font-black rounded-lg transition ${isOpenInno ? "bg-spidey text-white" : "text-slate-600 hover:text-spidey"}`}
+              >
+                Open Innovation
+              </button>
+            </div>
+          </div>
 
           {/* Team Identification / Leader Email Verification Box */}
           <div className="rounded-2xl border-2 border-web bg-slate-50 p-4 space-y-3">
@@ -146,7 +185,7 @@ export function SelectionModal({ problem, phase, error, team, onCancel, onConfir
             ) : (
               <div className="space-y-2">
                 <p className="text-xs text-slate-600 font-bold">
-                  Enter your registered Team Leader Email ID to verify your team and lock this problem statement:
+                  Enter your registered Team Leader Email ID to verify your team and lock a problem statement:
                 </p>
                 <div className="flex gap-2">
                   <input
@@ -168,12 +207,57 @@ export function SelectionModal({ problem, phase, error, team, onCancel, onConfir
             )}
           </div>
 
-          {/* Open Innovation Form Fields */}
-          {isOpenInno && (
+          {/* MODE 1: OFFICIAL SIH PROBLEM STATEMENT INPUT FORM */}
+          {!isOpenInno ? (
+            <div className="space-y-4 rounded-2xl border-3 border-web/30 bg-slate-50 p-5 shadow-inner">
+              <div className="rounded-xl border-2 border-web bg-gold/20 p-3 space-y-2">
+                <p className="text-xs font-bold text-web flex items-center justify-between">
+                  <span>1. Find your problem statement on official SIH website:</span>
+                  <a
+                    href={SIH_OFFICIAL_WEBSITE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-black uppercase text-spidey hover:underline"
+                  >
+                    Open sih.gov.in/sih2026PS <ExternalLink size={12} />
+                  </a>
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-web">
+                  PROBLEM STATEMENT ID / CODE *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. SIH1547 or PS-2026-001"
+                  value={psIdInput}
+                  onChange={(e) => setPsIdInput(e.target.value)}
+                  className="w-full rounded-xl border-2 border-web/40 bg-white p-3 text-sm font-bold text-web placeholder:text-slate-400 focus:border-web focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-web">
+                  PROBLEM STATEMENT TITLE / TOPIC *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. AI-Driven Smart Traffic & Emergency Vehicle Route Optimization"
+                  value={psTitleInput}
+                  onChange={(e) => setPsTitleInput(e.target.value)}
+                  className="w-full rounded-xl border-2 border-web/40 bg-white p-3 text-sm font-bold text-web placeholder:text-slate-400 focus:border-web focus:outline-none"
+                  required
+                />
+              </div>
+            </div>
+          ) : (
+            /* MODE 2: OPEN INNOVATION FORM FIELDS */
             <div className="space-y-4 rounded-2xl border-3 border-spidey/30 bg-gradient-to-b from-spidey/5 to-gold/10 p-5 shadow-inner">
               <div className="flex items-center justify-between border-b border-spidey/15 pb-2">
                 <span className="font-display text-lg text-web flex items-center gap-2">
-                  <Sparkles size={18} className="text-spidey animate-pulse" /> Open Innovation Project Details
+                  <Lightbulb size={18} className="text-amber-500 shrink-0" /> Open Innovation Project Details
                 </span>
                 <span className="text-[10px] font-black uppercase tracking-wider bg-gold text-web px-2.5 py-0.5 rounded-full">
                   Unlimited Capacity
@@ -191,7 +275,7 @@ export function SelectionModal({ problem, phase, error, team, onCancel, onConfir
                   value={innoTitle}
                   onChange={(e) => setInnoTitle(e.target.value)}
                   maxLength={100}
-                  className="w-full rounded-xl border-3 border-web/40 bg-white p-3.5 text-sm sm:text-base font-bold text-web placeholder:text-slate-400 focus:border-web focus:bg-white focus:outline-none focus:ring-4 focus:ring-gold/30 shadow-xs transition"
+                  className="w-full rounded-xl border-3 border-web/40 bg-white p-3.5 text-sm font-bold text-web placeholder:text-slate-400 focus:border-web focus:outline-none"
                   required
                 />
               </div>
@@ -202,20 +286,11 @@ export function SelectionModal({ problem, phase, error, team, onCancel, onConfir
                     <span>ABSTRACT / PROPOSED ARCHITECTURE</span>
                     <span className="text-[10px] font-bold text-slate-400 normal-case">(OPTIONAL BUT RECOMMENDED)</span>
                   </label>
-                  <span className="text-[11px] text-slate-500 font-semibold font-mono">{innoDesc.length} chars</span>
-                </div>
-                <div className="mb-2 rounded-lg bg-white/70 border border-web/20 p-2 text-[11px] font-semibold text-slate-600 flex items-center gap-1.5">
-                  <Sparkles size={13} className="text-gold shrink-0" />
-                  <span>Tip: Describe problem scope, solution approach, hardware/software stack, and expected impact.</span>
                 </div>
                 <textarea
-                  rows={6}
-                  className="w-full rounded-xl border-3 border-web/40 bg-white p-3.5 text-xs sm:text-sm font-medium text-ink placeholder:text-slate-400 focus:border-web focus:outline-none focus:ring-4 focus:ring-gold/30 shadow-xs transition leading-relaxed"
-                  placeholder={`Briefly describe your team's custom innovation project:
-• Problem Statement & Target Domain
-• Proposed Technical Solution & Workflow
-• Key Tech Stack (e.g. React, FastAPI, Python AI, IoT, Cloudflare)
-• Innovation & Impact...`}
+                  rows={4}
+                  className="w-full rounded-xl border-3 border-web/40 bg-white p-3 text-xs sm:text-sm font-medium text-ink placeholder:text-slate-400 focus:border-web focus:outline-none"
+                  placeholder={`Briefly describe your team's custom innovation project...`}
                   value={innoDesc}
                   onChange={(e) => setInnoDesc(e.target.value)}
                 />
@@ -226,7 +301,7 @@ export function SelectionModal({ problem, phase, error, team, onCancel, onConfir
           <p className="text-[11px] text-slate-500 font-medium">
             {isOpenInno
               ? "Your Open Innovation project idea will be submitted directly to the evaluation panel."
-              : "Each statement is strictly limited to 2 teams. Once locked, selection is final."}
+              : "A maximum of 5 teams / ideas can select the same Problem Statement ID. Selection is final once locked."}
           </p>
 
           {(error || localError) ? (
