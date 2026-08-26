@@ -49,18 +49,40 @@ export function AdminLogin() {
     setError("");
     try {
       const res = await loginWithGoogle();
-      const user = res.user;
-      setGoogleUser({
-        email: user.email || "",
-        displayName: user.displayName || "",
-        photoURL: user.photoURL || "",
-      });
-      if (!email) setEmail(user.email || "");
-      setStep(2);
+      const user = res?.user || auth?.currentUser;
+      if (user) {
+        setGoogleUser({
+          email: user.email || "",
+          displayName: user.displayName || "Verified Organizer",
+          photoURL: user.photoURL || "",
+        });
+        if (!email) setEmail(user.email || "");
+        setStep(2);
+        return;
+      }
     } catch (err) {
-      console.error(err);
+      console.warn("Google auth attempt:", err);
+      const user = auth?.currentUser;
+      if (user) {
+        setGoogleUser({
+          email: user.email || "",
+          displayName: user.displayName || "Verified Organizer",
+          photoURL: user.photoURL || "",
+        });
+        if (!email) setEmail(user.email || "");
+        setStep(2);
+        return;
+      }
+      if (
+        err?.code === "auth/popup-closed-by-user" ||
+        err?.code === "auth/cancelled-popup-request" ||
+        err?.message?.includes("closed")
+      ) {
+        // User closed popup, don't show error banner
+        return;
+      }
       if (!isFirebaseConfigured) {
-        setError("Firebase configuration missing in .env. Please add VITE_FIREBASE_API_KEY and VITE_FIREBASE_PROJECT_ID to enable real Google popup.");
+        setError("Firebase configuration missing in .env. Please check Firebase API keys.");
       } else {
         setError(err instanceof Error ? err.message : "Google sign-in failed. Please try again.");
       }
