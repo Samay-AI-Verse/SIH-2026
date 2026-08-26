@@ -3,12 +3,12 @@ import { GoogleAuthProvider, getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
 const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCtsPguhFXXUzDkdePfipkwl-FXAWKOGgM",
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "sih-2026-d3c4a.firebaseapp.com",
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "sih-2026-d3c4a",
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "sih-2026-d3c4a.firebasestorage.app",
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "943519646042",
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:943519646042:web:91a7ac11952cf681c0f363",
 };
 export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.apiKey !== "demo");
 let app = null;
