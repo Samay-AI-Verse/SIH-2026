@@ -121,30 +121,31 @@ export function Timeline() {
       {/* Interactive Coming Soon / Round Schedule Modal */}
       <AnimatePresence>
         {modalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-black/75 backdrop-blur-sm animate-in fade-in overflow-hidden">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-lg rounded-3xl border-4 border-web bg-white p-6 sm:p-8 shadow-2xl text-center"
+              className="relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-3xl border-3 sm:border-4 border-web bg-white p-6 sm:p-8 shadow-2xl text-center overflow-y-auto"
             >
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="absolute right-4 top-4 rounded-full border-2 border-web p-1.5 text-web hover:bg-slate-100 transition"
+                className="absolute right-4 top-4 rounded-full border-2 border-slate-300 bg-white p-1.5 text-slate-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition shadow-xs z-10"
+                title="Close"
               >
                 <X size={18} />
               </button>
 
-              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-3 border-web bg-gold text-web">
-                <Calendar size={32} />
+              <div className="mx-auto mb-3 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl border-3 border-web bg-gold text-web shrink-0 shadow-2xs">
+                <Calendar size={28} />
               </div>
 
-              <span className="inline-block rounded-full bg-spidey/15 border border-spidey/30 px-3 py-0.5 text-xs font-black text-spidey uppercase tracking-wider">
+              <span className="inline-block rounded-full bg-spidey/15 border border-spidey/30 px-3 py-0.5 text-xs font-black text-spidey uppercase tracking-wider mx-auto">
                 2-DAY EVENT SCHEDULE
               </span>
 
-              <h3 className="mt-3 font-display text-3xl text-web">
+              <h3 className="mt-3 font-display text-2xl sm:text-3xl text-web">
                 2-Day Grand Finale Schedule
               </h3>
 
@@ -180,11 +181,11 @@ export function Timeline() {
                   href={WHATSAPP_GROUP_URL}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] py-3 text-xs font-black uppercase text-web border-2 border-web shadow-sm hover:brightness-105"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] py-2.5 text-xs font-black uppercase text-web border-2 border-web shadow-sm hover:brightness-105"
                 >
                   <MessageCircle size={15} /> Join WhatsApp Channel
                 </a>
-                <Button variant="secondary" onClick={() => setModalOpen(false)} className="text-xs font-bold">
+                <Button variant="secondary" onClick={() => setModalOpen(false)} className="text-xs font-bold py-2.5">
                   Close
                 </Button>
               </div>

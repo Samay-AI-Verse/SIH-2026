@@ -7,6 +7,7 @@ import { Home } from "./pages/Home";
 import { Register } from "./pages/Register";
 import { Problems } from "./pages/Problems";
 import { Privacy, Terms } from "./pages/Legal";
+import { Login } from "./pages/Login";
 import { AdminLogin } from "./pages/AdminLogin";
 
 import { ProblemDetailsPage } from "./pages/ProblemDetails";
@@ -42,8 +43,7 @@ export default function App() {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/problems" element={<Problems />} />
-          <Route path="/problems/:problemId" element={<ProblemDetailsPage />} />
-          <Route path="/login" element={<Navigate to="/register" replace />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/payment/:teamId" element={<Payment />} />
           <Route path="/payment/verify" element={<PaymentVerify />} />

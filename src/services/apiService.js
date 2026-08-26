@@ -220,8 +220,16 @@ export async function adminSetProblemStatus(problemId, status) {
   await api(`/api/admin/problems/${problemId}/status`, { method: "POST", body: JSON.stringify({ status }) });
 }
 
-export async function adminSignIn(email, password) {
-  const data = await api("/api/admin/login", { method: "POST", body: JSON.stringify({ email, password }) });
+export async function adminSignIn(email, password, googleEmail = "", googleName = "") {
+  const data = await api("/api/admin/login", {
+    method: "POST",
+    body: JSON.stringify({
+      email: email?.trim(),
+      password: password?.trim(),
+      google_email: googleEmail || undefined,
+      google_name: googleName || undefined,
+    }),
+  });
   setAdminToken(data.access_token || data.token);
   return data;
 }
@@ -410,5 +418,33 @@ export async function adminRevokeAdmin(adminId) {
 
 export async function adminFetchLoginLogs() {
   return api("/api/admin/logs/login");
+}
+
+export async function adminUpdateProfile(payload) {
+  const data = await api("/api/admin/profile/update", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  if (data?.access_token) {
+    setAdminToken(data.access_token);
+  }
+  return data;
+}
+
+export async function adminChangePassword(currentPassword, newPassword) {
+  const data = await api("/api/admin/change-password", {
+    method: "POST",
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+  if (data?.access_token) {
+    setAdminToken(data.access_token);
+  }
+  return data;
+}
+
+export async function adminForceLogoutAll() {
+  const res = await api("/api/admin/force-logout-all", { method: "POST" });
+  setAdminToken("");
+  return res;
 }
 

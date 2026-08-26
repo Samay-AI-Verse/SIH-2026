@@ -54,161 +54,169 @@ export function EditMemberModal({ teamId, member, onClose, onSuccess }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="relative w-full max-w-lg rounded-3xl border-4 border-web bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-left">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded-full border-2 border-slate-300 bg-slate-100 p-2 text-ink hover:bg-spidey hover:text-white transition"
-        >
-          <X size={18} />
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-hidden">
+      <div className="relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-3xl border-3 sm:border-4 border-web bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 text-left">
+        {/* Sticky Header */}
+        <div className="shrink-0 px-5 sm:px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 text-web min-w-0">
+            <div className="rounded-2xl bg-gold/30 p-2.5 border-2 border-web/20 text-web shrink-0">
+              <UserCheck size={22} />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-display text-xl sm:text-2xl text-web truncate">Edit Student Member</h3>
+              <p className="text-xs font-bold text-slate-500 truncate">
+                Update details or replace team roster member
+              </p>
+            </div>
+          </div>
 
-        <div className="flex items-center gap-3 text-web mb-4">
-          <div className="rounded-2xl bg-gold/30 p-3 border-2 border-web/20 text-web">
-            <UserCheck size={24} />
-          </div>
-          <div>
-            <h3 className="font-display text-2xl text-web">Edit Student Member Profile</h3>
-            <p className="text-xs font-bold text-slate-500">
-              Update spelling errors, contact details, or replace team roster member
-            </p>
-          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 rounded-full border-2 border-slate-300 bg-white p-2 text-slate-700 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition shadow-xs"
+            title="Close modal"
+          >
+            <X size={18} />
+          </button>
         </div>
 
-        {error && (
-          <div className="mb-4 rounded-xl border-2 border-rose-400 bg-rose-50 p-3 text-xs font-bold text-rose-700 flex items-center gap-2">
-            <AlertCircle size={16} className="shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
+        {/* Scrollable Form Body */}
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-3.5">
+            {error && (
+              <div className="rounded-xl border-2 border-rose-400 bg-rose-50 p-3 text-xs font-bold text-rose-700 flex items-center gap-2">
+                <AlertCircle size={16} className="shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
 
-        <form onSubmit={handleSubmit} className="space-y-3.5">
-          {/* Member Name */}
-          <div>
-            <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
-              Full Student Name *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) => handleChange("name", e.target.value)}
-              className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
-              placeholder="Full Name..."
-            />
-          </div>
-
-          {/* Email & Phone */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Member Name */}
             <div>
               <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleChange("email", e.target.value)}
-                className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
-                placeholder="student@example.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
-                Phone Number
+                Full Student Name *
               </label>
               <input
                 type="text"
-                value={formData.phone}
-                onChange={(e) => handleChange("phone", e.target.value)}
+                required
+                value={formData.name}
+                onChange={(e) => handleChange("name", e.target.value)}
                 className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
-                placeholder="10-digit Mobile..."
+                placeholder="Full Name..."
               />
             </div>
-          </div>
 
-          {/* Gender & Degree */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
-                Gender
-              </label>
-              <select
-                value={formData.gender}
-                onChange={(e) => handleChange("gender", e.target.value)}
-                className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:outline-none"
-              >
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
+            {/* Email & Phone */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
+                  placeholder="student@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  value={formData.phone}
+                  onChange={(e) => handleChange("phone", e.target.value)}
+                  className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
+                  placeholder="10-digit Mobile..."
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
-                Degree Stream
-              </label>
-              <select
-                value={formData.course}
-                onChange={(e) => handleChange("course", e.target.value)}
-                className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:outline-none"
-              >
-                <option value="B.Tech">B.Tech</option>
-                <option value="Diploma">Diploma</option>
-                <option value="B.Voc">B.Voc</option>
-                <option value="BCA">BCA / MCA</option>
-              </select>
-            </div>
-          </div>
+            {/* Gender & Degree */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
+                  Gender
+                </label>
+                <select
+                  value={formData.gender}
+                  onChange={(e) => handleChange("gender", e.target.value)}
+                  className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:outline-none"
+                >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
 
-          {/* Branch & Year */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
+                  Degree Stream
+                </label>
+                <select
+                  value={formData.course}
+                  onChange={(e) => handleChange("course", e.target.value)}
+                  className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:outline-none"
+                >
+                  <option value="B.Tech">B.Tech</option>
+                  <option value="Diploma">Diploma</option>
+                  <option value="B.Voc">B.Voc</option>
+                  <option value="BCA">BCA / MCA</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Branch & Year */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
+                  Branch / Specialization
+                </label>
+                <input
+                  type="text"
+                  value={formData.branch}
+                  onChange={(e) => handleChange("branch", e.target.value)}
+                  className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
+                  placeholder="e.g. CSE / IT / AIDS / ME"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
+                  Year of Study
+                </label>
+                <select
+                  value={formData.year}
+                  onChange={(e) => handleChange("year", e.target.value)}
+                  className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:outline-none"
+                >
+                  <option value="1st Year">1st Year</option>
+                  <option value="2nd Year">2nd Year</option>
+                  <option value="3rd Year">3rd Year</option>
+                  <option value="4th Year">4th Year</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Student ID / Roll Number */}
             <div>
               <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
-                Branch / Specialization
+                Student ID / PRN Number (Optional)
               </label>
               <input
                 type="text"
-                value={formData.branch}
-                onChange={(e) => handleChange("branch", e.target.value)}
+                value={formData.studentId}
+                onChange={(e) => handleChange("studentId", e.target.value)}
                 className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
-                placeholder="e.g. CSE / IT / AIDS / ME"
+                placeholder="e.g. 2024101920"
               />
             </div>
-
-            <div>
-              <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
-                Year of Study
-              </label>
-              <select
-                value={formData.year}
-                onChange={(e) => handleChange("year", e.target.value)}
-                className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:outline-none"
-              >
-                <option value="1st Year">1st Year</option>
-                <option value="2nd Year">2nd Year</option>
-                <option value="3rd Year">3rd Year</option>
-                <option value="4th Year">4th Year</option>
-              </select>
-            </div>
           </div>
 
-          {/* Student ID / Roll Number */}
-          <div>
-            <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
-              Student ID / PRN Number (Optional)
-            </label>
-            <input
-              type="text"
-              value={formData.studentId}
-              onChange={(e) => handleChange("studentId", e.target.value)}
-              className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
-              placeholder="e.g. 2024101920"
-            />
-          </div>
-
-          <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+          {/* Sticky Footer */}
+          <div className="shrink-0 px-5 sm:px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
@@ -219,7 +227,7 @@ export function EditMemberModal({ teamId, member, onClose, onSuccess }) {
             <Button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-1.5 py-2 px-5 text-xs font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700"
+              className="flex items-center gap-1.5 py-2 px-5 text-xs font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700 shadow-2xs"
             >
               <Save size={14} /> {saving ? "Saving..." : "Save Member Changes"}
             </Button>

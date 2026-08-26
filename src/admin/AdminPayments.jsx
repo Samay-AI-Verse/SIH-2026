@@ -384,153 +384,160 @@ export function AdminPayments() {
 
       {/* DETAILED VERIFICATION INSPECTION MODAL */}
       {inspectItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="relative w-full max-w-3xl rounded-3xl border-4 border-web bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-left">
-            <button
-              onClick={() => setInspectItem(null)}
-              className="absolute right-4 top-4 rounded-full border-2 border-web bg-slate-100 p-2 text-ink hover:bg-spidey hover:text-white transition"
-            >
-              <X size={18} />
-            </button>
-
-            {/* Modal Header */}
-            <div className="border-b border-slate-200 pb-3 mb-4">
-              <div className="flex items-center gap-2 mb-1">
-                {inspectItem.isOffline ? (
-                  <span className="inline-flex items-center gap-1 rounded bg-amber-400 px-2 py-0.5 text-[10px] font-black text-web">
-                    💵 OFFLINE CASH PAYMENT
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-hidden">
+          <div className="relative w-full max-w-3xl max-h-[92vh] flex flex-col rounded-3xl border-3 sm:border-4 border-web bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 text-left">
+            {/* Sticky Header */}
+            <div className="shrink-0 px-5 sm:px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  {inspectItem.isOffline ? (
+                    <span className="inline-flex items-center gap-1 rounded bg-amber-400 px-2 py-0.5 text-[10px] font-black text-web">
+                      💵 OFFLINE CASH PAYMENT
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded bg-gold px-2 py-0.5 text-[10px] font-black text-web">
+                      💳 ONLINE UPI PAYMENT (CLOUDFLARE R2)
+                    </span>
+                  )}
+                  <span className="font-mono text-xs font-black text-spidey bg-spidey/10 px-2 py-0.5 rounded">
+                    {inspectItem.item.registration_id}
                   </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 rounded bg-gold px-2 py-0.5 text-[10px] font-black text-web">
-                    💳 ONLINE UPI PAYMENT (CLOUDFLARE R2)
-                  </span>
-                )}
-                <span className="font-mono text-xs font-black text-spidey bg-spidey/10 px-2 py-0.5 rounded">
-                  {inspectItem.item.registration_id}
-                </span>
+                </div>
+                <h3 className="font-display text-2xl sm:text-3xl text-web truncate">{inspectItem.item.team_name}</h3>
+                <p className="text-xs font-bold text-slate-600 truncate">
+                  {inspectItem.team?.college || "GTMC Nanded"} · Fee: {formatINR(inspectItem.item.amount || 300, inspectItem.item.currency || "INR")}
+                </p>
               </div>
-              <h3 className="font-display text-3xl text-web">{inspectItem.item.team_name}</h3>
-              <p className="text-xs font-bold text-slate-600">
-                {inspectItem.team?.college || "GTMC Nanded"} · Fee: {formatINR(inspectItem.item.amount || 300, inspectItem.item.currency || "INR")}
-              </p>
+
+              <button
+                onClick={() => setInspectItem(null)}
+                className="shrink-0 rounded-full border-2 border-slate-300 bg-white p-2 text-slate-700 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition shadow-xs"
+                title="Close Modal"
+              >
+                <X size={18} />
+              </button>
             </div>
 
-            {/* UTR & Screenshot Grid */}
-            <div className="grid gap-4 sm:grid-cols-2 mb-4">
-              {/* UTR Box */}
-              <div className="space-y-3 rounded-2xl border-2 border-web/20 bg-slate-50 p-4">
-                <div>
-                  <span className="text-[10px] font-black uppercase text-slate-500 block mb-1">
-                    {inspectItem.isOffline ? "Cash Receipt Token #" : "Submitted UTR / Transaction ID"}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-black text-base text-web bg-white px-3 py-1 rounded-xl border-2 border-web/30">
-                      {inspectItem.receiptNum || inspectItem.item.transaction_id || "Not Provided"}
-                    </span>
-                    {inspectItem.receiptNum && (
-                      <button
-                        onClick={() => copyUtr(inspectItem.receiptNum)}
-                        className="rounded-lg border border-web/20 bg-white p-1.5 text-web hover:bg-gold transition"
-                      >
-                        {copiedUtr === inspectItem.receiptNum ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {inspectItem.isOffline && (
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+              {/* UTR & Screenshot Grid */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {/* UTR Box */}
+                <div className="space-y-3 rounded-2xl border-2 border-web/20 bg-slate-50 p-4">
                   <div>
-                    <span className="text-[10px] font-black uppercase text-amber-800 block mb-0.5">
-                      Cash Collector Name
+                    <span className="text-[10px] font-black uppercase text-slate-500 block mb-1">
+                      {inspectItem.isOffline ? "Cash Receipt Token #" : "Submitted UTR / Transaction ID"}
                     </span>
-                    <span className="font-bold text-sm text-web">{inspectItem.collector}</span>
-                  </div>
-                )}
-
-                <div>
-                  <span className="text-[10px] font-black uppercase text-slate-500 block mb-0.5">
-                    Submission Timestamp
-                  </span>
-                  <span className="font-bold text-xs text-slate-700">{formatDate(inspectItem.item.created_at)}</span>
-                </div>
-              </div>
-
-              {/* Screenshot Proof Box */}
-              <div className="rounded-2xl border-2 border-web/20 bg-slate-50 p-4 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-black uppercase text-spidey flex items-center gap-1">
-                      <ImageIcon size={14} /> Payment Proof Screenshot (Cloudflare R2)
-                    </span>
-                    {inspectItem.proofUrl && (
-                      <span className="text-[9px] font-black uppercase text-amber-700 bg-gold/30 px-2 py-0.5 rounded">
-                        🔍 Click Image to Zoom
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-black text-sm sm:text-base text-web bg-white px-3 py-1 rounded-xl border-2 border-web/30 truncate">
+                        {inspectItem.receiptNum || inspectItem.item.transaction_id || "Not Provided"}
                       </span>
-                    )}
-                  </div>
-                  {inspectItem.proofUrl ? (
-                    <div className="space-y-2">
-                      <div
-                        onClick={() => setActiveLightboxUrl(inspectItem.proofUrl)}
-                        className="group relative overflow-hidden rounded-xl border-2 border-web/30 bg-slate-900 h-56 flex items-center justify-center cursor-pointer transition hover:border-web"
-                      >
-                        <img
-                          src={inspectItem.proofUrl}
-                          alt="Payment Proof Screenshot"
-                          className="h-full w-full object-contain group-hover:scale-105 transition duration-200"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-black uppercase gap-1">
-                          <ZoomIn size={18} /> Click for Full Screen Lightbox
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between pt-1">
+                      {inspectItem.receiptNum && (
                         <button
-                          onClick={() => setActiveLightboxUrl(inspectItem.proofUrl)}
-                          className="inline-flex items-center gap-1 text-xs font-black uppercase text-web hover:text-spidey transition"
+                          onClick={() => copyUtr(inspectItem.receiptNum)}
+                          className="rounded-lg border border-web/20 bg-white p-1.5 text-web hover:bg-gold transition shrink-0"
+                          title="Copy UTR"
                         >
-                          <ZoomIn size={13} /> Full Screen Preview
+                          {copiedUtr === inspectItem.receiptNum ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
                         </button>
-                        <a
-                          href={inspectItem.proofUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs font-black uppercase text-spidey hover:underline"
-                        >
-                          Open in Tab <ExternalLink size={12} />
-                        </a>
-                      </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="rounded-xl border-2 border-dashed border-slate-300 bg-white p-12 text-center text-slate-400 text-xs font-bold">
-                      Direct UTR / Cash Verification (No Image Screenshot Attached)
+                  </div>
+
+                  {inspectItem.isOffline && (
+                    <div>
+                      <span className="text-[10px] font-black uppercase text-amber-800 block mb-0.5">
+                        Cash Collector Name
+                      </span>
+                      <span className="font-bold text-sm text-web">{inspectItem.collector}</span>
                     </div>
                   )}
+
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-slate-500 block mb-0.5">
+                      Submission Timestamp
+                    </span>
+                    <span className="font-bold text-xs text-slate-700">{formatDate(inspectItem.item.created_at)}</span>
+                  </div>
+                </div>
+
+                {/* Screenshot Proof Box */}
+                <div className="rounded-2xl border-2 border-web/20 bg-slate-50 p-4 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-black uppercase text-spidey flex items-center gap-1">
+                        <ImageIcon size={14} /> Payment Proof (Cloudflare R2)
+                      </span>
+                      {inspectItem.proofUrl && (
+                        <span className="text-[9px] font-black uppercase text-amber-700 bg-gold/30 px-2 py-0.5 rounded">
+                          🔍 Click to Zoom
+                        </span>
+                      )}
+                    </div>
+                    {inspectItem.proofUrl ? (
+                      <div className="space-y-2">
+                        <div
+                          onClick={() => setActiveLightboxUrl(inspectItem.proofUrl)}
+                          className="group relative overflow-hidden rounded-xl border-2 border-web/30 bg-slate-900 h-48 sm:h-52 flex items-center justify-center cursor-pointer transition hover:border-web"
+                        >
+                          <img
+                            src={inspectItem.proofUrl}
+                            alt="Payment Proof Screenshot"
+                            className="h-full w-full object-contain group-hover:scale-105 transition duration-200"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-black uppercase gap-1">
+                            <ZoomIn size={18} /> Full Screen Preview
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between pt-1">
+                          <button
+                            onClick={() => setActiveLightboxUrl(inspectItem.proofUrl)}
+                            className="inline-flex items-center gap-1 text-xs font-black uppercase text-web hover:text-spidey transition"
+                          >
+                            <ZoomIn size={13} /> Zoom Screenshot
+                          </button>
+                          <a
+                            href={inspectItem.proofUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-black uppercase text-spidey hover:underline"
+                          >
+                            Open in Tab <ExternalLink size={12} />
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border-2 border-dashed border-slate-300 bg-white p-8 text-center text-slate-400 text-xs font-bold">
+                        Direct UTR / Cash Verification (No Image Screenshot Attached)
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Team Leader & Roster Preview */}
+              <div className="rounded-2xl border-2 border-web/20 bg-white p-4">
+                <span className="text-[10px] font-black uppercase text-web block mb-2">
+                  Team Roster ({inspectItem.members.length || 6} Members)
+                </span>
+                <div className="grid gap-2 text-xs font-bold text-slate-700 sm:grid-cols-2">
+                  {inspectItem.members.map((m, idx) => (
+                    <div key={m.id || idx} className="rounded-lg border border-slate-200 bg-slate-50 p-2 flex items-center justify-between">
+                      <div className="flex items-center gap-1 truncate">
+                        {m.is_leader || idx === 0 ? <Crown size={12} className="text-gold shrink-0" /> : null}
+                        <span className="text-web font-bold truncate">{m.name || m.full_name}</span>
+                      </div>
+                      <span className={m.gender === "Female" ? "text-pink-600 text-[10px] font-black shrink-0" : "text-blue-600 text-[10px] font-black shrink-0"}>
+                        {m.gender || "Male"}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Team Leader & Roster Preview */}
-            <div className="rounded-2xl border-2 border-web/20 bg-white p-4 mb-4">
-              <span className="text-[10px] font-black uppercase text-web block mb-2">
-                Team Roster ({inspectItem.members.length || 6} Members)
-              </span>
-              <div className="grid gap-2 text-xs font-bold text-slate-700 sm:grid-cols-2">
-                {inspectItem.members.map((m, idx) => (
-                  <div key={m.id || idx} className="rounded-lg border border-slate-200 bg-slate-50 p-2 flex items-center justify-between">
-                    <div className="flex items-center gap-1 truncate">
-                      {m.is_leader || idx === 0 ? <Crown size={12} className="text-gold shrink-0" /> : null}
-                      <span className="text-web font-bold truncate">{m.name || m.full_name}</span>
-                    </div>
-                    <span className={m.gender === "Female" ? "text-pink-600 text-[10px] font-black" : "text-blue-600 text-[10px] font-black"}>
-                      {m.gender || "Male"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Action Bar */}
-            <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+            {/* Sticky Action Bar */}
+            <div className="shrink-0 px-5 sm:px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
               <span className="text-xs font-bold text-slate-500">
                 Carefully check UTR or cash receipt before approving.
               </span>
@@ -539,7 +546,7 @@ export function AdminPayments() {
                 <button
                   disabled={Boolean(acting)}
                   onClick={() => decide(inspectItem.item.id, "FAILED")}
-                  className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 text-xs font-black uppercase transition disabled:opacity-50"
+                  className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 text-xs font-black uppercase transition disabled:opacity-50 shadow-2xs"
                 >
                   Reject Payment ✕
                 </button>
@@ -547,7 +554,7 @@ export function AdminPayments() {
                 <button
                   disabled={Boolean(acting)}
                   onClick={() => decide(inspectItem.item.id, "SUCCESS")}
-                  className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 text-xs font-black uppercase transition disabled:opacity-50 shadow-xs"
+                  className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 text-xs font-black uppercase transition disabled:opacity-50 shadow-2xs"
                 >
                   Approve & Confirm Team ✓
                 </button>

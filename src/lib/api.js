@@ -55,6 +55,12 @@ export async function api(path, options = {}) {
       const response = await fetchWithTimeout(fullUrl, requestOptions, 15000);
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
+        if (response.status === 401 && token) {
+          setAdminToken("");
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new Event("admin_unauthorized"));
+          }
+        }
         let errorMsg = "Request failed.";
         if (typeof data.detail === "string" && data.detail.trim()) {
           errorMsg = data.detail.trim();
@@ -68,6 +74,7 @@ export async function api(path, options = {}) {
         }
         const err = new Error(errorMsg);
         err.isHttpError = true;
+        err.status = response.status;
         throw err;
       }
       return data;

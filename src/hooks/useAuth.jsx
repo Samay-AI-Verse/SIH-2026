@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { ROLES } from "../types";
-import { adminSession, adminSignOut } from "../services/apiService";
+import { adminSession, adminSignOut, subscribeTable } from "../services/apiService";
 
 const AuthContext = createContext({
   user: null,
@@ -25,15 +25,44 @@ export function AuthProvider({ children }) {
       .finally(() => {
         if (active) setLoading(false);
       });
+
     function onStorage(event) {
       if (event.key === "sih_admin_token") {
         adminSession().then((session) => setUser(session?.admin || null));
       }
     }
+
+    function onUnauthorized() {
+      setUser(null);
+      if (window.location.pathname.startsWith("/admin") && window.location.pathname !== "/admin/login") {
+        window.location.href = "/";
+      }
+    }
+
     window.addEventListener("storage", onStorage);
+    window.addEventListener("admin_unauthorized", onUnauthorized);
+
+    // Subscribe to SSE for FORCE_LOGOUT events across devices
+    const unsubscribeSse = subscribeTable("FORCE_LOGOUT", (event) => {
+      try {
+        const payload = JSON.parse(event.data || "{}");
+        if (payload.table === "FORCE_LOGOUT") {
+          adminSignOut();
+          setUser(null);
+          if (window.location.pathname.startsWith("/admin")) {
+            window.location.href = "/";
+          }
+        }
+      } catch (err) {
+        // ignore parse error
+      }
+    });
+
     return () => {
       active = false;
       window.removeEventListener("storage", onStorage);
+      window.removeEventListener("admin_unauthorized", onUnauthorized);
+      unsubscribeSse();
     };
   }, []);
 

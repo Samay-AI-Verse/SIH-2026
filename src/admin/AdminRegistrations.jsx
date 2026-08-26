@@ -335,205 +335,213 @@ export function AdminRegistrations() {
 
       {/* FULL TEAM DETAILS MODAL */}
       {selectedTeam && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="relative w-full max-w-3xl rounded-3xl border-4 border-web bg-white p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200">
-            <button
-              onClick={() => {
-                setSelectedTeam(null);
-                setEditingTeamName(false);
-              }}
-              className="absolute right-4 top-4 rounded-full border-2 border-web bg-slate-100 p-2 text-ink hover:bg-spidey hover:text-white transition"
-            >
-              <X size={20} />
-            </button>
-
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl border-2 border-web bg-gold p-3 font-display text-2xl text-web">
-                {selectedTeam.registrationId}
-              </div>
-              <div className="flex-1">
-                {editingTeamName ? (
-                  <div className="flex flex-wrap items-center gap-2 mt-1">
-                    <input
-                      type="text"
-                      value={newTeamName}
-                      onChange={(e) => setNewTeamName(e.target.value)}
-                      className="rounded-xl border-2 border-web bg-slate-50 px-3 py-1.5 text-base font-bold text-ink focus:bg-white focus:outline-none"
-                      placeholder="Enter new team name..."
-                      autoFocus
-                    />
-                    <button
-                      type="button"
-                      disabled={savingNameBusy}
-                      onClick={handleSaveTeamName}
-                      className="rounded-lg border-2 border-emerald-700 bg-emerald-600 px-3 py-1.5 text-xs font-black text-white hover:bg-emerald-700 transition"
-                    >
-                      {savingNameBusy ? "Saving..." : "Save"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditingTeamName(false)}
-                      className="rounded-lg border-2 border-slate-300 bg-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-300 transition"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-display text-3xl text-web">{selectedTeam.teamName}</h2>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setNewTeamName(selectedTeam.teamName || "");
-                        setEditingTeamName(true);
-                      }}
-                      className="rounded-lg border border-web/30 bg-slate-100 p-1.5 text-slate-700 hover:bg-gold hover:text-web transition shadow-2xs"
-                      title="Edit / Correct Team Name (As Admin)"
-                    >
-                      <Pencil size={15} />
-                    </button>
-                  </div>
-                )}
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">
-                  {selectedTeam.college} · Leader: {selectedTeam.leaderName}
-                </p>
-              </div>
-            </div>
-
-            {/* Payment Details Card (Mode, UTR & Proof Image) */}
-            <div className="mt-5 rounded-2xl border-2 border-web/20 bg-amber-50/60 p-4">
-              <div className="flex items-center justify-between border-b border-amber-200/60 pb-2 mb-3">
-                <span className="text-xs font-black uppercase tracking-wider text-web flex items-center gap-1.5">
-                  <Shield size={14} className="text-spidey" /> Payment Details & Verification
-                </span>
-                <StatusBadge status={selectedTeam.paymentStatus || selectedTeam.registrationStatus} />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-bold text-slate-700">
-                {/* Payment Mode */}
-                <div className="rounded-xl border border-amber-200 bg-white p-3 space-y-1">
-                  <span className="text-[10px] font-black uppercase text-slate-400 block">Payment Mode</span>
-                  <span className="font-extrabold text-web text-sm block">
-                    {selectedTeam.paymentMode === "OFFLINE_CASH" || selectedTeam.payment_mode === "OFFLINE_CASH"
-                      ? "💵 Offline Cash Collection"
-                      : "💳 Online (UPI / QR / Bank)"}
-                  </span>
-                  {(selectedTeam.collectorName || selectedTeam.collector_name) && (
-                    <div className="text-[11px] text-slate-500 font-semibold">
-                      Collected by: <span className="text-web">{selectedTeam.collectorName || selectedTeam.collector_name}</span>
-                    </div>
-                  )}
-                  {(selectedTeam.receiptNo || selectedTeam.receipt_no) && (
-                    <div className="text-[11px] font-mono text-slate-500">
-                      Receipt #: {selectedTeam.receiptNo || selectedTeam.receipt_no}
-                    </div>
-                  )}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-hidden">
+          <div className="relative w-full max-w-3xl max-h-[92vh] flex flex-col rounded-3xl border-3 sm:border-4 border-web bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="shrink-0 px-5 sm:px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="rounded-xl border-2 border-web bg-gold px-3 py-1 font-display text-xl sm:text-2xl text-web shrink-0 shadow-2xs">
+                  {selectedTeam.registrationId}
                 </div>
-
-                {/* UTR / Transaction ID */}
-                <div className="rounded-xl border border-amber-200 bg-white p-3 space-y-1">
-                  <span className="text-[10px] font-black uppercase text-slate-400 block">UTR / Transaction ID</span>
-                  <div className="flex items-center justify-between gap-1 pt-0.5">
-                    <span className="font-mono text-xs font-black text-spidey truncate">
-                      {selectedTeam.paymentUtr || selectedTeam.payment_utr || selectedTeam.payment?.utr || selectedTeam.payment?.transaction_id || "Not Provided"}
-                    </span>
-                    {(selectedTeam.paymentUtr || selectedTeam.payment_utr || selectedTeam.payment?.utr || selectedTeam.payment?.transaction_id) && (
+                <div className="min-w-0">
+                  {editingTeamName ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <input
+                        type="text"
+                        value={newTeamName}
+                        onChange={(e) => setNewTeamName(e.target.value)}
+                        className="rounded-xl border-2 border-web bg-white px-3 py-1 text-sm font-bold text-ink focus:outline-none"
+                        placeholder="Enter new team name..."
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        disabled={savingNameBusy}
+                        onClick={handleSaveTeamName}
+                        className="rounded-lg border-2 border-emerald-700 bg-emerald-600 px-3 py-1 text-xs font-black text-white hover:bg-emerald-700 transition"
+                      >
+                        {savingNameBusy ? "Saving..." : "Save"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingTeamName(false)}
+                        className="rounded-lg border-2 border-slate-300 bg-slate-200 px-3 py-1 text-xs font-bold text-slate-700 hover:bg-slate-300 transition"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-display text-2xl sm:text-3xl text-web truncate">{selectedTeam.teamName}</h2>
                       <button
                         type="button"
                         onClick={() => {
-                          const utrVal = selectedTeam.paymentUtr || selectedTeam.payment_utr || selectedTeam.payment?.utr || selectedTeam.payment?.transaction_id;
-                          navigator.clipboard?.writeText(utrVal);
-                          setCopiedUtr(true);
-                          setTimeout(() => setCopiedUtr(false), 2000);
+                          setNewTeamName(selectedTeam.teamName || "");
+                          setEditingTeamName(true);
                         }}
-                        className="rounded bg-slate-100 p-1 text-slate-600 hover:bg-gold hover:text-web transition shrink-0"
-                        title="Copy UTR"
+                        className="rounded-lg border border-web/30 bg-white p-1 text-slate-700 hover:bg-gold hover:text-web transition shadow-2xs shrink-0"
+                        title="Edit / Correct Team Name (As Admin)"
                       >
-                        {copiedUtr ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+                        <Pencil size={14} />
                       </button>
+                    </div>
+                  )}
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 truncate mt-0.5">
+                    {selectedTeam.college} · Leader: {selectedTeam.leaderName}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedTeam(null);
+                  setEditingTeamName(false);
+                }}
+                className="shrink-0 rounded-full border-2 border-slate-300 bg-white p-2 text-slate-700 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition shadow-xs"
+                title="Close modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Scrollable Modal Body */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+              {/* Payment Details Card (Mode, UTR & Proof Image) */}
+              <div className="rounded-2xl border-2 border-web/20 bg-amber-50/60 p-4">
+                <div className="flex items-center justify-between border-b border-amber-200/60 pb-2 mb-3">
+                  <span className="text-xs font-black uppercase tracking-wider text-web flex items-center gap-1.5">
+                    <Shield size={14} className="text-spidey" /> Payment Details & Verification
+                  </span>
+                  <StatusBadge status={selectedTeam.paymentStatus || selectedTeam.registrationStatus} />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-bold text-slate-700">
+                  {/* Payment Mode */}
+                  <div className="rounded-xl border border-amber-200 bg-white p-3 space-y-1">
+                    <span className="text-[10px] font-black uppercase text-slate-400 block">Payment Mode</span>
+                    <span className="font-extrabold text-web text-sm block">
+                      {selectedTeam.paymentMode === "OFFLINE_CASH" || selectedTeam.payment_mode === "OFFLINE_CASH"
+                        ? "💵 Offline Cash Collection"
+                        : "💳 Online (UPI / QR / Bank)"}
+                    </span>
+                    {(selectedTeam.collectorName || selectedTeam.collector_name) && (
+                      <div className="text-[11px] text-slate-500 font-semibold">
+                        Collected by: <span className="text-web">{selectedTeam.collectorName || selectedTeam.collector_name}</span>
+                      </div>
+                    )}
+                    {(selectedTeam.receiptNo || selectedTeam.receipt_no) && (
+                      <div className="text-[11px] font-mono text-slate-500">
+                        Receipt #: {selectedTeam.receiptNo || selectedTeam.receipt_no}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* UTR / Transaction ID */}
+                  <div className="rounded-xl border border-amber-200 bg-white p-3 space-y-1">
+                    <span className="text-[10px] font-black uppercase text-slate-400 block">UTR / Transaction ID</span>
+                    <div className="flex items-center justify-between gap-1 pt-0.5">
+                      <span className="font-mono text-xs font-black text-spidey truncate">
+                        {selectedTeam.paymentUtr || selectedTeam.payment_utr || selectedTeam.payment?.utr || selectedTeam.payment?.transaction_id || "Not Provided"}
+                      </span>
+                      {(selectedTeam.paymentUtr || selectedTeam.payment_utr || selectedTeam.payment?.utr || selectedTeam.payment?.transaction_id) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const utrVal = selectedTeam.paymentUtr || selectedTeam.payment_utr || selectedTeam.payment?.utr || selectedTeam.payment?.transaction_id;
+                            navigator.clipboard?.writeText(utrVal);
+                            setCopiedUtr(true);
+                            setTimeout(() => setCopiedUtr(false), 2000);
+                          }}
+                          className="rounded bg-slate-100 p-1 text-slate-600 hover:bg-gold hover:text-web transition shrink-0"
+                          title="Copy UTR"
+                        >
+                          {copiedUtr ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Payment Proof Image / Screenshot */}
+                  <div className="rounded-xl border border-amber-200 bg-white p-3 space-y-1">
+                    <span className="text-[10px] font-black uppercase text-slate-400 block">Proof Screenshot / Receipt</span>
+                    {(selectedTeam.paymentProofUrl || selectedTeam.payment_proof_url || selectedTeam.payment?.proof_url) ? (
+                      <button
+                        type="button"
+                        onClick={() => setLightboxUrl(selectedTeam.paymentProofUrl || selectedTeam.payment_proof_url || selectedTeam.payment?.proof_url)}
+                        className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-spidey/30 bg-spidey/10 px-2.5 py-1 text-xs font-black text-spidey hover:bg-spidey hover:text-white transition mt-0.5"
+                      >
+                        <ImageIcon size={14} /> View Screenshot
+                      </button>
+                    ) : (
+                      <span className="text-slate-400 font-semibold italic block pt-1">No screenshot uploaded</span>
                     )}
                   </div>
                 </div>
+              </div>
 
-                {/* Payment Proof Image / Screenshot */}
-                <div className="rounded-xl border border-amber-200 bg-white p-3 space-y-1">
-                  <span className="text-[10px] font-black uppercase text-slate-400 block">Proof Screenshot / Receipt</span>
-                  {(selectedTeam.paymentProofUrl || selectedTeam.payment_proof_url || selectedTeam.payment?.proof_url) ? (
-                    <button
-                      type="button"
-                      onClick={() => setLightboxUrl(selectedTeam.paymentProofUrl || selectedTeam.payment_proof_url || selectedTeam.payment?.proof_url)}
-                      className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-spidey/30 bg-spidey/10 px-2.5 py-1 text-xs font-black text-spidey hover:bg-spidey hover:text-white transition mt-0.5"
+              {/* Problem Statement Info */}
+              <div className="rounded-2xl border-2 border-web/20 bg-slate-50 p-4">
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Selected Problem / Open Innovation</p>
+                <p className="mt-1 font-bold text-web text-base">
+                  {selectedTeam.isOpenInnovation
+                    ? `🚀 ${selectedTeam.openInnovationTitle || "Open Innovation Custom Idea"}`
+                    : selectedTeam.selectedProblemTitle || "Not Selected Yet"}
+                </p>
+                {selectedTeam.isOpenInnovation && selectedTeam.openInnovationDescription && (
+                  <p className="mt-2 text-xs text-slate-600 border-t border-slate-200 pt-2 leading-relaxed">
+                    {selectedTeam.openInnovationDescription}
+                  </p>
+                )}
+              </div>
+
+              {/* Roster Breakdown (6 Members) */}
+              <div>
+                <h3 className="font-display text-xl text-web mb-3">Team Members Roster ({selectedTeam.members?.length || 6})</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {selectedTeam.members?.map((m, idx) => (
+                    <div
+                      key={m.id || idx}
+                      className={`rounded-xl border-2 p-3 text-xs relative ${
+                        m.isLeader ? "border-web bg-gold/20" : "border-slate-200 bg-white"
+                      }`}
                     >
-                      <ImageIcon size={14} /> View Screenshot
-                    </button>
-                  ) : (
-                    <span className="text-slate-400 font-semibold italic block pt-1">No screenshot uploaded</span>
-                  )}
+                      <div className="flex items-center justify-between font-bold text-ink pr-6">
+                        <span>{m.name || m.full_name}</span>
+                        {m.isLeader ? (
+                          <span className="rounded bg-gold px-1.5 py-0.5 text-[9px] font-black text-web">LEADER</span>
+                        ) : (
+                          <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[9px] font-black text-slate-700">MEMBER</span>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setEditingMember({ teamId: selectedTeam.id, member: m })}
+                        className="absolute right-2.5 top-2.5 rounded-lg border border-web/20 bg-white p-1 text-slate-600 hover:bg-gold hover:text-web transition shadow-2xs"
+                        title="Edit Student Member Profile"
+                      >
+                        <Pencil size={13} />
+                      </button>
+
+                      <div className="mt-1 text-slate-600 flex items-center justify-between">
+                        <span>{m.gender} • {m.year || selectedTeam.leaderYear}</span>
+                        <span>{m.branch || selectedTeam.leaderBranch}</span>
+                      </div>
+                      {m.email && <div className="mt-1 font-mono text-[11px] text-slate-500 truncate">{m.email}</div>}
+                      {m.phone && <div className="font-mono text-[11px] text-slate-500">{m.phone}</div>}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Problem Statement Info */}
-            <div className="mt-4 rounded-2xl border-2 border-web/20 bg-slate-50 p-4">
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Selected Problem / Open Innovation</p>
-              <p className="mt-1 font-bold text-web text-base">
-                {selectedTeam.isOpenInnovation
-                  ? `🚀 ${selectedTeam.openInnovationTitle || "Open Innovation Custom Idea"}`
-                  : selectedTeam.selectedProblemTitle || "Not Selected Yet"}
-              </p>
-              {selectedTeam.isOpenInnovation && selectedTeam.openInnovationDescription && (
-                <p className="mt-2 text-xs text-slate-600 border-t border-slate-200 pt-2 leading-relaxed">
-                  {selectedTeam.openInnovationDescription}
-                </p>
-              )}
-            </div>
-
-            {/* Roster Breakdown (6 Members) */}
-            <div className="mt-5">
-              <h3 className="font-display text-xl text-web mb-3">Team Members Roster ({selectedTeam.members?.length || 6})</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {selectedTeam.members?.map((m, idx) => (
-                  <div
-                    key={m.id || idx}
-                    className={`rounded-xl border-2 p-3 text-xs relative ${
-                      m.isLeader ? "border-web bg-gold/20" : "border-slate-200 bg-white"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between font-bold text-ink pr-6">
-                      <span>{m.name || m.full_name}</span>
-                      {m.isLeader ? (
-                        <span className="rounded bg-gold px-1.5 py-0.5 text-[9px] font-black text-web">LEADER</span>
-                      ) : (
-                        <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[9px] font-black text-slate-700">MEMBER</span>
-                      )}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setEditingMember({ teamId: selectedTeam.id, member: m })}
-                      className="absolute right-2.5 top-2.5 rounded-lg border border-web/20 bg-white p-1 text-slate-600 hover:bg-gold hover:text-web transition shadow-2xs"
-                      title="Edit Student Member Profile"
-                    >
-                      <Pencil size={13} />
-                    </button>
-
-                    <div className="mt-1 text-slate-600 flex items-center justify-between">
-                      <span>{m.gender} • {m.year || selectedTeam.leaderYear}</span>
-                      <span>{m.branch || selectedTeam.leaderBranch}</span>
-                    </div>
-                    {m.email && <div className="mt-1 font-mono text-[11px] text-slate-500 truncate">{m.email}</div>}
-                    {m.phone && <div className="font-mono text-[11px] text-slate-500">{m.phone}</div>}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Footer Actions */}
-            <div className="mt-6 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+            {/* Sticky Modal Footer Actions */}
+            <div className="shrink-0 px-5 sm:px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <a
                   href={`mailto:${selectedTeam.email}`}
-                  className="inline-flex items-center gap-1 rounded-xl border-2 border-web/20 bg-slate-100 px-4 py-2 text-xs font-bold text-ink hover:bg-gold transition"
+                  className="inline-flex items-center gap-1 rounded-xl border-2 border-web/20 bg-white px-3.5 py-1.5 text-xs font-bold text-ink hover:bg-gold transition shadow-2xs"
                 >
                   <Mail size={14} /> Contact Leader
                 </a>
@@ -545,19 +553,30 @@ export function AdminRegistrations() {
                       setSelectedTeam(null);
                       await load();
                     }}
-                    className="rounded-xl border-2 border-emerald-700 bg-emerald-600 px-4 py-2 text-xs font-black uppercase text-white hover:bg-emerald-700 transition"
+                    className="rounded-xl border-2 border-emerald-700 bg-emerald-600 px-3.5 py-1.5 text-xs font-black uppercase text-white hover:bg-emerald-700 transition shadow-2xs"
                   >
                     ✓ Approve Team
                   </button>
                 )}
               </div>
 
-              <button
-                onClick={() => setCancelPromptTeam(selectedTeam)}
-                className="rounded-xl border-2 border-rose-700 bg-rose-600 px-4 py-2 text-xs font-black uppercase text-white hover:bg-rose-700 transition"
-              >
-                Cancel Team
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCancelPromptTeam(selectedTeam)}
+                  className="rounded-xl border-2 border-rose-700 bg-rose-600 px-3.5 py-1.5 text-xs font-black uppercase text-white hover:bg-rose-700 transition shadow-2xs"
+                >
+                  Cancel Team
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedTeam(null);
+                    setEditingTeamName(false);
+                  }}
+                  className="rounded-xl border-2 border-slate-300 bg-slate-200 px-3.5 py-1.5 text-xs font-bold uppercase text-slate-700 hover:bg-slate-300 transition"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -565,72 +584,78 @@ export function AdminRegistrations() {
 
       {/* TEAM CANCELLATION PROMPT MODAL (REFUND VS NO REFUND) */}
       {cancelPromptTeam && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="relative w-full max-w-lg rounded-3xl border-4 border-rose-600 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-200">
-            <button
-              onClick={() => setCancelPromptTeam(null)}
-              className="absolute right-4 top-4 rounded-full border-2 border-slate-300 bg-slate-100 p-2 text-ink hover:bg-rose-600 hover:text-white transition"
-            >
-              <X size={18} />
-            </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-hidden">
+          <div className="relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-3xl border-4 border-rose-600 bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="shrink-0 px-5 sm:px-6 py-4 bg-rose-50 border-b border-rose-100 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 text-rose-600 min-w-0">
+                <AlertTriangle size={28} className="shrink-0" />
+                <div className="min-w-0">
+                  <h3 className="font-display text-2xl text-rose-700 truncate">Cancel Team Registration</h3>
+                  <p className="text-xs font-mono font-bold text-slate-600 truncate">
+                    {cancelPromptTeam.teamName} ({cancelPromptTeam.registrationId})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setCancelPromptTeam(null)}
+                className="shrink-0 rounded-full border-2 border-slate-300 bg-white p-2 text-ink hover:bg-rose-600 hover:text-white transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-            <div className="flex items-center gap-3 text-rose-600 mb-2">
-              <AlertTriangle size={32} />
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+              <p className="text-xs text-slate-700 font-semibold leading-relaxed">
+                Cancelling this team will automatically release their claimed Problem Statement quota. Please choose whether to record a fee refund in the financial ledger:
+              </p>
+
               <div>
-                <h3 className="font-display text-2xl text-rose-700">Cancel Team Registration</h3>
-                <p className="text-xs font-mono font-bold text-slate-600">
-                  {cancelPromptTeam.teamName} ({cancelPromptTeam.registrationId})
-                </p>
+                <label className="block text-[11px] font-black uppercase text-slate-600 mb-1">Optional Admin Notes</label>
+                <input
+                  type="text"
+                  placeholder="Reason for cancellation..."
+                  value={cancelNotes}
+                  onChange={(e) => setCancelNotes(e.target.value)}
+                  className="w-full rounded-xl border-2 border-slate-300 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-rose-600 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                {/* Cancel with Refund */}
+                <button
+                  disabled={cancelBusy}
+                  onClick={() => handleExecuteCancel(true)}
+                  className="flex flex-col items-center justify-center gap-1 rounded-2xl border-3 border-amber-700 bg-amber-500 p-4 text-white hover:bg-amber-600 transition shadow-sm disabled:opacity-50"
+                >
+                  <RotateCcw size={20} />
+                  <span className="font-display text-base">Cancel & Issue Refund</span>
+                  <span className="text-[10px] font-extrabold opacity-90 text-center">
+                    Deducts ₹300 from Total Revenue & Ledger
+                  </span>
+                </button>
+
+                {/* Cancel Without Refund */}
+                <button
+                  disabled={cancelBusy}
+                  onClick={() => handleExecuteCancel(false)}
+                  className="flex flex-col items-center justify-center gap-1 rounded-2xl border-3 border-rose-800 bg-rose-700 p-4 text-white hover:bg-rose-800 transition shadow-sm disabled:opacity-50"
+                >
+                  <Trash2 size={20} />
+                  <span className="font-display text-base">Cancel No Refund</span>
+                  <span className="text-[10px] font-extrabold opacity-90 text-center">
+                    Retains Collected Fee in Total Revenue
+                  </span>
+                </button>
               </div>
             </div>
 
-            <p className="text-xs text-slate-700 font-semibold mt-3 leading-relaxed">
-              Cancelling this team will automatically release their claimed Problem Statement quota. Please choose whether to record a fee refund in the financial ledger:
-            </p>
-
-            <div className="mt-4">
-              <label className="block text-[11px] font-black uppercase text-slate-600 mb-1">Optional Admin Notes</label>
-              <input
-                type="text"
-                placeholder="Reason for cancellation..."
-                value={cancelNotes}
-                onChange={(e) => setCancelNotes(e.target.value)}
-                className="w-full rounded-xl border-2 border-slate-300 bg-slate-50 p-2 text-xs font-bold text-ink focus:border-rose-600 focus:outline-none"
-              />
-            </div>
-
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Cancel with Refund */}
-              <button
-                disabled={cancelBusy}
-                onClick={() => handleExecuteCancel(true)}
-                className="flex flex-col items-center justify-center gap-1 rounded-2xl border-3 border-amber-700 bg-amber-500 p-4 text-white hover:bg-amber-600 transition shadow-sm disabled:opacity-50"
-              >
-                <RotateCcw size={20} />
-                <span className="font-display text-base">Cancel & Issue Refund</span>
-                <span className="text-[10px] font-extrabold opacity-90 text-center">
-                  Deducts ₹300 from Total Revenue & Ledger
-                </span>
-              </button>
-
-              {/* Cancel Without Refund */}
-              <button
-                disabled={cancelBusy}
-                onClick={() => handleExecuteCancel(false)}
-                className="flex flex-col items-center justify-center gap-1 rounded-2xl border-3 border-rose-800 bg-rose-700 p-4 text-white hover:bg-rose-800 transition shadow-sm disabled:opacity-50"
-              >
-                <Trash2 size={20} />
-                <span className="font-display text-base">Cancel No Refund</span>
-                <span className="text-[10px] font-extrabold opacity-90 text-center">
-                  Retains Collected Fee in Total Revenue
-                </span>
-              </button>
-            </div>
-
-            <div className="mt-4 text-center">
+            {/* Footer */}
+            <div className="shrink-0 px-6 py-3 bg-slate-50 border-t border-slate-200 text-center">
               <button
                 onClick={() => setCancelPromptTeam(null)}
-                className="text-xs font-bold text-slate-500 hover:underline"
+                className="text-xs font-bold text-slate-600 hover:text-ink hover:underline"
               >
                 Dismiss / Keep Team Active
               </button>
@@ -641,30 +666,33 @@ export function AdminRegistrations() {
 
       {/* PERMANENT DELETE TEAM CONFIRMATION MODAL */}
       {deletePromptTeam && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="relative w-full max-w-md rounded-3xl border-4 border-red-600 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-200">
-            <button
-              onClick={() => setDeletePromptTeam(null)}
-              className="absolute right-4 top-4 rounded-full border-2 border-slate-300 bg-slate-100 p-2 text-ink hover:bg-red-600 hover:text-white transition"
-            >
-              <X size={18} />
-            </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-hidden">
+          <div className="relative w-full max-w-md max-h-[92vh] flex flex-col rounded-3xl border-4 border-red-600 bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="shrink-0 px-5 sm:px-6 py-4 bg-red-50 border-b border-red-100 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 text-red-600 min-w-0">
+                <Trash2 size={28} className="shrink-0" />
+                <div className="min-w-0">
+                  <h3 className="font-display text-2xl text-red-700 truncate">Delete Team Permanently</h3>
+                  <p className="text-xs font-mono font-bold text-slate-600 truncate">
+                    {deletePromptTeam.teamName} ({deletePromptTeam.registrationId})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setDeletePromptTeam(null)}
+                className="shrink-0 rounded-full border-2 border-slate-300 bg-white p-2 text-ink hover:bg-red-600 hover:text-white transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-            <div className="flex items-center gap-3 text-red-600 mb-2">
-              <Trash2 size={32} />
-              <div>
-                <h3 className="font-display text-2xl text-red-700">Delete Team Permanently</h3>
-                <p className="text-xs font-mono font-bold text-slate-600">
-                  {deletePromptTeam.teamName} ({deletePromptTeam.registrationId})
-                </p>
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+              <div className="rounded-xl border-2 border-red-200 bg-red-50 p-3 text-xs font-bold text-red-800 leading-relaxed">
+                ⚠️ WARNING: This will completely erase team '{deletePromptTeam.teamName}', all 6 members, payment receipts, and release the problem statement quota from the database!
               </div>
             </div>
 
-            <div className="mt-3 rounded-xl border-2 border-red-200 bg-red-50 p-3 text-xs font-bold text-red-800 leading-relaxed">
-              ⚠️ WARNING: This will completely erase team '{deletePromptTeam.teamName}', all 6 members, payment receipts, and release the problem statement quota from the database!
-            </div>
-
-            <div className="mt-6 flex items-center justify-end gap-3">
+            <div className="shrink-0 px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setDeletePromptTeam(null)}

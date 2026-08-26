@@ -792,22 +792,35 @@ export function Register() {
 
       {/* ALL-MALE TEAM WARNING POPUP MODAL */}
       {showFemaleModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-lg rounded-2xl border-4 border-rose-600 bg-white p-6 sm:p-8 shadow-2xl transition-all scale-100">
-            <div className="flex items-center gap-3 border-b-2 border-rose-100 pb-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600 font-black text-2xl">
-                🚫
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 sm:p-4 md:p-6 backdrop-blur-sm animate-fade-in overflow-hidden">
+          <div className="relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-3xl border-4 border-rose-600 bg-white shadow-2xl overflow-hidden transition-all scale-100">
+            {/* Header */}
+            <div className="shrink-0 px-5 sm:px-6 py-4 bg-rose-50 border-b border-rose-100 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600 font-black text-xl">
+                  🚫
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-rose-600 block">SIH 2026 MANDATORY RULE</span>
+                  <h3 className="font-display text-xl sm:text-2xl text-web leading-tight truncate">All-Male Teams Not Allowed</h3>
+                </div>
               </div>
-              <div>
-                <span className="text-xs font-black uppercase tracking-widest text-rose-600">SIH 2026 MANDATORY RULE</span>
-                <h3 className="font-display text-2xl text-web leading-tight">All-Male Teams Not Allowed!</h3>
-              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowFemaleModal(false)}
+                className="shrink-0 rounded-full border-2 border-slate-300 bg-white p-1.5 text-slate-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition shadow-xs"
+                title="Close"
+              >
+                <X size={18} />
+              </button>
             </div>
 
-            <div className="mt-5 space-y-3 text-sm text-ink/80 leading-relaxed">
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-3.5 text-sm text-ink/80 leading-relaxed">
               <div className="rounded-xl border-2 border-rose-200 bg-rose-50 p-4">
-                <p className="font-bold text-rose-900 text-base flex items-center gap-2">
-                  <AlertCircle className="text-rose-600 shrink-0" size={20} />
+                <p className="font-bold text-rose-900 text-sm sm:text-base flex items-center gap-2">
+                  <AlertCircle className="text-rose-600 shrink-0" size={18} />
                   Female Member Mandatory in Every Team
                 </p>
                 <p className="mt-2 text-xs sm:text-sm text-rose-800">
@@ -825,7 +838,8 @@ export function Register() {
               </p>
             </div>
 
-            <div className="mt-6 flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-ink/10">
+            {/* Footer */}
+            <div className="shrink-0 px-5 sm:px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end">
               <Button
                 size="lg"
                 onClick={() => {
@@ -833,7 +847,7 @@ export function Register() {
                   setStep(1);
                   scrollToFormTop();
                 }}
-                className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold"
+                className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 text-xs sm:text-sm shadow-2xs"
               >
                 ✏️ Got it! I&apos;ll Add a Female Member
               </Button>

@@ -349,64 +349,73 @@ export function AdminStudents() {
 
       {/* Team Details Modal */}
       {selectedTeam && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="relative w-full max-w-3xl rounded-3xl border-4 border-web bg-white p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200">
-            <button
-              onClick={() => setSelectedTeam(null)}
-              className="absolute right-4 top-4 rounded-full border-2 border-web bg-slate-100 p-2 text-ink hover:bg-spidey hover:text-white transition"
-            >
-              <X size={20} />
-            </button>
-
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl border-2 border-web bg-gold p-3 font-display text-2xl text-web">
-                {selectedTeam.registrationId}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-hidden">
+          <div className="relative w-full max-w-3xl max-h-[92vh] flex flex-col rounded-3xl border-3 sm:border-4 border-web bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Sticky Header */}
+            <div className="shrink-0 px-5 sm:px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="rounded-xl border-2 border-web bg-gold px-3 py-1 font-display text-xl sm:text-2xl text-web shrink-0 shadow-2xs">
+                  {selectedTeam.registrationId}
+                </div>
+                <div className="min-w-0">
+                  <h2 className="font-display text-2xl sm:text-3xl text-web truncate">{selectedTeam.teamName}</h2>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 truncate mt-0.5">
+                    {selectedTeam.college} · {selectedTeam.leaderCourse} ({selectedTeam.members?.length || 6} Members)
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="font-display text-3xl text-web">{selectedTeam.teamName}</h2>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  {selectedTeam.college} · {selectedTeam.leaderCourse} ({selectedTeam.members?.length || 6} Members)
+
+              <button
+                type="button"
+                onClick={() => setSelectedTeam(null)}
+                className="shrink-0 rounded-full border-2 border-slate-300 bg-white p-2 text-slate-700 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition shadow-xs"
+                title="Close Profile"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+              {/* Problem Statement Details */}
+              <div className="rounded-2xl border-2 border-web/20 bg-slate-50 p-4">
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Selected Problem / Open Innovation</p>
+                <p className="mt-1 font-bold text-web text-base">
+                  {selectedTeam.isOpenInnovation
+                    ? `🚀 ${selectedTeam.openInnovationTitle || "Open Innovation Project"}`
+                    : selectedTeam.selectedProblemTitle || "Not Selected Yet"}
                 </p>
               </div>
-            </div>
 
-            {/* Problem Statement Details */}
-            <div className="mt-5 rounded-2xl border-2 border-web/20 bg-slate-50 p-4">
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Selected Problem / Open Innovation</p>
-              <p className="mt-1 font-bold text-web text-base">
-                {selectedTeam.isOpenInnovation
-                  ? `🚀 ${selectedTeam.openInnovationTitle || "Open Innovation Project"}`
-                  : selectedTeam.selectedProblemTitle || "Not Selected Yet"}
-              </p>
-            </div>
-
-            {/* Roster Grid */}
-            <div className="mt-6">
-              <h3 className="font-display text-xl text-web mb-3">6-Member Roster Roster Breakdown</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {selectedTeam.members?.map((m, idx) => (
-                  <div
-                    key={m.id || idx}
-                    className={`rounded-xl border-2 p-3 text-xs ${
-                      m.isLeader ? "border-web bg-gold/20" : "border-slate-200 bg-white"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between font-bold text-ink">
-                      <span>{m.name}</span>
-                      {m.isLeader && <span className="rounded bg-gold px-1.5 py-0.5 text-[9px] font-black text-web">LEADER</span>}
+              {/* Roster Grid */}
+              <div>
+                <h3 className="font-display text-xl text-web mb-3">6-Member Roster Breakdown</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {selectedTeam.members?.map((m, idx) => (
+                    <div
+                      key={m.id || idx}
+                      className={`rounded-xl border-2 p-3 text-xs ${
+                        m.isLeader ? "border-web bg-gold/20" : "border-slate-200 bg-white"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between font-bold text-ink">
+                        <span>{m.name}</span>
+                        {m.isLeader && <span className="rounded bg-gold px-1.5 py-0.5 text-[9px] font-black text-web">LEADER</span>}
+                      </div>
+                      <div className="mt-1 text-slate-600 flex items-center justify-between">
+                        <span>{m.gender} • {m.year || selectedTeam.leaderYear}</span>
+                        <span>{m.branch || selectedTeam.leaderBranch}</span>
+                      </div>
+                      {m.email && <div className="mt-1 font-mono text-[11px] text-slate-500 truncate">{m.email}</div>}
+                      {m.phone && <div className="font-mono text-[11px] text-slate-500">{m.phone}</div>}
                     </div>
-                    <div className="mt-1 text-slate-600 flex items-center justify-between">
-                      <span>{m.gender} • {m.year || selectedTeam.leaderYear}</span>
-                      <span>{m.branch || selectedTeam.leaderBranch}</span>
-                    </div>
-                    {m.email && <div className="mt-1 font-mono text-[11px] text-slate-500 truncate">{m.email}</div>}
-                    {m.phone && <div className="font-mono text-[11px] text-slate-500">{m.phone}</div>}
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between">
+            {/* Sticky Footer */}
+            <div className="shrink-0 px-5 sm:px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
               {selectedTeam.paymentStatus !== "SUCCESS" ? (
                 <button
                   onClick={async () => {
@@ -419,7 +428,7 @@ export function AdminStudents() {
                     setStudents(studData || []);
                     setTeams(teamData || []);
                   }}
-                  className="rounded-xl border-2 border-emerald-700 bg-emerald-600 px-5 py-2 font-ui text-xs sm:text-sm font-black uppercase text-white hover:bg-emerald-700 transition"
+                  className="rounded-xl border-2 border-emerald-700 bg-emerald-600 px-4 py-2 font-ui text-xs sm:text-sm font-black uppercase text-white hover:bg-emerald-700 transition shadow-2xs"
                 >
                   ✓ Approve & Verify Team
                 </button>
@@ -428,7 +437,7 @@ export function AdminStudents() {
               )}
               <button
                 onClick={() => setSelectedTeam(null)}
-                className="rounded-xl border-2 border-web bg-web px-6 py-2 font-ui text-xs sm:text-sm font-black uppercase text-white hover:bg-spidey transition"
+                className="rounded-xl border-2 border-web bg-web px-5 py-2 font-ui text-xs sm:text-sm font-black uppercase text-white hover:bg-spidey transition shadow-2xs"
               >
                 Close Profile
               </button>

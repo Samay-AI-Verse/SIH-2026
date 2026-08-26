@@ -412,236 +412,243 @@ export function AdminFinalTeams() {
 
       {/* FULL TEAM ROSTER INSPECTION MODAL */}
       {selectedTeamModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="relative w-full max-w-3xl rounded-3xl border-4 border-web bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-left">
-            <button
-              onClick={() => {
-                setSelectedTeamModal(null);
-                setEditingTeamName(false);
-              }}
-              className="absolute right-4 top-4 rounded-full border-2 border-web bg-slate-100 p-2 text-ink hover:bg-spidey hover:text-white transition"
-            >
-              <X size={18} />
-            </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-hidden">
+          <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col rounded-3xl border-3 sm:border-4 border-web bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 text-left">
+            {/* Sticky Header */}
+            <div className="shrink-0 px-5 sm:px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <span className="font-mono text-xs font-black text-spidey bg-spidey/10 px-2.5 py-0.5 rounded-md inline-block mb-1">
+                  {selectedTeamModal.registration_id || selectedTeamModal.registrationId}
+                </span>
+                {editingTeamName ? (
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    <input
+                      type="text"
+                      value={newTeamName}
+                      onChange={(e) => setNewTeamName(e.target.value)}
+                      className="rounded-xl border-2 border-web bg-white px-3 py-1 text-sm font-bold text-ink focus:outline-none"
+                      placeholder="Enter new team name..."
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      disabled={savingNameBusy}
+                      onClick={handleSaveTeamName}
+                      className="rounded-lg border-2 border-emerald-700 bg-emerald-600 px-3 py-1 text-xs font-black text-white hover:bg-emerald-700 transition"
+                    >
+                      {savingNameBusy ? "Saving..." : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingTeamName(false)}
+                      className="rounded-lg border-2 border-slate-300 bg-slate-200 px-3 py-1 text-xs font-bold text-slate-700 hover:bg-slate-300 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display text-2xl sm:text-3xl text-web truncate">
+                      {selectedTeamModal.team_name || selectedTeamModal.teamName}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewTeamName(selectedTeamModal.team_name || selectedTeamModal.teamName || "");
+                        setEditingTeamName(true);
+                      }}
+                      className="rounded-lg border border-web/30 bg-white p-1 text-slate-700 hover:bg-gold hover:text-web transition shadow-2xs shrink-0"
+                      title="Edit / Correct Team Name (As Admin)"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                  </div>
+                )}
+                <p className="text-xs font-bold text-slate-600 truncate mt-0.5">
+                  {selectedTeamModal.college || "GTMC Nanded"}
+                </p>
+              </div>
 
-            {/* Header */}
-            <div className="border-b border-slate-200 pb-3 mb-4">
-              <span className="font-mono text-xs font-black text-spidey bg-spidey/10 px-2.5 py-0.5 rounded-md">
-                {selectedTeamModal.registration_id || selectedTeamModal.registrationId}
-              </span>
-              {editingTeamName ? (
-                <div className="flex flex-wrap items-center gap-2 mt-1">
-                  <input
-                    type="text"
-                    value={newTeamName}
-                    onChange={(e) => setNewTeamName(e.target.value)}
-                    className="rounded-xl border-2 border-web bg-slate-50 px-3 py-1.5 text-base font-bold text-ink focus:bg-white focus:outline-none"
-                    placeholder="Enter new team name..."
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    disabled={savingNameBusy}
-                    onClick={handleSaveTeamName}
-                    className="rounded-lg border-2 border-emerald-700 bg-emerald-600 px-3 py-1.5 text-xs font-black text-white hover:bg-emerald-700 transition"
-                  >
-                    {savingNameBusy ? "Saving..." : "Save"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingTeamName(false)}
-                    className="rounded-lg border-2 border-slate-300 bg-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-300 transition"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 mt-1">
-                  <h3 className="font-display text-3xl text-web">
-                    {selectedTeamModal.team_name || selectedTeamModal.teamName}
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewTeamName(selectedTeamModal.team_name || selectedTeamModal.teamName || "");
-                      setEditingTeamName(true);
-                    }}
-                    className="rounded-lg border border-web/30 bg-slate-100 p-1.5 text-slate-700 hover:bg-gold hover:text-web transition shadow-2xs"
-                    title="Edit / Correct Team Name (As Admin)"
-                  >
-                    <Pencil size={15} />
-                  </button>
-                </div>
-              )}
-              <p className="text-xs font-bold text-slate-600 mt-0.5">
-                {selectedTeamModal.college || "GTMC Nanded"}
-              </p>
+              <button
+                onClick={() => {
+                  setSelectedTeamModal(null);
+                  setEditingTeamName(false);
+                }}
+                className="shrink-0 rounded-full border-2 border-slate-300 bg-white p-2 text-slate-700 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition shadow-xs"
+                title="Close modal"
+              >
+                <X size={18} />
+              </button>
             </div>
 
-            {/* Payment Info Card (Mode, UTR & Proof Image) */}
-            <div className="rounded-2xl bg-amber-50/70 border-2 border-web/20 p-4 mb-4">
-              <span className="text-[10px] font-black uppercase text-web block mb-2 flex items-center gap-1.5">
-                <Shield size={14} className="text-spidey" /> Payment Information & Verification
-              </span>
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+              {/* Payment Info Card (Mode, UTR & Proof Image) */}
+              <div className="rounded-2xl bg-amber-50/70 border-2 border-web/20 p-4">
+                <span className="text-[10px] font-black uppercase text-web block mb-2 flex items-center gap-1.5">
+                  <Shield size={14} className="text-spidey" /> Payment Information & Verification
+                </span>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-bold text-slate-700">
-                {/* Payment Mode */}
-                <div className="rounded-xl border border-amber-200 bg-white p-2.5 space-y-1">
-                  <span className="text-[10px] font-black uppercase text-slate-400 block">Payment Mode</span>
-                  <span className="font-extrabold text-web text-xs block">
-                    {selectedTeamModal.paymentMode === "OFFLINE_CASH" || selectedTeamModal.payment_mode === "OFFLINE_CASH"
-                      ? "💵 Offline Cash Collection"
-                      : "💳 Online (UPI / QR / Bank)"}
-                  </span>
-                  {(selectedTeamModal.collectorName || selectedTeamModal.collector_name) && (
-                    <div className="text-[10px] text-slate-500 font-semibold">
-                      Collected by: <span className="text-web">{selectedTeamModal.collectorName || selectedTeamModal.collector_name}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* UTR / Transaction ID */}
-                <div className="rounded-xl border border-amber-200 bg-white p-2.5 space-y-1">
-                  <span className="text-[10px] font-black uppercase text-slate-400 block">UTR / Transaction ID</span>
-                  <div className="flex items-center justify-between gap-1 pt-0.5">
-                    <span className="font-mono text-xs font-black text-spidey truncate">
-                      {selectedTeamModal.paymentUtr || selectedTeamModal.payment_utr || selectedTeamModal.payment?.utr || selectedTeamModal.payment?.transaction_id || "VERIFIED"}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-bold text-slate-700">
+                  {/* Payment Mode */}
+                  <div className="rounded-xl border border-amber-200 bg-white p-2.5 space-y-1">
+                    <span className="text-[10px] font-black uppercase text-slate-400 block">Payment Mode</span>
+                    <span className="font-extrabold text-web text-xs block">
+                      {selectedTeamModal.paymentMode === "OFFLINE_CASH" || selectedTeamModal.payment_mode === "OFFLINE_CASH"
+                        ? "💵 Offline Cash Collection"
+                        : "💳 Online (UPI / QR / Bank)"}
                     </span>
-                    {(selectedTeamModal.paymentUtr || selectedTeamModal.payment_utr || selectedTeamModal.payment?.utr || selectedTeamModal.payment?.transaction_id) && (
+                    {(selectedTeamModal.collectorName || selectedTeamModal.collector_name) && (
+                      <div className="text-[10px] text-slate-500 font-semibold">
+                        Collected by: <span className="text-web">{selectedTeamModal.collectorName || selectedTeamModal.collector_name}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* UTR / Transaction ID */}
+                  <div className="rounded-xl border border-amber-200 bg-white p-2.5 space-y-1">
+                    <span className="text-[10px] font-black uppercase text-slate-400 block">UTR / Transaction ID</span>
+                    <div className="flex items-center justify-between gap-1 pt-0.5">
+                      <span className="font-mono text-xs font-black text-spidey truncate">
+                        {selectedTeamModal.paymentUtr || selectedTeamModal.payment_utr || selectedTeamModal.payment?.utr || selectedTeamModal.payment?.transaction_id || "VERIFIED"}
+                      </span>
+                      {(selectedTeamModal.paymentUtr || selectedTeamModal.payment_utr || selectedTeamModal.payment?.utr || selectedTeamModal.payment?.transaction_id) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const utrVal = selectedTeamModal.paymentUtr || selectedTeamModal.payment_utr || selectedTeamModal.payment?.utr || selectedTeamModal.payment?.transaction_id;
+                            navigator.clipboard?.writeText(utrVal);
+                            setCopiedUtr(true);
+                            setTimeout(() => setCopiedUtr(false), 2000);
+                          }}
+                          className="rounded bg-slate-100 p-1 text-slate-600 hover:bg-gold hover:text-web transition shrink-0"
+                          title="Copy UTR"
+                        >
+                          {copiedUtr ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Payment Proof Image / Screenshot */}
+                  <div className="rounded-xl border border-amber-200 bg-white p-2.5 space-y-1">
+                    <span className="text-[10px] font-black uppercase text-slate-400 block">Proof Screenshot / Receipt</span>
+                    {(selectedTeamModal.paymentProofUrl || selectedTeamModal.payment_proof_url || selectedTeamModal.payment?.proof_url) ? (
                       <button
                         type="button"
-                        onClick={() => {
-                          const utrVal = selectedTeamModal.paymentUtr || selectedTeamModal.payment_utr || selectedTeamModal.payment?.utr || selectedTeamModal.payment?.transaction_id;
-                          navigator.clipboard?.writeText(utrVal);
-                          setCopiedUtr(true);
-                          setTimeout(() => setCopiedUtr(false), 2000);
-                        }}
-                        className="rounded bg-slate-100 p-1 text-slate-600 hover:bg-gold hover:text-web transition shrink-0"
-                        title="Copy UTR"
+                        onClick={() => setLightboxUrl(selectedTeamModal.paymentProofUrl || selectedTeamModal.payment_proof_url || selectedTeamModal.payment?.proof_url)}
+                        className="w-full inline-flex items-center justify-center gap-1 rounded-lg border border-spidey/30 bg-spidey/10 px-2 py-1 text-xs font-black text-spidey hover:bg-spidey hover:text-white transition"
                       >
-                        {copiedUtr ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                        <ImageIcon size={13} /> View Screenshot
                       </button>
+                    ) : (
+                      <span className="text-slate-400 font-semibold italic block pt-0.5">No screenshot uploaded</span>
                     )}
                   </div>
                 </div>
+              </div>
 
-                {/* Payment Proof Image / Screenshot */}
-                <div className="rounded-xl border border-amber-200 bg-white p-2.5 space-y-1">
-                  <span className="text-[10px] font-black uppercase text-slate-400 block">Proof Screenshot / Receipt</span>
-                  {(selectedTeamModal.paymentProofUrl || selectedTeamModal.payment_proof_url || selectedTeamModal.payment?.proof_url) ? (
-                    <button
-                      type="button"
-                      onClick={() => setLightboxUrl(selectedTeamModal.paymentProofUrl || selectedTeamModal.payment_proof_url || selectedTeamModal.payment?.proof_url)}
-                      className="w-full inline-flex items-center justify-center gap-1 rounded-lg border border-spidey/30 bg-spidey/10 px-2 py-1 text-xs font-black text-spidey hover:bg-spidey hover:text-white transition"
-                    >
-                      <ImageIcon size={13} /> View Screenshot
-                    </button>
-                  ) : (
-                    <span className="text-slate-400 font-semibold italic block pt-0.5">No screenshot uploaded</span>
-                  )}
+              {/* Problem Info */}
+              <div className="rounded-2xl bg-gold/20 border-2 border-web/30 p-4">
+                <span className="text-[10px] font-black uppercase text-web block mb-1">
+                  {selectedTeamModal.is_open_innovation ? "Open Innovation Project Title" : "Allocated Problem Statement Title"}
+                </span>
+                <p className="font-bold text-sm text-web">
+                  {selectedTeamModal.is_open_innovation
+                    ? selectedTeamModal.open_innovation_title || "Custom Open Innovation Project"
+                    : selectedTeamModal.selected_problem_title}
+                </p>
+                {selectedTeamModal.selected_problem_code && !selectedTeamModal.is_open_innovation && (
+                  <span className="inline-block mt-2 font-mono font-black text-xs bg-spidey text-white px-2.5 py-0.5 rounded">
+                    CODE: {selectedTeamModal.selected_problem_code}
+                  </span>
+                )}
+              </div>
+
+              {/* Full Roster Table */}
+              <div className="space-y-2">
+                <h4 className="font-display text-lg text-web">Full 6-Member Team Roster</h4>
+                <div className="overflow-x-auto rounded-2xl border-2 border-web/20">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-web text-white font-black uppercase text-[10px] tracking-wider">
+                      <tr>
+                        <th className="p-3">#</th>
+                        <th className="p-3">Member Name</th>
+                        <th className="p-3">Role</th>
+                        <th className="p-3">Contact Phone</th>
+                        <th className="p-3">Email Address</th>
+                        <th className="p-3">Gender</th>
+                        <th className="p-3">Branch & Year</th>
+                        <th className="p-3 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 bg-white font-semibold">
+                      {selectedTeamModal.members?.map((mem, idx) => (
+                        <tr key={mem.id || idx} className={mem.is_leader ? "bg-gold/15" : ""}>
+                          <td className="p-3 font-bold text-slate-400">{idx + 1}</td>
+                          <td className="p-3 font-bold text-web">{mem.name || mem.full_name}</td>
+                          <td className="p-3">
+                            {mem.is_leader ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-900 bg-gold px-2 py-0.5 rounded">
+                                <Crown size={10} /> LEADER
+                              </span>
+                            ) : (
+                              <span className="text-slate-500 font-bold">MEMBER</span>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {mem.phone || selectedTeamModal.leader_phone ? (
+                              <a
+                                href={`tel:${mem.phone || selectedTeamModal.leader_phone}`}
+                                className="inline-flex items-center gap-1 font-mono font-bold text-xs text-spidey hover:underline bg-spidey/10 px-2 py-0.5 rounded"
+                              >
+                                <Phone size={11} /> {mem.phone || selectedTeamModal.leader_phone}
+                              </a>
+                            ) : (
+                              <span className="text-slate-400 italic">No phone</span>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {mem.email || selectedTeamModal.leader_email ? (
+                              <a
+                                href={`mailto:${mem.email || selectedTeamModal.leader_email}`}
+                                className="font-mono text-xs text-slate-700 hover:underline"
+                              >
+                                {mem.email || selectedTeamModal.leader_email}
+                              </a>
+                            ) : (
+                              <span className="text-slate-400 italic">—</span>
+                            )}
+                          </td>
+                          <td className="p-3 font-bold">
+                            <span className={mem.gender === "Female" ? "text-pink-600" : "text-blue-600"}>
+                              {mem.gender || "Male"}
+                            </span>
+                          </td>
+                          <td className="p-3">{[mem.branch, mem.year].filter(Boolean).join(" • ") || "2nd Year"}</td>
+                          <td className="p-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => setEditingMember({ teamId: selectedTeamModal.id, member: mem })}
+                              className="inline-flex items-center gap-1 rounded-lg border border-amber-500 bg-gold/20 hover:bg-gold px-2 py-1 text-[11px] font-black uppercase text-web transition shadow-2xs"
+                              title="Edit Student Member Profile"
+                            >
+                              <Pencil size={11} /> Edit
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
 
-            {/* Problem Info */}
-            <div className="rounded-2xl bg-gold/20 border-2 border-web/30 p-4 mb-4">
-              <span className="text-[10px] font-black uppercase text-web block mb-1">
-                {selectedTeamModal.is_open_innovation ? "Open Innovation Project Title" : "Allocated Problem Statement Title"}
-              </span>
-              <p className="font-bold text-sm text-web">
-                {selectedTeamModal.is_open_innovation
-                  ? selectedTeamModal.open_innovation_title || "Custom Open Innovation Project"
-                  : selectedTeamModal.selected_problem_title}
-              </p>
-              {selectedTeamModal.selected_problem_code && !selectedTeamModal.is_open_innovation && (
-                <span className="inline-block mt-2 font-mono font-black text-xs bg-spidey text-white px-2.5 py-0.5 rounded">
-                  CODE: {selectedTeamModal.selected_problem_code}
-                </span>
-              )}
-            </div>
-
-            {/* Full Roster Table */}
-            <div className="space-y-2">
-              <h4 className="font-display text-lg text-web">Full 6-Member Team Roster</h4>
-              <div className="overflow-x-auto rounded-2xl border-2 border-web/20">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-web text-white font-black uppercase text-[10px] tracking-wider">
-                    <tr>
-                      <th className="p-3">#</th>
-                      <th className="p-3">Member Name</th>
-                      <th className="p-3">Role</th>
-                      <th className="p-3">Contact Phone</th>
-                      <th className="p-3">Email Address</th>
-                      <th className="p-3">Gender</th>
-                      <th className="p-3">Branch & Year</th>
-                      <th className="p-3 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 bg-white font-semibold">
-                    {selectedTeamModal.members?.map((mem, idx) => (
-                      <tr key={mem.id || idx} className={mem.is_leader ? "bg-gold/15" : ""}>
-                        <td className="p-3 font-bold text-slate-400">{idx + 1}</td>
-                        <td className="p-3 font-bold text-web">{mem.name || mem.full_name}</td>
-                        <td className="p-3">
-                          {mem.is_leader ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-900 bg-gold px-2 py-0.5 rounded">
-                              <Crown size={10} /> LEADER
-                            </span>
-                          ) : (
-                            <span className="text-slate-500 font-bold">MEMBER</span>
-                          )}
-                        </td>
-                        <td className="p-3">
-                          {mem.phone || selectedTeamModal.leader_phone ? (
-                            <a
-                              href={`tel:${mem.phone || selectedTeamModal.leader_phone}`}
-                              className="inline-flex items-center gap-1 font-mono font-bold text-xs text-spidey hover:underline bg-spidey/10 px-2 py-0.5 rounded"
-                            >
-                              <Phone size={11} /> {mem.phone || selectedTeamModal.leader_phone}
-                            </a>
-                          ) : (
-                            <span className="text-slate-400 italic">No phone</span>
-                          )}
-                        </td>
-                        <td className="p-3">
-                          {mem.email || selectedTeamModal.leader_email ? (
-                            <a
-                              href={`mailto:${mem.email || selectedTeamModal.leader_email}`}
-                              className="font-mono text-xs text-slate-700 hover:underline"
-                            >
-                              {mem.email || selectedTeamModal.leader_email}
-                            </a>
-                          ) : (
-                            <span className="text-slate-400 italic">—</span>
-                          )}
-                        </td>
-                        <td className="p-3 font-bold">
-                          <span className={mem.gender === "Female" ? "text-pink-600" : "text-blue-600"}>
-                            {mem.gender || "Male"}
-                          </span>
-                        </td>
-                        <td className="p-3">{[mem.branch, mem.year].filter(Boolean).join(" • ") || "2nd Year"}</td>
-                        <td className="p-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => setEditingMember({ teamId: selectedTeamModal.id, member: mem })}
-                            className="inline-flex items-center gap-1 rounded-lg border border-amber-500 bg-gold/20 hover:bg-gold px-2 py-1 text-[11px] font-black uppercase text-web transition shadow-2xs"
-                            title="Edit Student Member Profile"
-                          >
-                            <Pencil size={11} /> Edit
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="mt-6 pt-3 border-t border-slate-200 flex justify-end">
+            {/* Sticky Footer */}
+            <div className="shrink-0 px-5 sm:px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex justify-end">
               <Button
                 onClick={() => setSelectedTeamModal(null)}
-                className="py-2 px-6 text-xs font-black uppercase bg-web text-white"
+                className="py-2 px-6 text-xs font-black uppercase bg-web text-white hover:bg-spidey shadow-2xs"
               >
                 Close Roster
               </Button>
