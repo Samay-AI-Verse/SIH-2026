@@ -274,18 +274,44 @@ export function AdminLogin() {
                 </div>
               )}
 
-              <Field label="Organizer Login ID / Email *" error={error && !email ? "Email is required" : ""}>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700">
+                    Organizer Login ID / Email *
+                  </label>
+                  {googleUser && (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setEmail("sih@gtmcnanded.in")}
+                        className="text-[9px] font-black bg-gold/30 hover:bg-gold/60 text-web px-2 py-0.5 rounded border border-web/20 transition"
+                      >
+                        👑 Master Admin
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEmail(googleUser.email)}
+                        className="text-[9px] font-black bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded border border-slate-300 transition"
+                      >
+                        Google Email
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <div className="relative">
                   <TextInput
                     name="email"
                     type="email"
-                    placeholder="admin@gtmcnanded.in"
+                    placeholder="sih@gtmcnanded.in"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
-              </Field>
+                <p className="mt-1 text-[10px] font-bold text-slate-400">
+                  Master Admin: <span className="font-mono text-slate-600">sih@gtmcnanded.in</span> | Sub-Admins: Enter your registered email.
+                </p>
+              </div>
 
               <Field label="Password *" error={error && !password ? "Password is required" : ""}>
                 <div className="relative">
