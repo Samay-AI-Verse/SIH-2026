@@ -48,24 +48,6 @@ export function AdminLogin() {
     setGoogleBusy(true);
     setError("");
     try {
-      if (!isFirebaseConfigured) {
-        // Guest/Mock Google Identity for immediate testing if keys not in .env
-        const mockEmail = window.prompt("Enter your Google Account email for 2FA identity:", "organizer@gmail.com");
-        if (!mockEmail || !mockEmail.trim()) {
-          setGoogleBusy(false);
-          return;
-        }
-        setGoogleUser({
-          email: mockEmail.trim().toLowerCase(),
-          displayName: "Verified Organizer",
-          photoURL: "",
-        });
-        setEmail(mockEmail.trim().toLowerCase());
-        setStep(2);
-        setGoogleBusy(false);
-        return;
-      }
-
       const res = await loginWithGoogle();
       const user = res.user;
       setGoogleUser({
@@ -76,7 +58,12 @@ export function AdminLogin() {
       if (!email) setEmail(user.email || "");
       setStep(2);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Google identity verification failed.");
+      console.error(err);
+      if (!isFirebaseConfigured) {
+        setError("Firebase configuration missing in .env. Please add VITE_FIREBASE_API_KEY and VITE_FIREBASE_PROJECT_ID to enable real Google popup.");
+      } else {
+        setError(err instanceof Error ? err.message : "Google sign-in failed. Please try again.");
+      }
     } finally {
       setGoogleBusy(false);
     }
@@ -120,35 +107,35 @@ export function AdminLogin() {
   }
 
   return (
-    <div className="relative flex min-h-[90vh] items-center justify-center px-4 py-24 sm:py-28">
+    <div className="relative flex min-h-screen items-center justify-center px-4 pt-16 pb-4 sm:pt-20 sm:pb-6 overflow-hidden">
       <div className="w-full max-w-md">
         {/* Header Badge */}
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border-2 border-web bg-gold/30 px-3.5 py-1 text-xs font-black tracking-widest text-web">
-            <ShieldCheck size={14} className="text-web" /> MASTER ORGANIZER PORTAL
+          <div className="inline-flex items-center gap-1.5 rounded-full border-2 border-web bg-gold/30 px-3 py-0.5 text-[11px] font-black tracking-widest text-web">
+            <ShieldCheck size={13} className="text-web" /> MASTER ORGANIZER PORTAL
           </div>
-          <h1 className="mt-3 font-display text-4xl sm:text-5xl text-web comic-pop">
+          <h1 className="mt-1.5 font-display text-3xl sm:text-4xl text-web comic-pop leading-tight">
             Admin Login
           </h1>
-          <p className="mx-auto mt-2 max-w-xs text-xs sm:text-sm font-bold text-ink/70">
+          <p className="mx-auto mt-1 max-w-xs text-xs font-bold text-ink/70 leading-snug">
             2-Factor Verification for GTMC Nanded Hackathon Coordinators & Reviewers.
           </p>
         </div>
 
         {/* STEP PROGRESS INDICATOR */}
-        <div className="mt-6 flex items-center justify-center gap-3">
-          <div className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider border-2 transition ${
+        <div className="mt-3.5 flex items-center justify-center gap-2.5">
+          <div className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider border-2 transition ${
             step === 1 
               ? "border-web bg-web text-white shadow-xs" 
               : "border-emerald-600 bg-emerald-100 text-emerald-900"
           }`}>
-            {googleUser ? <CheckCircle2 size={13} className="text-emerald-700" /> : "1"}
+            {googleUser ? <CheckCircle2 size={12} className="text-emerald-700" /> : "1"}
             <span>Google Identity</span>
           </div>
 
-          <div className="h-0.5 w-6 bg-slate-300" />
+          <div className="h-0.5 w-5 bg-slate-300" />
 
-          <div className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider border-2 transition ${
+          <div className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider border-2 transition ${
             step === 2 
               ? "border-web bg-web text-white shadow-xs" 
               : "border-slate-300 bg-slate-100 text-slate-400"
@@ -159,27 +146,27 @@ export function AdminLogin() {
         </div>
 
         {/* LOGIN CARD */}
-        <div className="mt-6 rounded-3xl border-4 border-web bg-white p-6 sm:p-8 shadow-comic space-y-5">
+        <div className="mt-3.5 rounded-3xl border-4 border-web bg-white p-5 sm:p-6 shadow-comic space-y-4">
           {error && (
-            <div className="flex items-start gap-2.5 rounded-xl border-2 border-red-500 bg-red-50 p-3 text-xs font-bold text-red-700 animate-in fade-in duration-200">
-              <AlertCircle size={16} className="shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 rounded-xl border-2 border-red-500 bg-red-50 p-2.5 text-xs font-bold text-red-700 animate-in fade-in duration-200">
+              <AlertCircle size={15} className="shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           {/* ================= STEP 1: GOOGLE 2FA IDENTITY SCREEN ================= */}
           {step === 1 && (
-            <div className="space-y-5">
-              <div className="rounded-2xl border-2 border-web/20 bg-slate-50 p-5 text-center space-y-3">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gold/30 border-2 border-web text-web">
-                  <Sparkles size={24} className="text-amber-600" />
+            <div className="space-y-3.5">
+              <div className="rounded-2xl border-2 border-web/20 bg-slate-50 p-4 text-center space-y-2">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-gold/30 border-2 border-web text-web">
+                  <Sparkles size={20} className="text-amber-600" />
                 </div>
                 <div>
-                  <h2 className="font-display text-2xl text-web">
+                  <h2 className="font-display text-xl sm:text-2xl text-web">
                     Step 1: Authenticate Google Account
                   </h2>
-                  <p className="text-xs font-bold text-ink/70 mt-1 max-w-xs mx-auto">
-                    Verify your identity via Google OAuth before entering the master organizer credentials.
+                  <p className="text-[11px] sm:text-xs font-bold text-ink/70 mt-0.5 max-w-xs mx-auto leading-normal">
+                    Verify your identity via Google OAuth before entering master organizer credentials.
                   </p>
                 </div>
               </div>
@@ -188,7 +175,7 @@ export function AdminLogin() {
                 type="button"
                 onClick={handleGoogleVerify}
                 disabled={googleBusy}
-                className="w-full py-3.5 text-xs font-black uppercase bg-white border-2 border-web text-web hover:bg-slate-50 shadow-comic flex items-center justify-center gap-2"
+                className="w-full py-3 text-xs font-black uppercase bg-white border-2 border-web text-web hover:bg-slate-50 shadow-comic flex items-center justify-center gap-2"
               >
                 <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -199,11 +186,11 @@ export function AdminLogin() {
                 {googleBusy ? "Verifying with Google..." : "Continue with Google Account"}
               </Button>
 
-              <div className="border-t border-slate-200 pt-3 text-center">
+              <div className="border-t border-slate-200 pt-2 text-center">
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="text-xs font-black text-slate-500 hover:text-web underline inline-flex items-center gap-1"
+                  className="text-[11px] font-black text-slate-500 hover:text-web underline inline-flex items-center gap-1"
                 >
                   Direct ID & Password Login →
                 </button>
@@ -213,30 +200,30 @@ export function AdminLogin() {
 
           {/* ================= STEP 2: ORGANIZER PASSWORD FORM ================= */}
           {step === 2 && (
-            <form onSubmit={onSubmit} className="space-y-4">
+            <form onSubmit={onSubmit} className="space-y-3">
               {/* Verified Badge */}
               {googleUser ? (
-                <div className="rounded-2xl border-2 border-emerald-500 bg-emerald-50/80 p-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5 overflow-hidden">
+                <div className="rounded-2xl border-2 border-emerald-500 bg-emerald-50/80 p-2.5 flex items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2 overflow-hidden">
                     {googleUser.photoURL ? (
                       <img
                         src={googleUser.photoURL}
                         alt="Profile"
-                        className="h-10 w-10 shrink-0 rounded-full border-2 border-emerald-600 object-cover"
+                        className="h-9 w-9 shrink-0 rounded-full border-2 border-emerald-600 object-cover"
                       />
                     ) : (
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 font-bold text-white text-sm">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-600 font-bold text-white text-xs">
                         {(googleUser.displayName || googleUser.email || "G")[0].toUpperCase()}
                       </div>
                     )}
                     <div className="truncate">
-                      <div className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-emerald-800 bg-emerald-200/80 px-2 py-0.2 rounded-full">
-                        <CheckCircle2 size={11} /> Google Identity Verified
+                      <div className="inline-flex items-center gap-1 text-[9px] font-black uppercase text-emerald-800 bg-emerald-200/80 px-1.5 py-0.2 rounded-full">
+                        <CheckCircle2 size={10} /> Google Identity Verified
                       </div>
-                      <p className="text-xs font-bold text-slate-800 truncate mt-0.5">
+                      <p className="text-xs font-bold text-slate-800 truncate">
                         {googleUser.displayName || "Verified User"}
                       </p>
-                      <p className="text-[11px] font-mono text-slate-600 truncate">
+                      <p className="text-[10px] font-mono text-slate-600 truncate">
                         {googleUser.email}
                       </p>
                     </div>
@@ -247,20 +234,20 @@ export function AdminLogin() {
                     title="Change Google Account"
                     className="shrink-0 text-slate-400 hover:text-rose-600 transition p-1"
                   >
-                    <LogOut size={16} />
+                    <LogOut size={15} />
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <div className="text-xs font-black uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-                    <Lock size={14} className="text-spidey" /> Organizer Credentials
+                <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                  <div className="text-[11px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                    <Lock size={13} className="text-spidey" /> Organizer Credentials
                   </div>
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="text-[11px] font-black text-spidey hover:underline inline-flex items-center gap-1"
+                    className="text-[10px] font-black text-spidey hover:underline inline-flex items-center gap-1"
                   >
-                    <ArrowLeft size={12} /> Back to Step 1
+                    <ArrowLeft size={11} /> Back to Step 1
                   </button>
                 </div>
               )}
@@ -295,7 +282,7 @@ export function AdminLogin() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </Field>
@@ -304,15 +291,15 @@ export function AdminLogin() {
                 type="submit"
                 variant="primary"
                 loading={busy}
-                className="w-full py-3 text-sm font-black uppercase tracking-wider bg-web text-white hover:bg-spidey transition shadow-comic hover:shadow-none"
+                className="w-full py-2.5 text-xs font-black uppercase tracking-wider bg-web text-white hover:bg-spidey transition shadow-comic hover:shadow-none"
               >
-                <KeyRound size={16} className="mr-2" /> Authorize & Enter Admin Panel
+                <KeyRound size={15} className="mr-1.5" /> Authorize & Enter Admin Panel
               </Button>
             </form>
           )}
 
           {/* Helper Link */}
-          <div className="border-t-2 border-web/10 pt-3 text-center">
+          <div className="border-t-2 border-web/10 pt-2.5 text-center">
             <p className="text-[11px] font-bold text-ink/50">
               Students: Looking for your team status? Visit{" "}
               <Link to="/dashboard" className="text-spidey underline hover:text-web">
@@ -323,10 +310,10 @@ export function AdminLogin() {
         </div>
 
         {/* Back Link */}
-        <div className="mt-6 text-center">
+        <div className="mt-3 text-center">
           <Link
             to="/"
-            className="inline-flex items-center gap-1 text-xs font-black text-web hover:text-spidey transition"
+            className="inline-flex items-center gap-1 text-[11px] font-black text-web hover:text-spidey transition"
           >
             ← Back to Homepage
           </Link>

@@ -60,18 +60,18 @@ export function Login() {
   }
 
   return (
-    <div className="relative mx-auto flex min-h-svh max-w-md flex-col justify-center px-4 py-24">
+    <div className="relative mx-auto flex min-h-svh max-w-md flex-col justify-center px-4 pt-16 pb-4 sm:pt-20 sm:pb-6">
       <MaskBurst className="pointer-events-none absolute -top-2 right-0 w-36 sm:w-48 opacity-85 z-10" />
       <p className="text-xs font-black tracking-[0.28em] text-spidey">SIH 2026 · GTMC NANDED</p>
-      <h1 className="mt-3 font-display text-4xl sm:text-5xl text-web comic-pop">
+      <h1 className="mt-2 font-display text-3xl sm:text-4xl text-web comic-pop">
         {currentUser ? "Verified Profile" : mode === "login" ? "User Login" : "Create Account"}
       </h1>
-      <p className="mt-2 text-xs sm:text-sm font-bold text-ink/70">
+      <p className="mt-1 text-xs sm:text-sm font-bold text-ink/70">
         Authenticating allows your team leader details to be verified in real-time.
       </p>
 
       {currentUser ? (
-        <div className="relative mt-8 space-y-4 rounded-3xl border-4 border-web bg-white p-6 shadow-comic">
+        <div className="relative mt-5 space-y-3 rounded-3xl border-4 border-web bg-white p-5 shadow-comic">
           <div className="flex items-center gap-3 border-b-2 border-slate-100 pb-4">
             {currentUser.photoURL ? (
               <img
