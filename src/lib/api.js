@@ -11,6 +11,20 @@ export const API_BASE = PRIMARY_URL;
 export const isApiConfigured = true;
 
 const TOKEN_KEY = "sih_admin_token";
+const AUTH_REVOCATION_KEY = "sih_auth_epoch_v2";
+
+// Automatically invalidate and clear all legacy sessions across all devices
+if (typeof window !== "undefined") {
+  try {
+    const currentEpoch = localStorage.getItem(AUTH_REVOCATION_KEY);
+    if (currentEpoch !== "2026-08-26-v2") {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.setItem(AUTH_REVOCATION_KEY, "2026-08-26-v2");
+    }
+  } catch (e) {
+    // ignore localstorage error
+  }
+}
 
 export function getAdminToken() {
   return localStorage.getItem(TOKEN_KEY) || "";

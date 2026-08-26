@@ -20,7 +20,18 @@ export function AuthProvider({ children }) {
     adminSession()
       .then((session) => {
         if (!active) return;
-        setUser(session?.admin || null);
+        const validAdmin = session?.admin || null;
+        setUser(validAdmin);
+        if (!validAdmin && window.location.pathname.startsWith("/admin") && window.location.pathname !== "/admin/login") {
+          window.location.href = "/";
+        }
+      })
+      .catch(() => {
+        if (!active) return;
+        setUser(null);
+        if (window.location.pathname.startsWith("/admin") && window.location.pathname !== "/admin/login") {
+          window.location.href = "/";
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
