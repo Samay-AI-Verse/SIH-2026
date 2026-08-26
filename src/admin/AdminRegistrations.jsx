@@ -1,7 +1,31 @@
 import { useEffect, useState, useMemo } from "react";
-import { Search, Eye, X, CheckCircle2, AlertTriangle, Download, Shield, Mail, Phone, Building, User, RefreshCw, Trash2, RotateCcw, Pencil, Image as ImageIcon, Copy, Check } from "lucide-react";
+import { 
+  Search, 
+  Eye, 
+  X, 
+  CheckCircle2, 
+  AlertTriangle, 
+  Download, 
+  Shield, 
+  Mail, 
+  Phone, 
+  Building, 
+  User, 
+  RefreshCw, 
+  Trash2, 
+  RotateCcw, 
+  Pencil, 
+  Image as ImageIcon, 
+  Copy, 
+  Check, 
+  GraduationCap, 
+  Award,
+  Calendar,
+  Layers,
+  ChevronRight
+} from "lucide-react";
 import { adminCancelTeam, adminFetchTeams, adminVerifyPayment, adminDeleteTeam, adminUpdateTeamName, subscribeTable } from "../services/apiService";
-import { downloadCsv, formatDate } from "../utils/cn";
+import { downloadCsv, formatDate, formatINR } from "../utils/cn";
 import { Button } from "../components/ui/Button";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { EditMemberModal } from "../components/ui/EditMemberModal";
@@ -26,6 +50,14 @@ export function AdminRegistrations() {
   const [newTeamName, setNewTeamName] = useState("");
   const [savingNameBusy, setSavingNameBusy] = useState(false);
   const [copiedUtr, setCopiedUtr] = useState(false);
+  const [copiedInfo, setCopiedInfo] = useState("");
+
+  function handleCopy(text, key) {
+    if (!text) return;
+    navigator.clipboard?.writeText(text);
+    setCopiedInfo(key);
+    setTimeout(() => setCopiedInfo(""), 2000);
+  }
 
   async function handleSaveTeamName() {
     if (!newTeamName.trim() || newTeamName.trim().length < 3) {
@@ -128,43 +160,53 @@ export function AdminRegistrations() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-display text-4xl text-web flex items-center gap-2">
-            <Shield className="text-spidey" size={36} /> Registrations & Team Roster
+          <h1 className="font-display text-3xl sm:text-4xl text-web flex items-center gap-2">
+            <Shield className="text-spidey shrink-0" size={32} /> Registrations & Team Roster
           </h1>
-          <p className="text-xs sm:text-sm font-bold text-ink/70">
-            View all registered teams, inspect 6-member roster profiles, approve payments, and manage team cancellations.
+          <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-1">
+            View all registered teams, inspect 6-member student roster profiles, approve payments, and manage team entries.
           </p>
         </div>
 
-        <Button
-          variant="secondary"
-          className="shrink-0 text-xs font-black"
-          onClick={() =>
-            downloadCsv(
-              "gtmc-sih-registrations.csv",
-              teams.map((team) => ({
-                registrationId: team.registrationId,
-                teamName: team.teamName,
-                college: team.college,
-                leaderName: team.leaderName,
-                leaderEmail: team.email,
-                leaderPhone: team.phone,
-                membersCount: team.members?.length || 6,
-                paymentStatus: team.paymentStatus,
-                registrationStatus: team.registrationStatus,
-                problemStatement: team.selectedProblemTitle || team.selectedProblemId || "Open Innovation",
-                registeredAt: formatDate(team.registeredAt),
-              }))
-            )
-          }
-        >
-          <Download size={14} className="mr-1.5" /> Export Registrations CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            className="shrink-0 text-xs font-black shadow-comic"
+            onClick={() =>
+              downloadCsv(
+                "gtmc-sih-registrations.csv",
+                teams.map((team) => ({
+                  registrationId: team.registrationId,
+                  teamName: team.teamName,
+                  college: team.college || "GTMC Nanded",
+                  leaderName: team.leaderName,
+                  leaderEmail: team.email,
+                  leaderPhone: team.phone,
+                  membersCount: team.members?.length || 6,
+                  paymentStatus: team.paymentStatus,
+                  registrationStatus: team.registrationStatus,
+                  problemStatement: team.selectedProblemTitle || team.selectedProblemId || "Open Innovation",
+                  registeredAt: formatDate(team.registeredAt || team.registered_at || team.created_at),
+                }))
+              )
+            }
+          >
+            <Download size={14} className="mr-1.5" /> Export CSV
+          </Button>
+
+          <button
+            onClick={() => load()}
+            className="rounded-xl border-2 border-web/20 bg-white p-2 text-slate-700 hover:bg-gold hover:text-web transition shadow-2xs"
+            title="Refresh Teams"
+          >
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+          </button>
+        </div>
       </div>
 
       {/* Filter Tabs & Search Controls */}
-      <div className="rounded-2xl border-3 border-web bg-white p-4 shadow-[4px_4px_0_#071433] space-y-3">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div className="rounded-2xl border-2 border-web/20 bg-white p-4 shadow-sm space-y-3">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Status Filter Pills */}
           <div className="flex flex-wrap gap-2">
             {[
@@ -179,7 +221,7 @@ export function AdminRegistrations() {
                 className={`rounded-xl px-3.5 py-1.5 text-xs font-black uppercase tracking-wider transition ${
                   statusFilter === tab.id
                     ? "bg-web text-white shadow-comic"
-                    : "bg-ink/5 text-ink/70 hover:bg-gold/30 hover:text-web"
+                    : "bg-slate-100 text-slate-700 hover:bg-gold/30 hover:text-web"
                 }`}
               >
                 {tab.label}
@@ -188,14 +230,14 @@ export function AdminRegistrations() {
           </div>
 
           {/* Search Input */}
-          <div className="relative w-full sm:w-72">
+          <div className="relative w-full md:w-80">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search Reg ID, Team, Leader, Email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border-2 border-web/30 bg-slate-50 py-2 pl-9 pr-3 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
+              className="w-full rounded-xl border-2 border-web/20 bg-slate-50 py-2 pl-9 pr-8 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
             />
             {search && (
               <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -206,124 +248,147 @@ export function AdminRegistrations() {
         </div>
       </div>
 
-      {/* Teams Table */}
-      <div className="overflow-hidden rounded-2xl border-3 border-web bg-white shadow-[6px_6px_0_#071433]">
-        <div className="p-4 bg-web text-white flex items-center justify-between">
-          <p className="font-display text-2xl tracking-wide">
-            Registered Teams Directory ({filteredTeams.length})
-          </p>
-          <span className="text-xs font-bold uppercase tracking-wider bg-gold text-ink px-2.5 py-0.5 rounded-full">
+      {/* Teams Table Container */}
+      <div className="rounded-2xl border-2 border-web/20 bg-white shadow-sm overflow-hidden">
+        <div className="p-4 bg-web text-white flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <p className="font-display text-xl sm:text-2xl tracking-wide">
+              Registered Teams Directory ({filteredTeams.length})
+            </p>
+          </div>
+          <span className="text-xs font-black uppercase tracking-wider bg-gold text-web px-3 py-1 rounded-full w-fit">
             GTMC Nanded Official
           </span>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-slate-500 font-bold">Loading registered teams...</div>
+          <div className="p-12 text-center text-slate-500 font-bold flex flex-col items-center justify-center gap-2">
+            <RefreshCw className="animate-spin text-spidey" size={24} />
+            <span>Loading registered teams and member rosters...</span>
+          </div>
         ) : filteredTeams.length === 0 ? (
           <div className="p-12 text-center text-slate-500 font-bold">
             No registration entries match your search or filter criteria.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-100 font-ui text-xs font-black uppercase tracking-wider text-slate-700 border-b-2 border-web/20">
+            <table className="w-full text-left text-sm min-w-[1020px] divide-y divide-slate-200">
+              <thead className="bg-slate-50 font-ui text-xs font-black uppercase tracking-wider text-slate-700 border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-3">Reg ID & Team Name</th>
-                  <th className="px-4 py-3">Reg Date & Time</th>
-                  <th className="px-4 py-3">College & Leader</th>
-                  <th className="px-4 py-3">Roster</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Problem Statement</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  <th className="px-4 py-3.5 w-64">Reg ID & Team Name</th>
+                  <th className="px-4 py-3.5 w-44">Reg Date & Time</th>
+                  <th className="px-4 py-3.5 w-64">College & Leader</th>
+                  <th className="px-4 py-3.5 w-28 text-center">Roster</th>
+                  <th className="px-4 py-3.5 w-44">Status</th>
+                  <th className="px-4 py-3.5">Problem Statement</th>
+                  <th className="px-4 py-3.5 text-right w-64">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-100 bg-white">
                 {filteredTeams.map((team) => {
                   const isConfirmed = team.registrationStatus === "CONFIRMED" || team.paymentStatus === "SUCCESS";
                   const isCancelled = (team.registrationStatus || "").includes("CANCELLED") || (team.paymentStatus || "").includes("CANCELLED") || team.paymentStatus === "REFUNDED";
                   const regDateTime = team.registeredAt || team.registered_at || team.created_at;
 
                   return (
-                    <tr key={team.id} className="hover:bg-amber-50/50 transition">
+                    <tr key={team.id} className="hover:bg-amber-50/40 transition">
+                      {/* Reg ID & Team Name */}
                       <td className="px-4 py-3.5">
-                        <span className="font-mono text-xs font-black text-spidey bg-spidey/10 px-2 py-0.5 rounded border border-spidey/30 block w-fit mb-0.5">
+                        <span className="font-mono text-xs font-black text-spidey bg-spidey/10 px-2 py-0.5 rounded border border-spidey/30 inline-block mb-1">
                           {team.registrationId}
                         </span>
-                        <span className="font-bold text-base text-web">{team.teamName}</span>
+                        <div className="font-bold text-base text-web truncate max-w-[230px]" title={team.teamName}>
+                          {team.teamName}
+                        </div>
                       </td>
 
-                      <td className="px-4 py-3.5 text-xs font-mono font-bold text-slate-700 whitespace-nowrap">
+                      {/* Reg Date & Time */}
+                      <td className="px-4 py-3.5 text-xs font-mono font-bold text-slate-600 whitespace-nowrap">
                         {formatDate(regDateTime)}
                       </td>
 
-
+                      {/* College & Leader */}
                       <td className="px-4 py-3.5 text-xs">
-                        <div className="font-bold text-ink">{team.college}</div>
-                        <div className="text-slate-600 font-semibold mt-0.5">Leader: {team.leaderName}</div>
+                        <div className="font-bold text-ink truncate max-w-[230px]" title={team.college || "GTMC Nanded"}>
+                          {team.college || "GTMC Nanded"}
+                        </div>
+                        <div className="text-slate-600 font-semibold mt-0.5 truncate max-w-[230px]">
+                          Leader: <span className="text-web font-bold">{team.leaderName}</span>
+                        </div>
                       </td>
 
-                      <td className="px-4 py-3.5 text-xs font-bold text-slate-700">
-                        <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                          <User size={12} /> {team.members?.length || 6} / 6
+                      {/* Roster count */}
+                      <td className="px-4 py-3.5 text-center">
+                        <span className="inline-flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-black text-slate-700">
+                          <User size={12} className="text-spidey" /> {team.members?.length || 6} / 6
                         </span>
                       </td>
 
+                      {/* Status */}
                       <td className="px-4 py-3.5">
                         <StatusBadge status={team.paymentStatus || team.registrationStatus} />
                       </td>
 
-                      <td className="px-4 py-3.5 text-xs font-bold text-slate-700 max-w-xs truncate">
+                      {/* Problem Statement */}
+                      <td className="px-4 py-3.5 text-xs font-bold text-slate-700">
                         {team.isOpenInnovation ? (
-                          <span className="text-web font-black">🚀 Open Innovation</span>
+                          <span className="inline-flex items-center gap-1 text-spidey font-black bg-spidey/10 px-2 py-0.5 rounded border border-spidey/20">
+                            🚀 Open Innovation
+                          </span>
                         ) : (
-                          team.selectedProblemTitle || team.selectedProblemId || "—"
+                          <div className="max-w-xs truncate" title={team.selectedProblemTitle || team.selectedProblemId || "Not Selected"}>
+                            {team.selectedProblemTitle || team.selectedProblemId || "—"}
+                          </div>
                         )}
                       </td>
 
+                      {/* Actions */}
                       <td className="px-4 py-3.5 text-right">
-                        <div className="flex flex-wrap items-center justify-end gap-2">
-                          {/* View Details Button */}
+                        <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                          {/* View Details */}
                           <button
                             onClick={() => {
                               setSelectedTeam(team);
                               setEditingTeamName(false);
                             }}
-                            className="inline-flex items-center gap-1 rounded-lg border-2 border-web/20 bg-white px-2.5 py-1 text-xs font-black text-web hover:bg-gold transition shadow-xs"
+                            className="inline-flex items-center gap-1 rounded-lg border border-web/30 bg-white px-2.5 py-1.5 text-xs font-bold text-web hover:bg-gold hover:text-web transition shadow-2xs"
+                            title="Inspect 6-Member Roster & Details"
                           >
-                            <Eye size={13} /> Details
+                            <Eye size={13} /> Roster
                           </button>
 
-                          {/* Quick Approve Button */}
+                          {/* Quick Approve */}
                           {!isConfirmed && !isCancelled && (
                             <button
                               onClick={() => adminVerifyPayment(team.id, "SUCCESS", "Approved by Admin").then(load)}
-                              className="rounded-lg border-2 border-emerald-700 bg-emerald-600 px-2.5 py-1 text-xs font-black text-white hover:bg-emerald-700 transition shadow-xs"
+                              className="inline-flex items-center gap-1 rounded-lg border border-emerald-700 bg-emerald-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition shadow-2xs"
+                              title="Verify Payment & Confirm Team"
                             >
-                              ✓ Approve
+                              <CheckCircle2 size={13} /> Approve
                             </button>
                           )}
 
-                          {/* Cancel Button */}
+                          {/* Cancel */}
                           {!isCancelled && (
                             <button
                               onClick={() => setCancelPromptTeam(team)}
-                              className="rounded-lg border-2 border-amber-700 bg-amber-600 px-2.5 py-1 text-xs font-black text-white hover:bg-amber-700 transition shadow-xs"
+                              className="rounded-lg border border-amber-600 bg-amber-500 px-2 py-1.5 text-xs font-bold text-white hover:bg-amber-600 transition shadow-2xs"
+                              title="Cancel registration"
                             >
                               Cancel
                             </button>
                           )}
 
-                          {/* Hard Delete Button */}
+                          {/* Delete */}
                           <button
                             onClick={() => setDeletePromptTeam(team)}
-                            className="inline-flex items-center gap-1 rounded-lg border-2 border-rose-800 bg-rose-700 px-2 py-1 text-xs font-black text-white hover:bg-rose-800 transition shadow-xs"
-                            title="Delete team permanently from database"
+                            className="rounded-lg border border-rose-700 bg-rose-600 px-2 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition shadow-2xs"
+                            title="Delete team permanently"
                           >
-                            <Trash2 size={13} /> Delete
+                            <Trash2 size={13} />
                           </button>
                         </div>
                       </td>
-
                     </tr>
                   );
                 })}
@@ -333,14 +398,14 @@ export function AdminRegistrations() {
         )}
       </div>
 
-      {/* FULL TEAM DETAILS MODAL */}
+      {/* FULL TEAM DETAILS & 6-MEMBER STUDENT ROSTER MODAL */}
       {selectedTeam && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-hidden">
-          <div className="relative w-full max-w-3xl max-h-[92vh] flex flex-col rounded-3xl border-3 sm:border-4 border-web bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4 md:p-6 overflow-hidden">
+          <div className="relative w-full max-w-4xl max-h-[94vh] flex flex-col rounded-3xl border-3 sm:border-4 border-web bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 text-left">
             {/* Modal Header */}
-            <div className="shrink-0 px-5 sm:px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-4">
+            <div className="shrink-0 px-5 sm:px-6 py-4 bg-slate-900 text-white border-b-2 border-gold/40 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="rounded-xl border-2 border-web bg-gold px-3 py-1 font-display text-xl sm:text-2xl text-web shrink-0 shadow-2xs">
+                <div className="rounded-xl border-2 border-gold bg-gold px-3 py-1 font-display text-xl sm:text-2xl text-web shrink-0 shadow-comic">
                   {selectedTeam.registrationId}
                 </div>
                 <div className="min-w-0">
@@ -350,7 +415,7 @@ export function AdminRegistrations() {
                         type="text"
                         value={newTeamName}
                         onChange={(e) => setNewTeamName(e.target.value)}
-                        className="rounded-xl border-2 border-web bg-white px-3 py-1 text-sm font-bold text-ink focus:outline-none"
+                        className="rounded-xl border-2 border-gold bg-white px-3 py-1 text-sm font-bold text-ink focus:outline-none"
                         placeholder="Enter new team name..."
                         autoFocus
                       />
@@ -358,36 +423,38 @@ export function AdminRegistrations() {
                         type="button"
                         disabled={savingNameBusy}
                         onClick={handleSaveTeamName}
-                        className="rounded-lg border-2 border-emerald-700 bg-emerald-600 px-3 py-1 text-xs font-black text-white hover:bg-emerald-700 transition"
+                        className="rounded-lg border border-emerald-500 bg-emerald-600 px-3 py-1 text-xs font-black text-white hover:bg-emerald-700 transition"
                       >
                         {savingNameBusy ? "Saving..." : "Save"}
                       </button>
                       <button
                         type="button"
                         onClick={() => setEditingTeamName(false)}
-                        className="rounded-lg border-2 border-slate-300 bg-slate-200 px-3 py-1 text-xs font-bold text-slate-700 hover:bg-slate-300 transition"
+                        className="rounded-lg bg-slate-700 px-3 py-1 text-xs font-bold text-white hover:bg-slate-600 transition"
                       >
                         Cancel
                       </button>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <h2 className="font-display text-2xl sm:text-3xl text-web truncate">{selectedTeam.teamName}</h2>
+                      <h2 className="font-display text-2xl sm:text-3xl text-gold truncate tracking-wide">
+                        {selectedTeam.teamName}
+                      </h2>
                       <button
                         type="button"
                         onClick={() => {
                           setNewTeamName(selectedTeam.teamName || "");
                           setEditingTeamName(true);
                         }}
-                        className="rounded-lg border border-web/30 bg-white p-1 text-slate-700 hover:bg-gold hover:text-web transition shadow-2xs shrink-0"
-                        title="Edit / Correct Team Name (As Admin)"
+                        className="rounded-lg border border-white/20 bg-white/10 p-1 text-white hover:bg-gold hover:text-web transition shadow-2xs shrink-0"
+                        title="Edit Team Name"
                       >
                         <Pencil size={14} />
                       </button>
                     </div>
                   )}
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 truncate mt-0.5">
-                    {selectedTeam.college} · Leader: {selectedTeam.leaderName}
+                  <p className="text-xs font-semibold text-slate-300 truncate mt-0.5">
+                    {selectedTeam.college || "GTMC Nanded"} · Leader: <span className="text-gold font-bold">{selectedTeam.leaderName}</span>
                   </p>
                 </div>
               </div>
@@ -398,7 +465,7 @@ export function AdminRegistrations() {
                   setSelectedTeam(null);
                   setEditingTeamName(false);
                 }}
-                className="shrink-0 rounded-full border-2 border-slate-300 bg-white p-2 text-slate-700 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition shadow-xs"
+                className="shrink-0 rounded-full border border-white/30 bg-white/10 p-2 text-white hover:bg-rose-600 hover:border-rose-600 transition shadow-xs"
                 title="Close modal"
               >
                 <X size={18} />
@@ -406,28 +473,28 @@ export function AdminRegistrations() {
             </div>
 
             {/* Scrollable Modal Body */}
-            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
-              {/* Payment Details Card (Mode, UTR & Proof Image) */}
-              <div className="rounded-2xl border-2 border-web/20 bg-amber-50/60 p-4">
-                <div className="flex items-center justify-between border-b border-amber-200/60 pb-2 mb-3">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 bg-slate-50/50">
+              {/* Payment & Verification Banner */}
+              <div className="rounded-2xl border-2 border-web/15 bg-white p-4 shadow-xs">
+                <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-2.5 mb-3 gap-2">
                   <span className="text-xs font-black uppercase tracking-wider text-web flex items-center gap-1.5">
-                    <Shield size={14} className="text-spidey" /> Payment Details & Verification
+                    <Shield size={16} className="text-spidey" /> Payment Details & Proof
                   </span>
                   <StatusBadge status={selectedTeam.paymentStatus || selectedTeam.registrationStatus} />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-bold text-slate-700">
-                  {/* Payment Mode */}
-                  <div className="rounded-xl border border-amber-200 bg-white p-3 space-y-1">
-                    <span className="text-[10px] font-black uppercase text-slate-400 block">Payment Mode</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  {/* Mode & Collector */}
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-1">
+                    <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Payment Mode</span>
                     <span className="font-extrabold text-web text-sm block">
                       {selectedTeam.paymentMode === "OFFLINE_CASH" || selectedTeam.payment_mode === "OFFLINE_CASH"
                         ? "💵 Offline Cash Collection"
                         : "💳 Online (UPI / QR / Bank)"}
                     </span>
                     {(selectedTeam.collectorName || selectedTeam.collector_name) && (
-                      <div className="text-[11px] text-slate-500 font-semibold">
-                        Collected by: <span className="text-web">{selectedTeam.collectorName || selectedTeam.collector_name}</span>
+                      <div className="text-[11px] text-slate-600 font-semibold">
+                        Collected by: <span className="text-web font-bold">{selectedTeam.collectorName || selectedTeam.collector_name}</span>
                       </div>
                     )}
                     {(selectedTeam.receiptNo || selectedTeam.receipt_no) && (
@@ -438,8 +505,8 @@ export function AdminRegistrations() {
                   </div>
 
                   {/* UTR / Transaction ID */}
-                  <div className="rounded-xl border border-amber-200 bg-white p-3 space-y-1">
-                    <span className="text-[10px] font-black uppercase text-slate-400 block">UTR / Transaction ID</span>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-1">
+                    <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">UTR / Transaction ID</span>
                     <div className="flex items-center justify-between gap-1 pt-0.5">
                       <span className="font-mono text-xs font-black text-spidey truncate">
                         {selectedTeam.paymentUtr || selectedTeam.payment_utr || selectedTeam.payment?.utr || selectedTeam.payment?.transaction_id || "Not Provided"}
@@ -449,99 +516,173 @@ export function AdminRegistrations() {
                           type="button"
                           onClick={() => {
                             const utrVal = selectedTeam.paymentUtr || selectedTeam.payment_utr || selectedTeam.payment?.utr || selectedTeam.payment?.transaction_id;
-                            navigator.clipboard?.writeText(utrVal);
-                            setCopiedUtr(true);
-                            setTimeout(() => setCopiedUtr(false), 2000);
+                            handleCopy(utrVal, "utr");
                           }}
-                          className="rounded bg-slate-100 p-1 text-slate-600 hover:bg-gold hover:text-web transition shrink-0"
+                          className="rounded bg-white border border-slate-200 p-1 text-slate-600 hover:bg-gold hover:text-web transition shrink-0"
                           title="Copy UTR"
                         >
-                          {copiedUtr ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+                          {copiedInfo === "utr" ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
                         </button>
                       )}
                     </div>
                   </div>
 
-                  {/* Payment Proof Image / Screenshot */}
-                  <div className="rounded-xl border border-amber-200 bg-white p-3 space-y-1">
-                    <span className="text-[10px] font-black uppercase text-slate-400 block">Proof Screenshot / Receipt</span>
+                  {/* Proof Screenshot */}
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-1">
+                    <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Payment Proof</span>
                     {(selectedTeam.paymentProofUrl || selectedTeam.payment_proof_url || selectedTeam.payment?.proof_url) ? (
                       <button
                         type="button"
                         onClick={() => setLightboxUrl(selectedTeam.paymentProofUrl || selectedTeam.payment_proof_url || selectedTeam.payment?.proof_url)}
-                        className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-spidey/30 bg-spidey/10 px-2.5 py-1 text-xs font-black text-spidey hover:bg-spidey hover:text-white transition mt-0.5"
+                        className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-spidey/30 bg-spidey/10 px-2.5 py-1.5 text-xs font-black text-spidey hover:bg-spidey hover:text-white transition mt-0.5"
                       >
-                        <ImageIcon size={14} /> View Screenshot
+                        <ImageIcon size={14} /> View Screenshot / Receipt
                       </button>
                     ) : (
-                      <span className="text-slate-400 font-semibold italic block pt-1">No screenshot uploaded</span>
+                      <span className="text-slate-400 font-semibold italic block pt-1">No proof uploaded</span>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* Problem Statement Info */}
-              <div className="rounded-2xl border-2 border-web/20 bg-slate-50 p-4">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Selected Problem / Open Innovation</p>
+              {/* Problem Statement Card */}
+              <div className="rounded-2xl border-2 border-web/15 bg-white p-4 shadow-xs">
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Selected Problem / Idea</p>
                 <p className="mt-1 font-bold text-web text-base">
                   {selectedTeam.isOpenInnovation
-                    ? `🚀 ${selectedTeam.openInnovationTitle || "Open Innovation Custom Idea"}`
+                    ? `🚀 ${selectedTeam.openInnovationTitle || "Open Innovation Custom Project"}`
                     : selectedTeam.selectedProblemTitle || "Not Selected Yet"}
                 </p>
                 {selectedTeam.isOpenInnovation && selectedTeam.openInnovationDescription && (
-                  <p className="mt-2 text-xs text-slate-600 border-t border-slate-200 pt-2 leading-relaxed">
+                  <p className="mt-2 text-xs text-slate-600 border-t border-slate-100 pt-2 leading-relaxed">
                     {selectedTeam.openInnovationDescription}
                   </p>
                 )}
               </div>
 
-              {/* Roster Breakdown (6 Members) */}
+              {/* 6-Member Student Roster Grid */}
               <div>
-                <h3 className="font-display text-xl text-web mb-3">Team Members Roster ({selectedTeam.members?.length || 6})</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {selectedTeam.members?.map((m, idx) => (
-                    <div
-                      key={m.id || idx}
-                      className={`rounded-xl border-2 p-3 text-xs relative ${
-                        m.isLeader ? "border-web bg-gold/20" : "border-slate-200 bg-white"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between font-bold text-ink pr-6">
-                        <span>{m.name || m.full_name}</span>
-                        {m.isLeader ? (
-                          <span className="rounded bg-gold px-1.5 py-0.5 text-[9px] font-black text-web">LEADER</span>
-                        ) : (
-                          <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[9px] font-black text-slate-700">MEMBER</span>
-                        )}
-                      </div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-display text-2xl text-web flex items-center gap-2">
+                    <GraduationCap className="text-spidey" size={24} /> 6-Member Student Roster ({selectedTeam.members?.length || 6})
+                  </h3>
+                  <span className="text-xs font-bold text-slate-500">
+                    Click ✏️ to edit or replace student details
+                  </span>
+                </div>
 
-                      <button
-                        type="button"
-                        onClick={() => setEditingMember({ teamId: selectedTeam.id, member: m })}
-                        className="absolute right-2.5 top-2.5 rounded-lg border border-web/20 bg-white p-1 text-slate-600 hover:bg-gold hover:text-web transition shadow-2xs"
-                        title="Edit Student Member Profile"
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {selectedTeam.members?.map((m, idx) => {
+                    const isLeader = m.isLeader || idx === 0;
+                    const memberName = m.name || m.full_name || `Member #${idx + 1}`;
+                    const memberEmail = m.email || selectedTeam.email;
+                    const memberPhone = m.phone || selectedTeam.phone;
+                    const memberCourse = m.course || m.stream || selectedTeam.leaderCourse || "B.Tech";
+                    const memberBranch = m.branch || selectedTeam.leaderBranch || "CSE";
+                    const memberYear = m.year || selectedTeam.leaderYear || "3rd Year";
+                    const memberGender = m.gender || (isLeader ? selectedTeam.leaderGender : "Male") || "Male";
+                    const isFemale = memberGender.toLowerCase() === "female";
+
+                    return (
+                      <div
+                        key={m.id || idx}
+                        className={`rounded-2xl border-2 p-4 transition relative shadow-xs flex flex-col justify-between ${
+                          isLeader 
+                            ? "border-amber-400 bg-amber-50/50 hover:border-amber-500" 
+                            : "border-slate-200 bg-white hover:border-web/40"
+                        }`}
                       >
-                        <Pencil size={13} />
-                      </button>
+                        <div>
+                          {/* Top Row: Name & Badges */}
+                          <div className="flex items-start justify-between gap-2 pr-8">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-ink text-sm sm:text-base leading-tight">
+                                  {memberName}
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                {isLeader ? (
+                                  <span className="inline-flex items-center gap-1 rounded-md bg-gold px-2 py-0.5 text-[10px] font-black text-web shadow-2xs">
+                                    👑 LEADER
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-700">
+                                    👤 MEMBER {idx + 1}
+                                  </span>
+                                )}
+                                <span
+                                  className={`rounded-md px-2 py-0.5 text-[10px] font-black ${
+                                    isFemale ? "bg-pink-100 text-pink-700 border border-pink-200" : "bg-blue-100 text-blue-700 border border-blue-200"
+                                  }`}
+                                >
+                                  {memberGender}
+                                </span>
+                                {(m.studentId || m.student_id) && (
+                                  <span className="font-mono text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">
+                                    ID: {m.studentId || m.student_id}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
 
-                      <div className="mt-1 text-slate-600 flex items-center justify-between">
-                        <span>{m.gender} • {m.year || selectedTeam.leaderYear}</span>
-                        <span>{m.branch || selectedTeam.leaderBranch}</span>
+                          {/* Edit Button */}
+                          <button
+                            type="button"
+                            onClick={() => setEditingMember({ teamId: selectedTeam.id, member: m })}
+                            className="absolute right-3 top-3 rounded-lg border border-web/20 bg-white p-1.5 text-slate-600 hover:bg-gold hover:text-web transition shadow-2xs"
+                            title="Edit Student Member Details"
+                          >
+                            <Pencil size={13} />
+                          </button>
+
+                          {/* Academic Details */}
+                          <div className="mt-3 pt-2.5 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs font-semibold text-slate-600">
+                            <div>
+                              <span className="text-[10px] uppercase text-slate-400 block font-black">Course & Branch</span>
+                              <span className="text-web font-bold truncate block">{memberCourse} · {memberBranch}</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] uppercase text-slate-400 block font-black">Year</span>
+                              <span className="text-slate-700 font-bold block">{memberYear}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Contact Quick Links */}
+                        <div className="mt-3 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-1.5 text-xs">
+                          {memberEmail ? (
+                            <div className="flex items-center gap-1 text-slate-600 font-mono text-[11px] truncate max-w-[180px]">
+                              <Mail size={12} className="shrink-0 text-slate-400" />
+                              <a href={`mailto:${memberEmail}`} className="hover:text-web hover:underline truncate">
+                                {memberEmail}
+                              </a>
+                            </div>
+                          ) : <span className="text-slate-400 text-[11px] italic">No email</span>}
+
+                          {memberPhone && (
+                            <div className="flex items-center gap-1 text-slate-600 font-mono text-[11px]">
+                              <Phone size={12} className="shrink-0 text-slate-400" />
+                              <a href={`tel:${memberPhone}`} className="hover:text-web hover:underline">
+                                {memberPhone}
+                              </a>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      {m.email && <div className="mt-1 font-mono text-[11px] text-slate-500 truncate">{m.email}</div>}
-                      {m.phone && <div className="font-mono text-[11px] text-slate-500">{m.phone}</div>}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
-            {/* Sticky Modal Footer Actions */}
-            <div className="shrink-0 px-5 sm:px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
+            {/* Modal Footer Actions */}
+            <div className="shrink-0 px-4 sm:px-6 py-3.5 border-t border-slate-200 bg-white flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <a
                   href={`mailto:${selectedTeam.email}`}
-                  className="inline-flex items-center gap-1 rounded-xl border-2 border-web/20 bg-white px-3.5 py-1.5 text-xs font-bold text-ink hover:bg-gold transition shadow-2xs"
+                  className="inline-flex items-center gap-1.5 rounded-xl border-2 border-web/20 bg-slate-50 px-3.5 py-1.5 text-xs font-black text-web hover:bg-gold transition shadow-2xs"
                 >
                   <Mail size={14} /> Contact Leader
                 </a>
@@ -563,7 +704,7 @@ export function AdminRegistrations() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setCancelPromptTeam(selectedTeam)}
-                  className="rounded-xl border-2 border-rose-700 bg-rose-600 px-3.5 py-1.5 text-xs font-black uppercase text-white hover:bg-rose-700 transition shadow-2xs"
+                  className="rounded-xl border-2 border-amber-700 bg-amber-600 px-3.5 py-1.5 text-xs font-black uppercase text-white hover:bg-amber-700 transition shadow-2xs"
                 >
                   Cancel Team
                 </button>
@@ -572,7 +713,7 @@ export function AdminRegistrations() {
                     setSelectedTeam(null);
                     setEditingTeamName(false);
                   }}
-                  className="rounded-xl border-2 border-slate-300 bg-slate-200 px-3.5 py-1.5 text-xs font-bold uppercase text-slate-700 hover:bg-slate-300 transition"
+                  className="rounded-xl border-2 border-slate-300 bg-slate-100 px-4 py-1.5 text-xs font-bold uppercase text-slate-700 hover:bg-slate-200 transition"
                 >
                   Close
                 </button>
@@ -582,11 +723,10 @@ export function AdminRegistrations() {
         </div>
       )}
 
-      {/* TEAM CANCELLATION PROMPT MODAL (REFUND VS NO REFUND) */}
+      {/* CANCELLATION PROMPT MODAL */}
       {cancelPromptTeam && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-hidden">
-          <div className="relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-3xl border-4 border-rose-600 bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Header */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-hidden">
+          <div className="relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-3xl border-4 border-rose-600 bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 text-left">
             <div className="shrink-0 px-5 sm:px-6 py-4 bg-rose-50 border-b border-rose-100 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 text-rose-600 min-w-0">
                 <AlertTriangle size={28} className="shrink-0" />
@@ -605,10 +745,9 @@ export function AdminRegistrations() {
               </button>
             </div>
 
-            {/* Body */}
             <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
               <p className="text-xs text-slate-700 font-semibold leading-relaxed">
-                Cancelling this team will automatically release their claimed Problem Statement quota. Please choose whether to record a fee refund in the financial ledger:
+                Cancelling this team will automatically release their claimed Problem Statement quota. Choose whether to record a fee refund in the ledger:
               </p>
 
               <div>
@@ -623,7 +762,6 @@ export function AdminRegistrations() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                {/* Cancel with Refund */}
                 <button
                   disabled={cancelBusy}
                   onClick={() => handleExecuteCancel(true)}
@@ -631,12 +769,11 @@ export function AdminRegistrations() {
                 >
                   <RotateCcw size={20} />
                   <span className="font-display text-base">Cancel & Issue Refund</span>
-                  <span className="text-[10px] font-extrabold opacity-90 text-center">
-                    Deducts ₹300 from Total Revenue & Ledger
+                  <span className="text-[10px] font-bold opacity-90 text-center">
+                    Deducts ₹300 from Total Revenue
                   </span>
                 </button>
 
-                {/* Cancel Without Refund */}
                 <button
                   disabled={cancelBusy}
                   onClick={() => handleExecuteCancel(false)}
@@ -644,14 +781,13 @@ export function AdminRegistrations() {
                 >
                   <Trash2 size={20} />
                   <span className="font-display text-base">Cancel No Refund</span>
-                  <span className="text-[10px] font-extrabold opacity-90 text-center">
-                    Retains Collected Fee in Total Revenue
+                  <span className="text-[10px] font-bold opacity-90 text-center">
+                    Retains Collected Fee
                   </span>
                 </button>
               </div>
             </div>
 
-            {/* Footer */}
             <div className="shrink-0 px-6 py-3 bg-slate-50 border-t border-slate-200 text-center">
               <button
                 onClick={() => setCancelPromptTeam(null)}
@@ -664,10 +800,10 @@ export function AdminRegistrations() {
         </div>
       )}
 
-      {/* PERMANENT DELETE TEAM CONFIRMATION MODAL */}
+      {/* PERMANENT DELETE MODAL */}
       {deletePromptTeam && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 md:p-6 overflow-hidden">
-          <div className="relative w-full max-w-md max-h-[92vh] flex flex-col rounded-3xl border-4 border-red-600 bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-md max-h-[92vh] flex flex-col rounded-3xl border-4 border-red-600 bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 text-left">
             <div className="shrink-0 px-5 sm:px-6 py-4 bg-red-50 border-b border-red-100 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 text-red-600 min-w-0">
                 <Trash2 size={28} className="shrink-0" />
@@ -688,7 +824,7 @@ export function AdminRegistrations() {
 
             <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
               <div className="rounded-xl border-2 border-red-200 bg-red-50 p-3 text-xs font-bold text-red-800 leading-relaxed">
-                ⚠️ WARNING: This will completely erase team '{deletePromptTeam.teamName}', all 6 members, payment receipts, and release the problem statement quota from the database!
+                ⚠️ WARNING: This will completely erase team '{deletePromptTeam.teamName}', all 6 members, payment receipts, and release the problem statement quota!
               </div>
             </div>
 
@@ -706,12 +842,13 @@ export function AdminRegistrations() {
                 onClick={handlePermanentDelete}
                 className="rounded-xl border-2 border-red-800 bg-red-700 px-5 py-2 text-xs font-black uppercase text-white hover:bg-red-800 transition shadow-sm"
               >
-                {deleteBusy ? "Deleting..." : "PERMANENTLY DELETE TEAM"}
+                {deleteBusy ? "Deleting..." : "PERMANENTLY DELETE"}
               </button>
             </div>
           </div>
         </div>
       )}
+
       {/* EDIT MEMBER MODAL */}
       {editingMember && (
         <EditMemberModal
@@ -733,8 +870,6 @@ export function AdminRegistrations() {
   );
 }
 
-
 export function AdminTeams() {
   return <AdminRegistrations />;
 }
-

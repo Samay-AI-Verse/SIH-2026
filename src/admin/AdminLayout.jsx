@@ -27,7 +27,7 @@ export function AdminLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="relative min-h-svh text-ink lg:grid lg:grid-cols-[270px_1fr]">
+    <div className="relative min-h-svh text-ink lg:grid lg:grid-cols-[270px_1fr] bg-slate-100/95">
       <ColorMesh />
 
       {/* Top Navigation Bar for Small Screens (Mobile / Tablet) */}

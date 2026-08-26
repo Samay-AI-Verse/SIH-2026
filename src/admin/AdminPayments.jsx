@@ -212,7 +212,7 @@ export function AdminPayments() {
       {/* COMPACT TABLE LIST VIEW */}
       <div className="overflow-hidden rounded-3xl border-3 border-web bg-white shadow-comic">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[950px]">
             <thead className="bg-web text-white font-black uppercase text-[10px] tracking-wider">
               <tr>
                 <th className="p-3.5">#</th>
