@@ -232,14 +232,20 @@ export function AdminSecurity() {
           </div>
         </div>
 
-        <button
-          onClick={handleForceLogoutAll}
-          disabled={forceLogoutBusy}
-          className="shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-rose-700 bg-rose-600 px-5 py-3 text-xs font-black uppercase text-white shadow-comic hover:bg-rose-700 active:scale-95 transition disabled:opacity-50"
-        >
-          <LogOut size={16} />
-          {forceLogoutBusy ? "Revoking All Devices..." : "🚨 Force Logout All Devices"}
-        </button>
+        {isSuperAdmin ? (
+          <button
+            onClick={handleForceLogoutAll}
+            disabled={forceLogoutBusy}
+            className="shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-rose-700 bg-rose-600 px-5 py-3 text-xs font-black uppercase text-white shadow-comic hover:bg-rose-700 active:scale-95 transition disabled:opacity-50"
+          >
+            <LogOut size={16} />
+            {forceLogoutBusy ? "Revoking All Devices..." : "🚨 Force Logout All Devices"}
+          </button>
+        ) : (
+          <div className="shrink-0 inline-flex items-center gap-1.5 rounded-2xl border-2 border-slate-300 bg-slate-100 px-4 py-2.5 text-xs font-black uppercase text-slate-500">
+            🔒 Master Admin Authority Only
+          </div>
+        )}
       </div>
 
       {/* SECTION 1: MY ADMIN CREDENTIALS & CHANGE PASSWORD */}
