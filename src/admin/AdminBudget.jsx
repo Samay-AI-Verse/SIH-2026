@@ -156,15 +156,40 @@ export function AdminBudget() {
       {/* Offline Cash Collector Breakdown */}
       {!loading && budget?.collector_breakdown && Object.keys(budget.collector_breakdown).length > 0 && (
         <div className="rounded-2xl border-3 border-web bg-white p-5 shadow-[4px_4px_0_#071433]">
-          <h3 className="font-display text-2xl text-web mb-3">💵 Offline Cash Collectors Summary</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {Object.entries(budget.collector_breakdown).map(([collector, sum]) => (
-              <div key={collector} className="rounded-xl border-2 border-web/20 bg-amber-50/60 p-3.5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <User size={16} className="text-web" />
-                  <span className="font-bold text-sm text-ink">{collector}</span>
+          <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+            <h3 className="font-display text-2xl text-web flex items-center gap-2">
+              <User className="text-emerald-600" size={24} /> Offline Cash Collectors Summary
+            </h3>
+            <span className="text-xs font-bold text-slate-500">
+              Total Offline Cash: <strong className="text-emerald-700 font-display text-base">{formatINR(budget?.offline_revenue || 0)}</strong>
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {Object.entries(
+              Object.entries(budget.collector_breakdown).reduce((acc, [col, sum]) => {
+                const nl = (col || "").trim().toLowerCase();
+                let cleanName = col;
+                if (nl.includes("mrunal") || nl === "mru") cleanName = "Mrunal";
+                else if (nl.includes("sadik")) cleanName = "Sadik Gonarkar";
+                else if (nl.includes("prathmesh") || nl.includes("prathamesh")) cleanName = "Prathmesh";
+                else if (nl.includes("abhay")) cleanName = "Abhay Tak";
+                else if (nl.includes("samay")) cleanName = "Samay";
+                else if (nl.includes("jadu")) cleanName = "Jadu";
+                acc[cleanName] = (acc[cleanName] || 0) + sum;
+                return acc;
+              }, {})
+            ).map(([collector, sum]) => (
+              <div key={collector} className="rounded-xl border-2 border-web/20 bg-slate-50 hover:bg-amber-50/60 transition p-3.5 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-full bg-web text-white font-bold text-xs flex items-center justify-center">
+                    {collector.charAt(0)}
+                  </div>
+                  <div>
+                    <span className="font-bold text-sm text-ink block">{collector}</span>
+                    <span className="text-[10.5px] font-bold text-slate-400">Cash Verified</span>
+                  </div>
                 </div>
-                <span className="font-display text-2xl text-web">{formatINR(sum)}</span>
+                <span className="font-display text-2xl text-emerald-700">{formatINR(sum)}</span>
               </div>
             ))}
           </div>
