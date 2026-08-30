@@ -306,25 +306,25 @@ export function AdminAttendanceSheet() {
           <table className="w-full text-left text-xs min-w-[900px] border-collapse divide-y divide-slate-200 print:min-w-full print:w-full print-full-table">
             <thead className="bg-web text-white font-black uppercase text-[10px] tracking-wider print:bg-slate-200 print:text-black print-header-repeat">
               <tr>
-                {/* 1. Sr No (4%) */}
-                <th className="p-2.5 text-center w-[4%] print:w-[4%]">#</th>
+                {/* 1. Sr No (3%) */}
+                <th className="p-2.5 text-center w-[3%] print:w-[3%]">#</th>
 
-                {/* 2. Team ID (11%) */}
-                <th className="p-2.5 w-[11%] print:w-[11%]">Team ID</th>
+                {/* 2. Team ID (10%) */}
+                <th className="p-2.5 w-[10%] print:w-[10%]">Team ID</th>
 
-                {/* 3. Team Name & College (17%) */}
-                <th className="p-2.5 w-[17%] print:w-[17%]">Team Name & College</th>
+                {/* 3. Team Name & College (16%) */}
+                <th className="p-2.5 w-[16%] print:w-[16%]">Team Name & College</th>
 
-                {/* 4. Squad Members (35%) */}
-                <th className="p-2.5 w-[35%] print:w-[35%]">
-                  All Team Members (6 Members Roster)
+                {/* 4. Squad Members (38%) */}
+                <th className="p-2.5 w-[38%] print:w-[38%]">
+                  All Team Members (6 Squad Members)
                 </th>
 
-                {/* 5. Problem Statement (17%) */}
-                <th className="p-2.5 w-[17%] print:w-[17%]">Problem Statement</th>
+                {/* 5. Problem Statement (16%) */}
+                <th className="p-2.5 w-[16%] print:w-[16%]">Problem Statement</th>
 
-                {/* 6. Sign of Leader (10%) */}
-                <th className="p-2.5 text-center w-[10%] print:w-[10%]">
+                {/* 6. Sign of Leader (11%) */}
+                <th className="p-2.5 text-center w-[11%] print:w-[11%]">
                   Sign of Leader
                 </th>
 
@@ -374,42 +374,43 @@ export function AdminAttendanceSheet() {
                       </div>
                     </td>
 
-                    {/* 4. All 6 Squad Members (Clean Single Column) */}
-                    <td className="p-2 align-top">
+                    {/* 4. All 6 Squad Members (Full Un-truncated Names) */}
+                    <td className="p-2.5 align-top">
                       {members.length > 0 ? (
-                        <div className="space-y-0.5 text-xs print:text-[8.5px]">
+                        <div className="space-y-1 text-xs print:text-[9.5px]">
                           {members.map((m, mIdx) => {
                             const isLdr = m.isLeader || m.is_leader || mIdx === 0;
-                            const isFemale = String(m.gender).toLowerCase() === "female";
+                            const isFemale = String(m.gender || "").toLowerCase() === "female";
+                            const mName = m.name || m.full_name || `Member #${mIdx + 1}`;
 
                             return (
                               <div 
                                 key={m.id || mIdx} 
-                                className={`flex items-center justify-between gap-1 py-0.2 px-1 rounded ${
-                                  isLdr ? "bg-amber-50 font-bold text-web border border-amber-200 print:bg-transparent print:border-none print:text-black" : "text-slate-700 print:text-black"
+                                className={`flex items-center gap-1.5 py-0.5 px-1 rounded leading-tight ${
+                                  isLdr ? "bg-amber-50 font-bold text-web border border-amber-200 print:bg-transparent print:border-none print:text-black" : "text-slate-800 print:text-black font-semibold"
                                 }`}
                               >
-                                <div className="flex items-center gap-1 min-w-0">
-                                  <span className="font-mono text-[9px] text-slate-400 print:text-black w-3.5">{mIdx + 1}.</span>
-                                  {isLdr && <Crown size={10} className="text-gold shrink-0 print:hidden" />}
-                                  <span className="truncate font-medium">{m.name || m.full_name}</span>
-                                  {isLdr && <span className="text-[8px] bg-gold text-web px-1 rounded font-black print:text-black print:border print:border-black">LDR</span>}
-                                </div>
-
-                                <div className="flex items-center gap-1 text-[9px] shrink-0 font-mono text-slate-500 print:text-black">
-                                  <span className={isFemale ? "text-pink-600 font-bold print:text-black" : "text-blue-600 font-bold print:text-black"}>
-                                    ({m.gender ? m.gender[0] : "M"})
+                                <span className="font-mono text-[10px] text-slate-400 print:text-black w-4 shrink-0 font-bold">{mIdx + 1}.</span>
+                                {isLdr && <Crown size={12} className="text-gold shrink-0 print:hidden" />}
+                                <span className="whitespace-normal break-words font-bold">
+                                  {mName}
+                                </span>
+                                {isLdr && (
+                                  <span className="text-[8.5px] bg-gold text-web px-1 py-0.2 rounded font-black print:text-black print:border print:border-black shrink-0">
+                                    LDR
                                   </span>
-                                  <span className="truncate max-w-[80px] print:max-w-none">{m.branch || team.leaderBranch || ""}</span>
-                                </div>
+                                )}
+                                <span className={isFemale ? "text-pink-600 font-black text-[9px] print:text-black shrink-0 ml-auto" : "text-blue-600 font-black text-[9px] print:text-black shrink-0 ml-auto"}>
+                                  ({m.gender ? m.gender[0] : "M"})
+                                </span>
                               </div>
                             );
                           })}
                         </div>
                       ) : (
-                        <div className="space-y-0.5 text-xs">
+                        <div className="space-y-1 text-xs">
                           <div className="font-bold text-web print:text-black">1. {leaderName} (Team Leader)</div>
-                          <div className="text-slate-400 italic text-[9px] print:text-black">6 members roster registered</div>
+                          <div className="text-slate-400 italic text-[10px] print:text-black">6 members squad registered</div>
                         </div>
                       )}
                     </td>
