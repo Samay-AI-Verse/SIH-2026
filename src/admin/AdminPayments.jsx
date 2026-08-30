@@ -13,12 +13,49 @@ import {
   Search, 
   RefreshCw,
   Crown,
-  ZoomIn
+  ZoomIn,
+  GraduationCap,
+  Mail,
+  Phone,
+  User,
+  ShieldCheck
 } from "lucide-react";
 import { adminFetchPayments, adminFetchTeams, adminUpdatePayment, subscribeTable } from "../services/apiService";
 import { formatDate, formatINR } from "../utils/cn";
 import { Button } from "../components/ui/Button";
 import { ImageLightbox } from "../components/ui/ImageLightbox";
+
+function findTeamForPayment(payment, teamsList) {
+  if (!payment) return null;
+  const pTeamId = String(payment.team_id || payment.teamId || "").trim();
+  const pRegId = String(payment.registration_id || payment.registrationId || "").trim();
+  const pTeamName = String(payment.team_name || payment.teamName || "").trim().toLowerCase();
+
+  return teamsList.find((t) => {
+    const tId = String(t.id || "").trim();
+    const tRegId = String(t.registration_id || t.registrationId || "").trim();
+    const tName = String(t.team_name || t.teamName || "").trim().toLowerCase();
+
+    if (tId && pTeamId && tId === pTeamId) return true;
+    if (tRegId && (pRegId === tRegId || pTeamId === tRegId)) return true;
+    if (tId && pRegId && tId === pRegId) return true;
+    if (pTeamName && tName && pTeamName === tName) return true;
+    return false;
+  });
+}
+
+function isPaymentApproved(item, team) {
+  if (item?.status === "SUCCESS") return true;
+  if (team?.payment_status === "SUCCESS" || team?.paymentStatus === "SUCCESS") return true;
+  if (team?.registration_status === "CONFIRMED" || team?.registrationStatus === "CONFIRMED") return true;
+  return false;
+}
+
+function isPaymentRejected(item, team) {
+  if (item?.status === "FAILED" || item?.status === "REFUNDED") return true;
+  if (team?.payment_status === "FAILED" || team?.paymentStatus === "FAILED" || team?.paymentStatus === "REFUNDED") return true;
+  return false;
+}
 
 export function AdminPayments() {
   const [payments, setPayments] = useState([]);
@@ -30,7 +67,7 @@ export function AdminPayments() {
   const [query, setQuery] = useState("");
 
   // Inspection & Lightbox Modal State
-  const [inspectItem, setInspectItem] = useState(null); // { item, team, members, isOffline, collector, receiptNum, proofUrl }
+  const [inspectItem, setInspectItem] = useState(null);
   const [activeLightboxUrl, setActiveLightboxUrl] = useState("");
 
   async function load() {
@@ -49,26 +86,32 @@ export function AdminPayments() {
     return () => stops.forEach((stop) => stop());
   }, []);
 
-  // Filter Payments
+  // Filter Payments accurately
   const filteredPayments = useMemo(() => {
     return payments.filter((item) => {
+      const team = findTeamForPayment(item, teams);
+      const approved = isPaymentApproved(item, team);
+      const rejected = isPaymentRejected(item, team);
+      const pending = !approved && !rejected;
+
       // Status filter
-      const isPending = item.status === "PROCESSING" || item.status === "PENDING" || item.status === "SUBMITTED";
-      if (statusFilter === "PENDING" && !isPending) return false;
-      if (statusFilter === "SUCCESS" && item.status !== "SUCCESS") return false;
-      if (statusFilter === "FAILED" && item.status !== "FAILED") return false;
+      if (statusFilter === "PENDING" && !pending) return false;
+      if (statusFilter === "SUCCESS" && !approved) return false;
+      if (statusFilter === "FAILED" && !rejected) return false;
 
       // Query filter
       if (query.trim()) {
         const q = query.toLowerCase().trim();
-        const team = teams.find((t) => t.id === item.team_id);
         return (
           item.team_name?.toLowerCase().includes(q) ||
           item.registration_id?.toLowerCase().includes(q) ||
           item.transaction_id?.toLowerCase().includes(q) ||
           item.collector_name?.toLowerCase().includes(q) ||
+          team?.teamName?.toLowerCase().includes(q) ||
           team?.leader_name?.toLowerCase().includes(q) ||
-          team?.leader_email?.toLowerCase().includes(q)
+          team?.leaderName?.toLowerCase().includes(q) ||
+          team?.leader_email?.toLowerCase().includes(q) ||
+          team?.email?.toLowerCase().includes(q)
         );
       }
       return true;
@@ -77,16 +120,25 @@ export function AdminPayments() {
 
   // Counts
   const pendingCount = useMemo(() => {
-    return payments.filter((item) => item.status === "PROCESSING" || item.status === "PENDING" || item.status === "SUBMITTED").length;
-  }, [payments]);
+    return payments.filter((item) => {
+      const team = findTeamForPayment(item, teams);
+      return !isPaymentApproved(item, team) && !isPaymentRejected(item, team);
+    }).length;
+  }, [payments, teams]);
 
   const successCount = useMemo(() => {
-    return payments.filter((item) => item.status === "SUCCESS").length;
-  }, [payments]);
+    return payments.filter((item) => {
+      const team = findTeamForPayment(item, teams);
+      return isPaymentApproved(item, team);
+    }).length;
+  }, [payments, teams]);
 
   const failedCount = useMemo(() => {
-    return payments.filter((item) => item.status === "FAILED").length;
-  }, [payments]);
+    return payments.filter((item) => {
+      const team = findTeamForPayment(item, teams);
+      return isPaymentRejected(item, team);
+    }).length;
+  }, [payments, teams]);
 
   function copyUtr(utr) {
     if (utr && navigator?.clipboard?.writeText) {
@@ -228,15 +280,17 @@ export function AdminPayments() {
 
             <tbody className="divide-y divide-slate-200 font-semibold">
               {filteredPayments.map((item, idx) => {
-                const team = teams.find((row) => row.id === item.team_id);
+                const team = findTeamForPayment(item, teams);
                 const members = team?.members || [];
                 const isOffline = item.payment_mode === "OFFLINE_CASH" || item.payment?.payment_mode === "OFFLINE_CASH" || String(item.transaction_id || "").startsWith("OFFLINE-");
                 const collector = item.collector_name || item.payment?.collector_name || "Organizing Committee";
                 const receiptNum = item.receipt_no || item.payment?.receipt_no || item.transaction_id;
                 const proofUrl = item.proof_url || item.payment?.proof_url || team?.payment_proof_url;
-                const isPending = item.status === "PROCESSING" || item.status === "PENDING" || item.status === "SUBMITTED";
+                const approved = isPaymentApproved(item, team);
+                const rejected = isPaymentRejected(item, team);
+                const isPending = !approved && !rejected;
 
-                const inspectionData = { item, team, members, isOffline, collector, receiptNum, proofUrl };
+                const inspectionData = { item, team, members, isOffline, collector, receiptNum, proofUrl, approved, rejected, isPending };
 
                 return (
                   <tr key={item.id || idx} className="hover:bg-slate-50 transition">
@@ -246,10 +300,10 @@ export function AdminPayments() {
                     <td className="p-3.5">
                       <div>
                         <span className="font-mono text-[10px] font-black text-spidey bg-spidey/10 px-1.5 py-0.5 rounded">
-                          {item.registration_id || team?.registration_id || "N/A"}
+                          {item.registration_id || team?.registrationId || team?.registration_id || "N/A"}
                         </span>
                         <h4 className="font-display text-base text-web leading-tight mt-0.5">
-                          {item.team_name || team?.team_name}
+                          {item.team_name || team?.teamName || team?.team_name}
                         </h4>
                         <span className="text-[10px] text-slate-500 font-bold block truncate max-w-[180px]">
                           {team?.college || "GTMC Nanded"}
@@ -318,11 +372,11 @@ export function AdminPayments() {
 
                     {/* Status Badge */}
                     <td className="p-3.5">
-                      {item.status === "SUCCESS" ? (
+                      {approved ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 text-[10px] font-black text-emerald-800">
                           <CheckCircle2 size={12} /> APPROVED
                         </span>
-                      ) : item.status === "FAILED" ? (
+                      ) : rejected ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 border border-rose-300 px-2.5 py-0.5 text-[10px] font-black text-rose-800">
                           <XCircle size={12} /> REJECTED
                         </span>
@@ -396,14 +450,21 @@ export function AdminPayments() {
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 rounded bg-gold px-2 py-0.5 text-[10px] font-black text-web">
-                      💳 ONLINE UPI PAYMENT (CLOUDFLARE R2)
+                      💳 ONLINE UPI PAYMENT
                     </span>
                   )}
                   <span className="font-mono text-xs font-black text-spidey bg-spidey/10 px-2 py-0.5 rounded">
-                    {inspectItem.item.registration_id}
+                    {inspectItem.item.registration_id || inspectItem.team?.registrationId || inspectItem.team?.registration_id}
                   </span>
+                  {inspectItem.approved ? (
+                    <span className="rounded bg-emerald-100 text-emerald-800 font-black text-[10px] px-2 py-0.5 border border-emerald-300">
+                      APPROVED ✓
+                    </span>
+                  ) : null}
                 </div>
-                <h3 className="font-display text-2xl sm:text-3xl text-web truncate">{inspectItem.item.team_name}</h3>
+                <h3 className="font-display text-2xl sm:text-3xl text-web truncate">
+                  {inspectItem.item.team_name || inspectItem.team?.teamName || inspectItem.team?.team_name}
+                </h3>
                 <p className="text-xs font-bold text-slate-600 truncate">
                   {inspectItem.team?.college || "GTMC Nanded"} · Fee: {formatINR(inspectItem.item.amount || 300, inspectItem.item.currency || "INR")}
                 </p>
@@ -466,7 +527,7 @@ export function AdminPayments() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[10px] font-black uppercase text-spidey flex items-center gap-1">
-                        <ImageIcon size={14} /> Payment Proof (Cloudflare R2)
+                        <ImageIcon size={14} /> Payment Proof Screenshot
                       </span>
                       {inspectItem.proofUrl && (
                         <span className="text-[9px] font-black uppercase text-amber-700 bg-gold/30 px-2 py-0.5 rounded">
@@ -515,24 +576,86 @@ export function AdminPayments() {
                 </div>
               </div>
 
-              {/* Team Leader & Roster Preview */}
+              {/* Team Leader & 6-Member Roster Preview */}
               <div className="rounded-2xl border-2 border-web/20 bg-white p-4">
-                <span className="text-[10px] font-black uppercase text-web block mb-2">
-                  Team Roster ({inspectItem.members.length || 6} Members)
-                </span>
-                <div className="grid gap-2 text-xs font-bold text-slate-700 sm:grid-cols-2">
-                  {inspectItem.members.map((m, idx) => (
-                    <div key={m.id || idx} className="rounded-lg border border-slate-200 bg-slate-50 p-2 flex items-center justify-between">
-                      <div className="flex items-center gap-1 truncate">
-                        {m.is_leader || idx === 0 ? <Crown size={12} className="text-gold shrink-0" /> : null}
-                        <span className="text-web font-bold truncate">{m.name || m.full_name}</span>
+                <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                  <span className="text-xs font-black uppercase text-web flex items-center gap-1.5">
+                    <GraduationCap size={16} className="text-spidey" />
+                    Team Roster ({inspectItem.members.length || (inspectItem.team?.leaderName ? 6 : 0)} Members)
+                  </span>
+                  {inspectItem.team?.selectedProblemTitle && (
+                    <span className="text-[11px] font-bold text-spidey truncate max-w-xs" title={inspectItem.team.selectedProblemTitle}>
+                      🎯 {inspectItem.team.selectedProblemTitle}
+                    </span>
+                  )}
+                </div>
+
+                {inspectItem.members.length > 0 ? (
+                  <div className="grid gap-2.5 text-xs sm:grid-cols-2">
+                    {inspectItem.members.map((m, idx) => {
+                      const isLdr = m.isLeader || m.is_leader || idx === 0;
+                      const mGender = m.gender || (isLdr ? (inspectItem.team?.leaderGender || inspectItem.team?.leader_gender) : "Male");
+                      const isFemale = String(mGender).toLowerCase() === "female";
+
+                      return (
+                        <div 
+                          key={m.id || idx} 
+                          className={`rounded-xl border p-2.5 flex flex-col justify-between transition ${
+                            isLdr ? "border-amber-300 bg-amber-50/50" : "border-slate-200 bg-slate-50"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-1">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                {isLdr ? <Crown size={14} className="text-gold shrink-0" /> : <User size={13} className="text-slate-400 shrink-0" />}
+                                <span className="font-extrabold text-web truncate">{m.name || m.full_name || `Member #${idx + 1}`}</span>
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-semibold truncate mt-0.5">
+                                {m.course || inspectItem.team?.leaderCourse || "B.Tech"} · {m.branch || inspectItem.team?.leaderBranch || "CSE"} · {m.year || inspectItem.team?.leaderYear || "3rd Year"}
+                              </div>
+                            </div>
+
+                            <span className={`rounded px-1.5 py-0.5 text-[9px] font-black uppercase shrink-0 ${
+                              isFemale ? "bg-pink-100 text-pink-700 border border-pink-200" : "bg-blue-100 text-blue-700 border border-blue-200"
+                            }`}>
+                              {mGender}
+                            </span>
+                          </div>
+
+                          {(m.email || m.phone) && (
+                            <div className="mt-2 pt-1.5 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-600">
+                              <span className="truncate">{m.email || inspectItem.team?.email || ""}</span>
+                              <span className="font-mono">{m.phone || inspectItem.team?.phone || ""}</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : inspectItem.team ? (
+                  <div className="rounded-xl border border-amber-300 bg-amber-50/50 p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Crown size={15} className="text-gold" />
+                        <span className="font-extrabold text-sm text-web">{inspectItem.team.leaderName || inspectItem.team.leader_name}</span>
+                        <span className="rounded bg-gold px-1.5 py-0.2 text-[9px] font-black text-web">LEADER</span>
                       </div>
-                      <span className={m.gender === "Female" ? "text-pink-600 text-[10px] font-black shrink-0" : "text-blue-600 text-[10px] font-black shrink-0"}>
-                        {m.gender || "Male"}
+                      <span className="rounded bg-blue-100 px-2 py-0.5 text-[10px] font-black text-blue-700">
+                        {inspectItem.team.leaderGender || inspectItem.team.leader_gender || "Male"}
                       </span>
                     </div>
-                  ))}
-                </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-600 pt-1">
+                      <div>Email: <span className="font-bold text-web">{inspectItem.team.email || inspectItem.team.leader_email}</span></div>
+                      <div>Phone: <span className="font-bold text-web">{inspectItem.team.phone || inspectItem.team.leader_phone}</span></div>
+                      <div>Course: <span className="font-bold text-web">{inspectItem.team.leaderCourse || inspectItem.team.leader_course}</span></div>
+                      <div>College: <span className="font-bold text-web">{inspectItem.team.college}</span></div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-slate-400 font-bold text-xs">
+                    Roster details will load when team is synchronized.
+                  </div>
+                )}
               </div>
             </div>
 

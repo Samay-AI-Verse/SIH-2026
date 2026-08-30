@@ -212,8 +212,22 @@ export async function adminUpdateTeamName(teamId, teamName) {
   });
 }
 
+export async function adminUpdateTeamProblemStatement(teamId, payload) {
+  return api(`/api/admin/teams/${teamId}/problem-statement`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function adminRegisterTeam(payload) {
+  return api("/api/admin/teams/register", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function adminUpdateSettings(patch) {
-  await api("/api/admin/settings", { method: "POST", body: JSON.stringify(patch) });
+  return api("/api/admin/settings", { method: "POST", body: JSON.stringify(patch) });
 }
 
 export async function adminSetProblemStatus(problemId, status) {

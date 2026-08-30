@@ -22,7 +22,9 @@ import {
   Award,
   Calendar,
   Layers,
-  ChevronRight
+  ChevronRight,
+  UserPlus,
+  Sparkles
 } from "lucide-react";
 import { adminCancelTeam, adminFetchTeams, adminVerifyPayment, adminDeleteTeam, adminUpdateTeamName, subscribeTable } from "../services/apiService";
 import { downloadCsv, formatDate, formatINR } from "../utils/cn";
@@ -30,6 +32,8 @@ import { Button } from "../components/ui/Button";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { EditMemberModal } from "../components/ui/EditMemberModal";
 import { ImageLightbox } from "../components/ui/ImageLightbox";
+import { AdminChangeProblemModal } from "../components/ui/AdminChangeProblemModal";
+import { AdminRegisterTeamModal } from "../components/ui/AdminRegisterTeamModal";
 
 export function AdminRegistrations() {
   const [teams, setTeams] = useState([]);
@@ -44,6 +48,8 @@ export function AdminRegistrations() {
   const [cancelNotes, setCancelNotes] = useState("");
   const [editingMember, setEditingMember] = useState(null); // { teamId, member }
   const [lightboxUrl, setLightboxUrl] = useState("");
+  const [changeProblemTeam, setChangeProblemTeam] = useState(null);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
 
   // Team Name Edit State
   const [editingTeamName, setEditingTeamName] = useState(false);
@@ -169,6 +175,14 @@ export function AdminRegistrations() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowRegisterModal(true)}
+            className="rounded-xl border-2 border-web bg-web px-3.5 py-2 text-xs font-black uppercase text-white hover:bg-spidey transition shadow-comic flex items-center gap-1.5"
+          >
+            <UserPlus size={15} /> ➕ New Registration
+          </button>
+
           <Button
             variant="secondary"
             className="shrink-0 text-xs font-black shadow-comic"
@@ -331,15 +345,25 @@ export function AdminRegistrations() {
 
                       {/* Problem Statement */}
                       <td className="px-4 py-3.5 text-xs font-bold text-slate-700">
-                        {team.isOpenInnovation ? (
-                          <span className="inline-flex items-center gap-1 text-spidey font-black bg-spidey/10 px-2 py-0.5 rounded border border-spidey/20">
-                            🚀 Open Innovation
-                          </span>
-                        ) : (
-                          <div className="max-w-xs truncate" title={team.selectedProblemTitle || team.selectedProblemId || "Not Selected"}>
-                            {team.selectedProblemTitle || team.selectedProblemId || "—"}
-                          </div>
-                        )}
+                        <div className="flex items-center justify-between gap-1">
+                          {team.isOpenInnovation ? (
+                            <span className="inline-flex items-center gap-1 text-spidey font-black bg-spidey/10 px-2 py-0.5 rounded border border-spidey/20 truncate max-w-[200px]" title={team.openInnovationTitle || "Open Innovation"}>
+                              🚀 {team.openInnovationTitle || "Open Innovation"}
+                            </span>
+                          ) : (
+                            <div className="max-w-[200px] truncate" title={team.selectedProblemTitle || team.selectedProblemId || "Not Selected"}>
+                              {team.selectedProblemTitle || team.selectedProblemId || <span className="text-slate-400 font-normal">Not Selected</span>}
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setChangeProblemTeam(team)}
+                            className="text-slate-400 hover:text-web p-1 rounded hover:bg-gold/20 transition shrink-0"
+                            title="Change or Assign Problem Statement"
+                          >
+                            <Pencil size={12} />
+                          </button>
+                        </div>
                       </td>
 
                       {/* Actions */}
@@ -355,6 +379,15 @@ export function AdminRegistrations() {
                             title="Inspect 6-Member Roster & Details"
                           >
                             <Eye size={13} /> Roster
+                          </button>
+
+                          {/* Change PS Action */}
+                          <button
+                            onClick={() => setChangeProblemTeam(team)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-web/20 bg-slate-50 px-2 py-1.5 text-xs font-bold text-slate-700 hover:bg-web hover:text-white transition shadow-2xs"
+                            title="Change / Assign Problem Statement"
+                          >
+                            <Sparkles size={12} className="text-gold" /> PS
                           </button>
 
                           {/* Quick Approve */}
@@ -547,7 +580,16 @@ export function AdminRegistrations() {
 
               {/* Problem Statement Card */}
               <div className="rounded-2xl border-2 border-web/15 bg-white p-4 shadow-xs">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Selected Problem / Idea</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Selected Problem / Idea</p>
+                  <button
+                    type="button"
+                    onClick={() => setChangeProblemTeam(selectedTeam)}
+                    className="rounded-lg border border-web/20 bg-gold/20 hover:bg-gold px-2.5 py-1 text-xs font-black uppercase text-web transition flex items-center gap-1"
+                  >
+                    <Sparkles size={13} className="text-spidey" /> Change PS
+                  </button>
+                </div>
                 <p className="mt-1 font-bold text-web text-base">
                   {selectedTeam.isOpenInnovation
                     ? `🚀 ${selectedTeam.openInnovationTitle || "Open Innovation Custom Project"}`
@@ -864,6 +906,31 @@ export function AdminRegistrations() {
         <ImageLightbox
           imageUrl={lightboxUrl}
           onClose={() => setLightboxUrl("")}
+        />
+      )}
+
+      {/* CHANGE PROBLEM STATEMENT MODAL */}
+      {changeProblemTeam && (
+        <AdminChangeProblemModal
+          team={changeProblemTeam}
+          onClose={() => setChangeProblemTeam(null)}
+          onSuccess={() => {
+            load();
+            if (selectedTeam && selectedTeam.id === changeProblemTeam.id) {
+              adminFetchTeams().then((data) => {
+                const refreshed = data.find((t) => t.id === selectedTeam.id);
+                if (refreshed) setSelectedTeam(refreshed);
+              });
+            }
+          }}
+        />
+      )}
+
+      {/* ADMIN DIRECT REGISTRATION MODAL */}
+      {showRegisterModal && (
+        <AdminRegisterTeamModal
+          onClose={() => setShowRegisterModal(false)}
+          onSuccess={() => load()}
         />
       )}
     </div>

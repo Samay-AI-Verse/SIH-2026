@@ -260,6 +260,38 @@ export function Register() {
     }
   }
 
+  if (settings.isActive === false) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-32 text-center">
+        <div className="rounded-3xl border-3 border-web bg-white p-8 shadow-comic space-y-4">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-rose-100 border-2 border-rose-400 text-rose-600 flex items-center justify-center font-display text-3xl">
+            🔒
+          </div>
+          <h1 className="font-display text-3xl sm:text-4xl text-web">
+            Registrations Are Currently Closed
+          </h1>
+          <p className="text-sm font-semibold text-slate-600 leading-relaxed max-w-lg mx-auto">
+            Online registrations for the SIH internal hackathon have been temporarily closed by the organizing committee. If your team is already registered, you can track your payment verification and problem statement status on your Team Dashboard.
+          </p>
+          <div className="pt-4 border-t border-slate-200 flex flex-wrap justify-center gap-3">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="rounded-xl border-2 border-web bg-web px-6 py-2.5 text-xs font-black uppercase text-white hover:bg-spidey transition shadow-comic"
+            >
+              Go to Team Dashboard
+            </button>
+            <button
+              onClick={() => navigate("/problems")}
+              className="rounded-xl border-2 border-web bg-gold px-6 py-2.5 text-xs font-black uppercase text-web hover:bg-white transition shadow-comic"
+            >
+              Explore Problem Statements
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-24 sm:py-28">
       {/* Header Banner */}
