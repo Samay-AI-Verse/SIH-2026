@@ -24,6 +24,7 @@ import { AdminStudents } from "./admin/AdminStudents";
 import { AdminBudget } from "./admin/AdminBudget";
 import { AdminFinalTeams } from "./admin/AdminFinalTeams";
 import { AdminSecurity } from "./admin/AdminSecurity";
+import { AdminAttendanceSheet } from "./admin/AdminAttendanceSheet";
 
 
 const Payment = lazy(() => import("./pages/Payment").then((m) => ({ default: m.Payment })));
@@ -62,6 +63,7 @@ export default function App() {
             <Route path="registrations" element={<AdminRegistrations />} />
             <Route path="teams" element={<AdminTeams />} />
             <Route path="final-teams" element={<AdminFinalTeams />} />
+            <Route path="attendance" element={<AdminAttendanceSheet />} />
             <Route path="students" element={<AdminStudents />} />
             <Route path="budget" element={<AdminBudget />} />
             <Route path="payments" element={<AdminPayments />} />

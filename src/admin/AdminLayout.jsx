@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
-import { BadgeCheck, LayoutDashboard, LogOut, Puzzle, Settings, Shield, Wallet, IndianRupee, GraduationCap, Menu, X, Trophy } from "lucide-react";
+import { BadgeCheck, LayoutDashboard, LogOut, Puzzle, Settings, Shield, Wallet, IndianRupee, GraduationCap, Menu, X, Trophy, ClipboardCheck } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { ColorMesh } from "../components/ColorMesh";
 import { WebOverlay } from "../components/SpideyArt";
@@ -12,6 +12,7 @@ const links = [
   { to: "/admin/registrations", label: "Registrations & Teams", icon: Shield },
   { to: "/admin/selections", label: "Selections & Approvals", icon: BadgeCheck },
   { to: "/admin/final-teams", label: "Final Approved Teams 🏆", icon: Trophy },
+  { to: "/admin/attendance", label: "Entry & Attendance Sheet 📄", icon: ClipboardCheck },
   { to: "/admin/students", label: "Student Explorer", icon: GraduationCap },
   { to: "/admin/budget", label: "Budget & Ledger", icon: IndianRupee },
   { to: "/admin/payments", label: "Payment Verification", icon: Wallet },

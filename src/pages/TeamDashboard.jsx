@@ -436,7 +436,7 @@ export function TeamDashboard() {
       {editingMember && (
         <Modal open={Boolean(editingMember)} onClose={() => setEditingMember(null)} labelledBy="edit-member-title">
           <div className="space-y-4 text-left">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3 pr-8">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-wider text-spidey bg-gold/30 px-2.5 py-0.5 rounded-md">
                   UPDATE ROSTER MEMBER
@@ -445,12 +445,6 @@ export function TeamDashboard() {
                   Edit Member Details
                 </h3>
               </div>
-              <button
-                onClick={() => setEditingMember(null)}
-                className="rounded-full bg-slate-100 p-1.5 text-slate-500 hover:bg-slate-200 hover:text-black transition"
-              >
-                <X size={18} />
-              </button>
             </div>
 
             <p className="text-xs text-slate-600 font-medium">
