@@ -35,7 +35,7 @@ import { ImageLightbox } from "../components/ui/ImageLightbox";
 import { AdminChangeProblemModal } from "../components/ui/AdminChangeProblemModal";
 import { AdminRegisterTeamModal } from "../components/ui/AdminRegisterTeamModal";
 import { AdminEditTeamProfileModal } from "../components/ui/AdminEditTeamProfileModal";
-import { getShortBranch } from "./AdminAttendanceSheet";
+import { getShortBranch, getNormalizedStream, getNormalizedYear } from "./AdminAttendanceSheet";
 
 export function AdminRegistrations() {
   const [teams, setTeams] = useState([]);
@@ -53,6 +53,7 @@ export function AdminRegistrations() {
   const [changeProblemTeam, setChangeProblemTeam] = useState(null);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [editingProfileTeam, setEditingProfileTeam] = useState(null);
+  const [streamFilter, setStreamFilter] = useState("ALL");
   const [branchFilter, setBranchFilter] = useState("ALL");
   const [yearFilter, setYearFilter] = useState("ALL");
 
@@ -123,27 +124,32 @@ export function AdminRegistrations() {
     }
   }
 
-  // Branch & Year Analytics Breakdown
-  const branchAnalytics = useMemo(() => {
+  // Multi-dimensional Stream, Branch & Year Analytics Breakdown
+  const analytics = useMemo(() => {
+    const streams = {};
     const branches = {};
     const years = {};
     teams.forEach((t) => {
-      const b = getShortBranch(t.leaderBranch || t.leader_branch || "CSE") || "OTHER";
+      const st = getNormalizedStream(t);
+      streams[st] = (streams[st] || 0) + 1;
+      const b = getShortBranch(t.leaderBranch || t.leader_branch);
       branches[b] = (branches[b] || 0) + 1;
-      const y = t.leaderYear || t.leader_year || "3rd Year";
+      const y = getNormalizedYear(t);
       years[y] = (years[y] || 0) + 1;
     });
-    return { branches, years };
+    return { streams, branches, years };
   }, [teams]);
 
   const filteredTeams = useMemo(() => {
     return teams.filter((t) => {
       const q = search.toLowerCase().trim();
-      const shortB = getShortBranch(t.leaderBranch || t.leader_branch || "CSE");
-      const teamYr = t.leaderYear || t.leader_year || "";
+      const st = getNormalizedStream(t);
+      const shortB = getShortBranch(t.leaderBranch || t.leader_branch);
+      const teamYr = getNormalizedYear(t);
 
+      if (streamFilter !== "ALL" && st !== streamFilter) return false;
       if (branchFilter !== "ALL" && shortB !== branchFilter) return false;
-      if (yearFilter !== "ALL" && !teamYr.toLowerCase().includes(yearFilter.toLowerCase())) return false;
+      if (yearFilter !== "ALL" && teamYr !== yearFilter) return false;
 
       const matchesSearch =
         !q ||
@@ -165,7 +171,7 @@ export function AdminRegistrations() {
 
       return matchesSearch && matchesStatus;
     });
-  }, [teams, search, statusFilter, branchFilter, yearFilter]);
+  }, [teams, search, statusFilter, streamFilter, branchFilter, yearFilter]);
 
   async function handleExecuteCancel(refund) {
     if (!cancelPromptTeam) return;
@@ -186,45 +192,47 @@ export function AdminRegistrations() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-6 text-left">
+      {/* Header Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl sm:text-4xl text-web flex items-center gap-2">
-            <Shield className="text-spidey shrink-0" size={32} /> Registrations & Team Roster
+            <Shield className="text-spidey" size={32} /> Registrations & Team Roster
           </h1>
           <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-1">
             View all registered teams, inspect 6-member student roster profiles, approve payments, and manage team entries.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Button
             onClick={() => setShowRegisterModal(true)}
-            className="rounded-xl border-2 border-web bg-web px-3.5 py-2 text-xs font-black uppercase text-white hover:bg-spidey transition shadow-comic flex items-center gap-1.5"
+            className="rounded-xl border-2 border-web bg-web text-white hover:bg-spidey transition shadow-comic px-4 py-2 text-xs font-black uppercase tracking-wider flex items-center gap-1.5"
           >
-            <UserPlus size={15} /> ➕ New Registration
-          </button>
+            <UserPlus size={14} className="mr-1" /> New Registration
+          </Button>
 
           <Button
-            variant="secondary"
-            className="shrink-0 text-xs font-black shadow-comic"
+            className="rounded-xl border-2 border-web bg-gold text-web hover:bg-spidey hover:text-white transition shadow-comic px-4 py-2 text-xs font-black uppercase tracking-wider flex items-center gap-1.5"
             onClick={() =>
               downloadCsv(
-                "gtmc-sih-registrations.csv",
-                teams.map((team) => ({
-                  registrationId: team.registrationId,
-                  teamName: team.teamName,
-                  college: team.college || "GTMC Nanded",
-                  leaderName: team.leaderName,
-                  leaderEmail: team.email,
-                  leaderPhone: team.phone,
-                  membersCount: team.members?.length || 6,
-                  paymentStatus: team.paymentStatus,
-                  registrationStatus: team.registrationStatus,
-                  problemStatement: team.selectedProblemTitle || team.selectedProblemId || "Open Innovation",
-                  registeredAt: formatDate(team.registeredAt || team.registered_at || team.created_at),
+                "sih2026-registered-teams.csv",
+                filteredTeams.map((t) => ({
+                  "Reg ID": t.registrationId,
+                  "Team Name": t.teamName,
+                  "College": t.college,
+                  "Leader Name": t.leaderName,
+                  "Leader Email": t.email,
+                  "Leader Phone": t.phone,
+                  "Course / Stream": t.leaderCourse || t.stream || "B.Tech",
+                  "Branch": t.leaderBranch || t.branch,
+                  "Year": t.leaderYear || t.year,
+                  "Status": t.registrationStatus,
+                  "Problem Code": t.selectedProblemId || "N/A",
+                  "Problem Title": t.selectedProblemTitle || "N/A",
+                  "Is Open Innovation": t.isOpenInnovation ? "YES" : "NO",
+                  "Members Count": t.members?.length || 0,
+                  "Registered At": formatDate(t.registeredAt),
                 }))
               )
             }
@@ -242,21 +250,72 @@ export function AdminRegistrations() {
         </div>
       </div>
 
-      {/* Branch & Year Analytics Breakdown Strip */}
-      <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="font-black uppercase text-[10px] text-slate-400 mr-1">Filter Branch:</span>
-          {Object.entries(branchAnalytics.branches).map(([br, count]) => (
+      {/* Multi-Dimensional Analytics Breakdown Bar (Stream, Branch & Year) */}
+      <div className="rounded-3xl border-2 border-slate-800 bg-white p-4 shadow-comic space-y-3">
+        {/* Stream (Degree/Diploma) Row */}
+        <div className="flex flex-wrap items-center gap-1.5 pb-2 border-b border-slate-100">
+          <span className="font-black uppercase text-[10.5px] text-slate-400 mr-1 flex items-center gap-1">
+            <GraduationCap size={13} className="text-spidey" /> Stream:
+          </span>
+          <button
+            onClick={() => setStreamFilter("ALL")}
+            className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+              streamFilter === "ALL"
+                ? "bg-web text-white border-web shadow-xs"
+                : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+            }`}
+          >
+            All Streams ({teams.length})
+          </button>
+          {Object.entries(analytics.streams).map(([st, count]) => (
             <button
-              key={br}
-              onClick={() => setBranchFilter(branchFilter === br ? "ALL" : br)}
-              className={`px-2.5 py-0.5 rounded-lg font-black text-[11px] uppercase transition cursor-pointer border ${
-                branchFilter === br
-                  ? "bg-web text-white border-web shadow-xs"
+              key={st}
+              onClick={() => setStreamFilter(streamFilter === st ? "ALL" : st)}
+              className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+                streamFilter === st
+                  ? "bg-spidey text-white border-spidey shadow-xs"
                   : "bg-white text-slate-700 border-slate-300 hover:bg-gold/30 hover:border-web"
               }`}
             >
-              {br}: <span className="font-mono">{count}</span>
+              {st}: <span className="font-mono font-bold">{count}</span>
+            </button>
+          ))}
+          {streamFilter !== "ALL" && (
+            <button
+              onClick={() => setStreamFilter("ALL")}
+              className="text-[10px] font-bold text-rose-600 underline ml-1 cursor-pointer"
+            >
+              Reset Stream
+            </button>
+          )}
+        </div>
+
+        {/* Branch Row */}
+        <div className="flex flex-wrap items-center gap-1.5 pb-2 border-b border-slate-100">
+          <span className="font-black uppercase text-[10.5px] text-slate-400 mr-1 flex items-center gap-1">
+            <Building size={13} className="text-amber-600" /> Branch / Dept:
+          </span>
+          <button
+            onClick={() => setBranchFilter("ALL")}
+            className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+              branchFilter === "ALL"
+                ? "bg-web text-white border-web shadow-xs"
+                : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+            }`}
+          >
+            All Branches
+          </button>
+          {Object.entries(analytics.branches).map(([br, count]) => (
+            <button
+              key={br}
+              onClick={() => setBranchFilter(branchFilter === br ? "ALL" : br)}
+              className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+                branchFilter === br
+                  ? "bg-amber-600 text-white border-amber-600 shadow-xs"
+                  : "bg-white text-slate-700 border-slate-300 hover:bg-gold/30"
+              }`}
+            >
+              {br}: <span className="font-mono font-bold">{count}</span>
             </button>
           ))}
           {branchFilter !== "ALL" && (
@@ -269,15 +328,28 @@ export function AdminRegistrations() {
           )}
         </div>
 
+        {/* Year Row */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="font-black uppercase text-[10px] text-slate-400 mr-1">Filter Year:</span>
-          {Object.entries(branchAnalytics.years).map(([yr, count]) => (
+          <span className="font-black uppercase text-[10.5px] text-slate-400 mr-1 flex items-center gap-1">
+            <Layers size={13} className="text-indigo-600" /> Study Year:
+          </span>
+          <button
+            onClick={() => setYearFilter("ALL")}
+            className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+              yearFilter === "ALL"
+                ? "bg-web text-white border-web shadow-xs"
+                : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+            }`}
+          >
+            All Years
+          </button>
+          {Object.entries(analytics.years).map(([yr, count]) => (
             <button
               key={yr}
               onClick={() => setYearFilter(yearFilter === yr ? "ALL" : yr)}
-              className={`px-2.5 py-0.5 rounded-lg font-bold text-[11px] transition cursor-pointer border ${
+              className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
                 yearFilter === yr
-                  ? "bg-spidey text-white border-spidey shadow-xs"
+                  ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
                   : "bg-white text-slate-700 border-slate-300 hover:bg-gold/30"
               }`}
             >
