@@ -35,6 +35,7 @@ import { ImageLightbox } from "../components/ui/ImageLightbox";
 import { AdminChangeProblemModal } from "../components/ui/AdminChangeProblemModal";
 import { AdminRegisterTeamModal } from "../components/ui/AdminRegisterTeamModal";
 import { AdminEditTeamProfileModal } from "../components/ui/AdminEditTeamProfileModal";
+import { getShortBranch } from "./AdminAttendanceSheet";
 
 export function AdminRegistrations() {
   const [teams, setTeams] = useState([]);
@@ -52,6 +53,8 @@ export function AdminRegistrations() {
   const [changeProblemTeam, setChangeProblemTeam] = useState(null);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [editingProfileTeam, setEditingProfileTeam] = useState(null);
+  const [branchFilter, setBranchFilter] = useState("ALL");
+  const [yearFilter, setYearFilter] = useState("ALL");
 
   // Team Name Edit State
   const [editingTeamName, setEditingTeamName] = useState(false);
@@ -120,9 +123,28 @@ export function AdminRegistrations() {
     }
   }
 
+  // Branch & Year Analytics Breakdown
+  const branchAnalytics = useMemo(() => {
+    const branches = {};
+    const years = {};
+    teams.forEach((t) => {
+      const b = getShortBranch(t.leaderBranch || t.leader_branch || "CSE") || "OTHER";
+      branches[b] = (branches[b] || 0) + 1;
+      const y = t.leaderYear || t.leader_year || "3rd Year";
+      years[y] = (years[y] || 0) + 1;
+    });
+    return { branches, years };
+  }, [teams]);
+
   const filteredTeams = useMemo(() => {
     return teams.filter((t) => {
       const q = search.toLowerCase().trim();
+      const shortB = getShortBranch(t.leaderBranch || t.leader_branch || "CSE");
+      const teamYr = t.leaderYear || t.leader_year || "";
+
+      if (branchFilter !== "ALL" && shortB !== branchFilter) return false;
+      if (yearFilter !== "ALL" && !teamYr.toLowerCase().includes(yearFilter.toLowerCase())) return false;
+
       const matchesSearch =
         !q ||
         (t.registrationId || "").toLowerCase().includes(q) ||
@@ -143,7 +165,7 @@ export function AdminRegistrations() {
 
       return matchesSearch && matchesStatus;
     });
-  }, [teams, search, statusFilter]);
+  }, [teams, search, statusFilter, branchFilter, yearFilter]);
 
   async function handleExecuteCancel(refund) {
     if (!cancelPromptTeam) return;
@@ -220,6 +242,59 @@ export function AdminRegistrations() {
         </div>
       </div>
 
+      {/* Branch & Year Analytics Breakdown Strip */}
+      <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="font-black uppercase text-[10px] text-slate-400 mr-1">Filter Branch:</span>
+          {Object.entries(branchAnalytics.branches).map(([br, count]) => (
+            <button
+              key={br}
+              onClick={() => setBranchFilter(branchFilter === br ? "ALL" : br)}
+              className={`px-2.5 py-0.5 rounded-lg font-black text-[11px] uppercase transition cursor-pointer border ${
+                branchFilter === br
+                  ? "bg-web text-white border-web shadow-xs"
+                  : "bg-white text-slate-700 border-slate-300 hover:bg-gold/30 hover:border-web"
+              }`}
+            >
+              {br}: <span className="font-mono">{count}</span>
+            </button>
+          ))}
+          {branchFilter !== "ALL" && (
+            <button
+              onClick={() => setBranchFilter("ALL")}
+              className="text-[10px] font-bold text-rose-600 underline ml-1 cursor-pointer"
+            >
+              Reset Branch
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="font-black uppercase text-[10px] text-slate-400 mr-1">Filter Year:</span>
+          {Object.entries(branchAnalytics.years).map(([yr, count]) => (
+            <button
+              key={yr}
+              onClick={() => setYearFilter(yearFilter === yr ? "ALL" : yr)}
+              className={`px-2.5 py-0.5 rounded-lg font-bold text-[11px] transition cursor-pointer border ${
+                yearFilter === yr
+                  ? "bg-spidey text-white border-spidey shadow-xs"
+                  : "bg-white text-slate-700 border-slate-300 hover:bg-gold/30"
+              }`}
+            >
+              {yr}: <span className="font-mono font-bold">{count}</span>
+            </button>
+          ))}
+          {yearFilter !== "ALL" && (
+            <button
+              onClick={() => setYearFilter("ALL")}
+              className="text-[10px] font-bold text-rose-600 underline ml-1 cursor-pointer"
+            >
+              Reset Year
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Filter Tabs & Search Controls */}
       <div className="rounded-2xl border-2 border-web/20 bg-white p-4 shadow-sm space-y-3">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
@@ -234,7 +309,7 @@ export function AdminRegistrations() {
               <button
                 key={tab.id}
                 onClick={() => setStatusFilter(tab.id)}
-                className={`rounded-xl px-3.5 py-1.5 text-xs font-black uppercase tracking-wider transition ${
+                className={`rounded-xl px-3.5 py-1.5 text-xs font-black uppercase tracking-wider transition cursor-pointer ${
                   statusFilter === tab.id
                     ? "bg-web text-white shadow-comic"
                     : "bg-slate-100 text-slate-700 hover:bg-gold/30 hover:text-web"
