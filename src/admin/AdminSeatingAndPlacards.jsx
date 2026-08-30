@@ -380,7 +380,15 @@ export function AdminSeatingAndPlacards() {
               const shortBranch = getShortBranch(team.leaderBranch || team.leader_branch || "CSE");
               const course = team.leaderCourse || team.leader_course || "B.Tech";
               const studyYear = team.leaderYear || team.leader_year || "3rd Year";
-              const probId = team.is_open_innovation || team.isOpenInnovation ? "OPEN INNOVATION" : (team.selectedProblemId || team.selected_problem_id || "PS-ALLOCATED");
+              
+              const isOpenInno = Boolean(team.is_open_innovation || team.isOpenInnovation);
+              const rawProbId = team.selectedProblemId || team.selected_problem_id || "";
+              const hasSelectedProblem = Boolean(
+                rawProbId && 
+                rawProbId.trim() && 
+                rawProbId.trim().toUpperCase() !== "PS" && 
+                rawProbId.trim().toUpperCase() !== "PS-ALLOCATED"
+              );
 
               return (
                 <div
@@ -403,7 +411,7 @@ export function AdminSeatingAndPlacards() {
                       </h5>
                     </div>
 
-                    {/* Table Number Box (If empty, shows big clear box for manual handwriting) */}
+                    {/* Table Number Box */}
                     <div className="mt-3">
                       {isEditing ? (
                         <div className="flex items-center justify-center gap-1.5 my-1">
@@ -435,24 +443,22 @@ export function AdminSeatingAndPlacards() {
                             setEditingDeskId(team.id);
                             setDeskInput(team.deskNumber || team.desk_number || "");
                           }}
-                          className="rounded-2xl border-3 border-black bg-slate-50 p-2 text-center cursor-pointer hover:bg-gold/20 transition print:bg-transparent"
+                          className="rounded-2xl border-3 border-black bg-white p-2.5 text-center cursor-pointer hover:bg-gold/20 transition print:bg-white print:border-3 print:border-black"
                           title="Click to assign table number"
                         >
-                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block print:text-black">
-                            ALLOCATED DESK / TABLE
-                          </span>
-                          <div className="font-mono font-black text-2xl sm:text-3xl text-black tracking-wider mt-0.5">
+                          <div className="flex items-center justify-between px-2 text-[9px] font-black uppercase tracking-wider text-slate-700 print:text-black border-b border-black/20 pb-0.5">
+                            <span>ALLOCATED DESK</span>
+                            <span>{batchInfo.floor}</span>
+                          </div>
+                          <div className="font-mono font-black text-2xl sm:text-3xl text-black tracking-wide pt-1">
                             {deskNo ? (
                               <span>TABLE #{deskNo}</span>
                             ) : (
-                              <span className="text-slate-400 font-mono print:text-black">
-                                TABLE NO: [ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ]
+                              <span className="text-black font-black font-mono inline-block">
+                                TABLE NO : ________
                               </span>
                             )}
                           </div>
-                          <span className="text-[9px] font-bold text-slate-600 print:text-black block">
-                            {batchInfo.floor}
-                          </span>
                         </div>
                       )}
                     </div>
@@ -473,16 +479,31 @@ export function AdminSeatingAndPlacards() {
                     </div>
                   </div>
 
-                  {/* Bottom: BIG BOLD PROBLEM STATEMENT ID ONLY */}
+                  {/* Bottom: PROBLEM STATEMENT ID / OPEN INNOVATION / MANUAL WRITE-IN BOX */}
                   <div className="mt-3 pt-2.5 border-t-2 border-dashed border-black">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block print:text-black">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block print:text-black">
                       ALLOCATED PROBLEM STATEMENT ID
                     </span>
-                    <div className="mt-1 rounded-xl border-2 border-black bg-gold/20 p-2 print:border-black print:bg-transparent text-center">
-                      <span className="font-mono text-lg sm:text-xl font-black text-web print:text-black tracking-wider block">
-                        {probId}
-                      </span>
-                    </div>
+
+                    {isOpenInno ? (
+                      <div className="mt-1 rounded-xl border-2 border-black bg-gold/20 p-2 print:border-black print:bg-transparent text-center">
+                        <span className="font-mono text-lg sm:text-xl font-black text-web print:text-black tracking-wider block">
+                          🚀 OPEN INNOVATION
+                        </span>
+                      </div>
+                    ) : hasSelectedProblem ? (
+                      <div className="mt-1 rounded-xl border-2 border-black bg-gold/20 p-2 print:border-black print:bg-transparent text-center">
+                        <span className="font-mono text-lg sm:text-xl font-black text-web print:text-black tracking-wider block">
+                          {rawProbId}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="mt-1 rounded-xl border-2 border-dashed border-black bg-slate-50 p-2 print:border-black print:bg-transparent text-center">
+                        <span className="font-mono text-base sm:text-lg font-black text-slate-700 print:text-black tracking-wider block">
+                          PS ID: _________________
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
