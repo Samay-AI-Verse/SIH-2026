@@ -212,6 +212,13 @@ export async function adminUpdateTeamName(teamId, teamName) {
   });
 }
 
+export async function adminUpdateTeamProfile(teamId, patch) {
+  return api(`/api/admin/teams/${teamId}/profile`, {
+    method: "POST",
+    body: JSON.stringify(patch),
+  });
+}
+
 export async function adminUpdateTeamProblemStatement(teamId, payload) {
   return api(`/api/admin/teams/${teamId}/problem-statement`, {
     method: "POST",

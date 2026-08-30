@@ -22,6 +22,7 @@ import { downloadCsv, formatDate } from "../utils/cn";
 import { Button } from "../components/ui/Button";
 import { EditMemberModal } from "../components/ui/EditMemberModal";
 import { ImageLightbox } from "../components/ui/ImageLightbox";
+import { AdminEditTeamProfileModal } from "../components/ui/AdminEditTeamProfileModal";
 
 export function AdminFinalTeams() {
   const [teams, setTeams] = useState([]);
@@ -31,6 +32,7 @@ export function AdminFinalTeams() {
   const [selectedTeamModal, setSelectedTeamModal] = useState(null);
   const [editingMember, setEditingMember] = useState(null); // { teamId, member }
   const [lightboxUrl, setLightboxUrl] = useState("");
+  const [editingProfileTeam, setEditingProfileTeam] = useState(null);
 
   // Team Name Edit State
   const [editingTeamName, setEditingTeamName] = useState(false);
@@ -382,17 +384,26 @@ export function AdminFinalTeams() {
                       </span>
                     </td>
 
-                    {/* Action Button */}
+                    {/* Action Buttons */}
                     <td className="p-3.5 text-right">
-                      <button
-                        onClick={() => {
-                          setSelectedTeamModal(team);
-                          setEditingTeamName(false);
-                        }}
-                        className="inline-flex items-center gap-1.5 rounded-xl border-2 border-web/30 bg-gold/20 hover:bg-gold px-3 py-1.5 text-xs font-black uppercase text-web transition shadow-xs"
-                      >
-                        <Eye size={13} /> Full Roster ({members.length})
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                        <button
+                          onClick={() => setEditingProfileTeam(team)}
+                          className="inline-flex items-center gap-1 rounded-xl border-2 border-web/20 bg-slate-50 hover:bg-web hover:text-white px-2.5 py-1.5 text-xs font-bold text-slate-700 transition shadow-2xs"
+                          title="Edit Team ID, Stream (B.Tech / Diploma), Branch, Year"
+                        >
+                          <Pencil size={12} className="text-spidey" /> Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedTeamModal(team);
+                            setEditingTeamName(false);
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-xl border-2 border-web/30 bg-gold/20 hover:bg-gold px-3 py-1.5 text-xs font-black uppercase text-web transition shadow-xs"
+                        >
+                          <Eye size={13} /> Full Roster ({members.length})
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -453,19 +464,16 @@ export function AdminFinalTeams() {
                     </h3>
                     <button
                       type="button"
-                      onClick={() => {
-                        setNewTeamName(selectedTeamModal.team_name || selectedTeamModal.teamName || "");
-                        setEditingTeamName(true);
-                      }}
-                      className="rounded-lg border border-web/30 bg-white p-1 text-slate-700 hover:bg-gold hover:text-web transition shadow-2xs shrink-0"
-                      title="Edit / Correct Team Name (As Admin)"
+                      onClick={() => setEditingProfileTeam(selectedTeamModal)}
+                      className="rounded-lg border border-web/30 bg-gold/30 px-2 py-1 text-xs font-bold text-web hover:bg-gold transition shadow-2xs shrink-0 flex items-center gap-1"
+                      title="Edit Team Profile, Stream & Registration ID"
                     >
-                      <Pencil size={14} />
+                      <Pencil size={12} /> Edit Profile / Stream
                     </button>
                   </div>
                 )}
                 <p className="text-xs font-bold text-slate-600 truncate mt-0.5">
-                  {selectedTeamModal.college || "GTMC Nanded"}
+                  {selectedTeamModal.college || "GTMC Nanded"} · Stream: <span className="text-spidey font-black">{selectedTeamModal.leader_course || selectedTeamModal.leaderCourse || "B.Tech"}</span>
                 </p>
               </div>
 
@@ -671,6 +679,23 @@ export function AdminFinalTeams() {
         <ImageLightbox
           imageUrl={lightboxUrl}
           onClose={() => setLightboxUrl("")}
+        />
+      )}
+
+      {/* EDIT TEAM PROFILE & STREAM MODAL */}
+      {editingProfileTeam && (
+        <AdminEditTeamProfileModal
+          team={editingProfileTeam}
+          onClose={() => setEditingProfileTeam(null)}
+          onSuccess={() => {
+            load();
+            if (selectedTeamModal && selectedTeamModal.id === editingProfileTeam.id) {
+              adminFetchTeams().then((data) => {
+                const refreshed = data.find((t) => t.id === selectedTeamModal.id);
+                if (refreshed) setSelectedTeamModal(refreshed);
+              });
+            }
+          }}
         />
       )}
     </div>

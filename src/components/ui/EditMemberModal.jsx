@@ -153,17 +153,21 @@ export function EditMemberModal({ teamId, member, onClose, onSuccess }) {
 
               <div>
                 <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
-                  Degree Stream
+                  Degree Stream / Domain
                 </label>
                 <select
                   value={formData.course}
                   onChange={(e) => handleChange("course", e.target.value)}
                   className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:outline-none"
                 >
-                  <option value="B.Tech">B.Tech</option>
-                  <option value="Diploma">Diploma</option>
-                  <option value="B.Voc">B.Voc</option>
-                  <option value="BCA">BCA / MCA</option>
+                  <option value="B.Tech">B.Tech / B.E. (Engineering)</option>
+                  <option value="Diploma">Diploma (Polytechnic)</option>
+                  <option value="B.Voc">B.Voc (Vocational)</option>
+                  <option value="BCA">BCA (Computer Applications)</option>
+                  <option value="MCA">MCA (Master of Computer App)</option>
+                  <option value="B.Sc">B.Sc / M.Sc</option>
+                  <option value="Pharmacy">Pharmacy (B.Pharm / D.Pharm)</option>
+                  <option value="Other">Other Degree</option>
                 </select>
               </div>
             </div>
@@ -172,14 +176,14 @@ export function EditMemberModal({ teamId, member, onClose, onSuccess }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 mb-1">
-                  Branch / Specialization
+                  Department / Branch
                 </label>
                 <input
                   type="text"
                   value={formData.branch}
                   onChange={(e) => handleChange("branch", e.target.value)}
                   className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
-                  placeholder="e.g. CSE / IT / AIDS / ME"
+                  placeholder="e.g. CSE / IT / AIDS / ME / Civil"
                 />
               </div>
 
@@ -192,10 +196,10 @@ export function EditMemberModal({ teamId, member, onClose, onSuccess }) {
                   onChange={(e) => handleChange("year", e.target.value)}
                   className="w-full rounded-xl border-2 border-web/30 bg-slate-50 p-2.5 text-xs font-bold text-ink focus:border-web focus:outline-none"
                 >
-                  <option value="1st Year">1st Year</option>
-                  <option value="2nd Year">2nd Year</option>
-                  <option value="3rd Year">3rd Year</option>
-                  <option value="4th Year">4th Year</option>
+                  <option value="1st Year">1st Year (FE / FY)</option>
+                  <option value="2nd Year">2nd Year (SE / SY)</option>
+                  <option value="3rd Year">3rd Year (TE / TY)</option>
+                  <option value="4th Year">4th Year (BE / Final Year)</option>
                 </select>
               </div>
             </div>

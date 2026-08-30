@@ -34,6 +34,7 @@ import { EditMemberModal } from "../components/ui/EditMemberModal";
 import { ImageLightbox } from "../components/ui/ImageLightbox";
 import { AdminChangeProblemModal } from "../components/ui/AdminChangeProblemModal";
 import { AdminRegisterTeamModal } from "../components/ui/AdminRegisterTeamModal";
+import { AdminEditTeamProfileModal } from "../components/ui/AdminEditTeamProfileModal";
 
 export function AdminRegistrations() {
   const [teams, setTeams] = useState([]);
@@ -50,6 +51,7 @@ export function AdminRegistrations() {
   const [lightboxUrl, setLightboxUrl] = useState("");
   const [changeProblemTeam, setChangeProblemTeam] = useState(null);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [editingProfileTeam, setEditingProfileTeam] = useState(null);
 
   // Team Name Edit State
   const [editingTeamName, setEditingTeamName] = useState(false);
@@ -381,6 +383,15 @@ export function AdminRegistrations() {
                             <Eye size={13} /> Roster
                           </button>
 
+                          {/* Edit Team Profile & Stream Action */}
+                          <button
+                            onClick={() => setEditingProfileTeam(team)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-web/20 bg-slate-50 px-2 py-1.5 text-xs font-bold text-slate-700 hover:bg-web hover:text-white transition shadow-2xs"
+                            title="Edit Team Registration ID, Stream (B.Tech / Diploma), Branch, Year"
+                          >
+                            <Pencil size={12} className="text-spidey" /> Edit
+                          </button>
+
                           {/* Change PS Action */}
                           <button
                             onClick={() => setChangeProblemTeam(team)}
@@ -475,19 +486,16 @@ export function AdminRegistrations() {
                       </h2>
                       <button
                         type="button"
-                        onClick={() => {
-                          setNewTeamName(selectedTeam.teamName || "");
-                          setEditingTeamName(true);
-                        }}
-                        className="rounded-lg border border-white/20 bg-white/10 p-1 text-white hover:bg-gold hover:text-web transition shadow-2xs shrink-0"
-                        title="Edit Team Name"
+                        onClick={() => setEditingProfileTeam(selectedTeam)}
+                        className="rounded-lg border border-white/20 bg-white/10 px-2 py-1 text-xs font-bold text-white hover:bg-gold hover:text-web transition shadow-2xs shrink-0 flex items-center gap-1"
+                        title="Edit Team Profile, Stream & Registration ID"
                       >
-                        <Pencil size={14} />
+                        <Pencil size={12} /> Edit Profile / Stream
                       </button>
                     </div>
                   )}
                   <p className="text-xs font-semibold text-slate-300 truncate mt-0.5">
-                    {selectedTeam.college || "GTMC Nanded"} · Leader: <span className="text-gold font-bold">{selectedTeam.leaderName}</span>
+                    {selectedTeam.college || "GTMC Nanded"} · Stream: <span className="text-gold font-bold">{selectedTeam.leaderCourse || selectedTeam.leader_course || selectedTeam.stream || "B.Tech"}</span> · Leader: <span className="text-white font-bold">{selectedTeam.leaderName}</span>
                   </p>
                 </div>
               </div>
@@ -931,6 +939,23 @@ export function AdminRegistrations() {
         <AdminRegisterTeamModal
           onClose={() => setShowRegisterModal(false)}
           onSuccess={() => load()}
+        />
+      )}
+
+      {/* EDIT TEAM PROFILE & STREAM MODAL */}
+      {editingProfileTeam && (
+        <AdminEditTeamProfileModal
+          team={editingProfileTeam}
+          onClose={() => setEditingProfileTeam(null)}
+          onSuccess={() => {
+            load();
+            if (selectedTeam && selectedTeam.id === editingProfileTeam.id) {
+              adminFetchTeams().then((data) => {
+                const refreshed = data.find((t) => t.id === selectedTeam.id);
+                if (refreshed) setSelectedTeam(refreshed);
+              });
+            }
+          }}
         />
       )}
     </div>
