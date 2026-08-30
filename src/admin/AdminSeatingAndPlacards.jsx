@@ -443,14 +443,13 @@ export function AdminSeatingAndPlacards() {
                             setEditingDeskId(team.id);
                             setDeskInput(team.deskNumber || team.desk_number || "");
                           }}
-                          className="rounded-2xl border-3 border-black bg-white p-2.5 text-center cursor-pointer hover:bg-gold/20 transition print:bg-white print:border-3 print:border-black"
+                          className="rounded-2xl border-3 border-black bg-white p-3 text-center cursor-pointer hover:bg-gold/20 transition print:bg-white print:border-3 print:border-black"
                           title="Click to assign table number"
                         >
-                          <div className="flex items-center justify-between px-2 text-[9px] font-black uppercase tracking-wider text-slate-700 print:text-black border-b border-black/20 pb-0.5">
-                            <span>ALLOCATED DESK</span>
-                            <span>{batchInfo.floor}</span>
-                          </div>
-                          <div className="font-mono font-black text-2xl sm:text-3xl text-black tracking-wide pt-1">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block print:text-black mb-1">
+                            ALLOCATED DESK / TABLE
+                          </span>
+                          <div className="font-mono font-black text-2xl sm:text-3xl text-black tracking-wide">
                             {deskNo ? (
                               <span>TABLE #{deskNo}</span>
                             ) : (
