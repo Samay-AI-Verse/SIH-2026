@@ -440,8 +440,7 @@ export function AdminRegistrations() {
                 <tr>
                   <th className="px-4 py-3.5 w-64">Reg ID & Team Name</th>
                   <th className="px-4 py-3.5 w-44">Reg Date & Time</th>
-                  <th className="px-4 py-3.5 w-64">College & Leader</th>
-                  <th className="px-4 py-3.5 w-28 text-center">Roster</th>
+                  <th className="px-4 py-3.5 w-72">College, Leader & Stream</th>
                   <th className="px-4 py-3.5 w-44">Status</th>
                   <th className="px-4 py-3.5">Problem Statement</th>
                   <th className="px-4 py-3.5 text-right w-64">Actions</th>
@@ -452,6 +451,9 @@ export function AdminRegistrations() {
                   const isConfirmed = team.registrationStatus === "CONFIRMED" || team.paymentStatus === "SUCCESS";
                   const isCancelled = (team.registrationStatus || "").includes("CANCELLED") || (team.paymentStatus || "").includes("CANCELLED") || team.paymentStatus === "REFUNDED";
                   const regDateTime = team.registeredAt || team.registered_at || team.created_at;
+                  const stream = getNormalizedStream(team);
+                  const shortBranch = getShortBranch(team.leaderBranch || team.leader_branch);
+                  const studyYear = getNormalizedYear(team);
 
                   return (
                     <tr key={team.id} className="hover:bg-amber-50/40 transition">
@@ -470,21 +472,17 @@ export function AdminRegistrations() {
                         {formatDate(regDateTime)}
                       </td>
 
-                      {/* College & Leader */}
+                      {/* College & Leader & Stream */}
                       <td className="px-4 py-3.5 text-xs">
-                        <div className="font-bold text-ink truncate max-w-[230px]" title={team.college || "GTMC Nanded"}>
+                        <div className="font-bold text-ink truncate max-w-[240px]" title={team.college || "GTMC Nanded"}>
                           {team.college || "GTMC Nanded"}
                         </div>
-                        <div className="text-slate-600 font-semibold mt-0.5 truncate max-w-[230px]">
+                        <div className="text-slate-600 font-semibold mt-0.5 truncate max-w-[240px]">
                           Leader: <span className="text-web font-bold">{team.leaderName}</span>
                         </div>
-                      </td>
-
-                      {/* Roster count */}
-                      <td className="px-4 py-3.5 text-center">
-                        <span className="inline-flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-black text-slate-700">
-                          <User size={12} className="text-spidey" /> {team.members?.length || 6} / 6
-                        </span>
+                        <div className="text-[11px] text-slate-500 font-bold mt-0.5">
+                          <span className="text-spidey">{stream}</span> · <span className="text-black">{shortBranch}</span> · <span>{studyYear}</span>
+                        </div>
                       </td>
 
                       {/* Status */}
