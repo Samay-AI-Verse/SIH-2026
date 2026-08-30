@@ -354,30 +354,30 @@ export function AdminSeatingAndPlacards() {
         </div>
 
         {/* Sorting & Secondary Controls Bar */}
-        <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 text-xs">
+        <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-3.5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 text-xs">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-black uppercase text-[11px] text-slate-500 flex items-center gap-1">
-              <ArrowUpDown size={13} className="text-spidey" /> Sort Squads By:
+            <span className="font-black uppercase text-[11px] text-slate-600 flex items-center gap-1.5">
+              <ArrowUpDown size={14} className="text-spidey" /> Sort Squads By:
             </span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="rounded-xl border-2 border-web/30 bg-white px-3 py-1 text-xs font-bold text-ink focus:border-web"
+              className="rounded-xl border-2 border-web/30 bg-white px-3.5 py-1.5 text-xs font-bold text-ink focus:border-web shadow-2xs"
             >
-              <option value="YEAR_BRANCH">Study Year $\rightarrow$ Branch (1st Yr $\rightarrow$ 2nd Yr $\rightarrow$ 3rd Yr $\rightarrow$ 4th Yr)</option>
-              <option value="STREAM_YEAR">Degree Stream $\rightarrow$ Year (B.Tech $\rightarrow$ Diploma $\rightarrow$ B.Voc)</option>
-              <option value="BRANCH">Department / Branch (CSE $\rightarrow$ IT $\rightarrow$ E&TC $\rightarrow$ EE...)</option>
+              <option value="YEAR_BRANCH">Study Year → Branch (1st Yr → 2nd Yr → 3rd Yr → 4th Yr)</option>
+              <option value="STREAM_YEAR">Degree Stream → Year (B.Tech → Diploma → B.Voc)</option>
+              <option value="BRANCH">Department / Branch (CSE → IT → E&TC → EE...)</option>
               <option value="REG_ID">Team Registration ID (ENGG-SIH-01...)</option>
               <option value="DESK">Assigned Table Number</option>
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             <div className="flex bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
               <button
                 onClick={() => setViewMode("PLACARDS")}
-                className={`px-3 py-1 rounded-lg text-xs font-black uppercase transition flex items-center gap-1 cursor-pointer ${
-                  viewMode === "PLACARDS" ? "bg-web text-white shadow-xs" : "text-slate-600"
+                className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase transition flex items-center gap-1.5 cursor-pointer ${
+                  viewMode === "PLACARDS" ? "bg-web text-white shadow-xs" : "text-slate-600 hover:text-ink"
                 }`}
                 title="4 Placards per A4 Page"
               >
@@ -385,8 +385,8 @@ export function AdminSeatingAndPlacards() {
               </button>
               <button
                 onClick={() => setViewMode("TABLE_LIST")}
-                className={`px-3 py-1 rounded-lg text-xs font-black uppercase transition flex items-center gap-1 cursor-pointer ${
-                  viewMode === "TABLE_LIST" ? "bg-web text-white shadow-xs" : "text-slate-600"
+                className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase transition flex items-center gap-1.5 cursor-pointer ${
+                  viewMode === "TABLE_LIST" ? "bg-web text-white shadow-xs" : "text-slate-600 hover:text-ink"
                 }`}
                 title="Table Master List"
               >
@@ -394,14 +394,14 @@ export function AdminSeatingAndPlacards() {
               </button>
             </div>
 
-            <div className="relative w-48 sm:w-56">
+            <div className="relative w-full sm:w-60">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search Team, ID..."
+                placeholder="Search Team, ID, Table..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-xl border-2 border-slate-300 bg-white py-1.5 pl-8 pr-3 text-xs font-bold text-ink focus:border-web focus:outline-hidden"
+                className="w-full rounded-xl border-2 border-slate-300 bg-white py-1.5 pl-8 pr-3 text-xs font-bold text-ink focus:border-web focus:outline-hidden shadow-2xs"
               />
             </div>
           </div>
