@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { adminFetchTeams, adminUpdateTeamSeating, adminBatchUpdateSeating, subscribeTable } from "../services/apiService";
 import { Button } from "../components/ui/Button";
+import { getShortBranch } from "./AdminAttendanceSheet";
 
 export function AdminSeatingAndPlacards() {
   const [teams, setTeams] = useState([]);
@@ -389,7 +390,7 @@ export function AdminSeatingAndPlacards() {
                         {team.teamName || team.team_name}
                       </h2>
                       <p className="text-[10px] font-bold text-slate-600 print:text-black truncate">
-                        {team.college || "GTMC Nanded"} · Stream: <span className="font-black text-black">{team.leaderCourse || team.leader_course || "B.Tech"} ({team.leaderBranch || team.leader_branch || "CSE"})</span>
+                        {team.college || "GTMC Nanded"} · Stream: <span className="font-black text-black">{team.leaderCourse || team.leader_course || "B.Tech"} ({getShortBranch(team.leaderBranch || team.leader_branch || "CSE")})</span>
                       </p>
                     </div>
 

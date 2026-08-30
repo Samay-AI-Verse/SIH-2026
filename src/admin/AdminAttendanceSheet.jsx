@@ -21,6 +21,38 @@ import { adminFetchTeams, subscribeTable } from "../services/apiService";
 import { downloadCsv, formatDate } from "../utils/cn";
 import { Button } from "../components/ui/Button";
 
+export function getShortBranch(branchStr) {
+  if (!branchStr) return "";
+  const s = String(branchStr).trim();
+  
+  // If has parentheses like "Computer Science & Engineering (CSE)", extract inside:
+  const match = s.match(/\(([^)]+)\)/);
+  if (match && match[1]) {
+    return match[1].trim().toUpperCase();
+  }
+
+  const lower = s.toLowerCase();
+  if (lower.includes("computer") || lower.includes("cse") || lower.includes("software")) return "CSE";
+  if (lower.includes("information technology") || lower === "it") return "IT";
+  if (lower.includes("artificial") || lower.includes("ai") || lower.includes("data science") || lower.includes("aids")) return "AIDS";
+  if (lower.includes("electrical")) return "EE";
+  if (lower.includes("electronic") || lower.includes("etc") || lower.includes("extc")) return "ETC";
+  if (lower.includes("mechanical") || lower.includes("mech")) return "ME";
+  if (lower.includes("civil")) return "CE";
+  if (lower.includes("pharmacy") || lower.includes("pharm")) return "PHARM";
+  if (lower.includes("vocational") || lower.includes("bvoc") || lower.includes("b.voc")) return "BVOC";
+  if (lower.includes("bca")) return "BCA";
+  if (lower.includes("mca")) return "MCA";
+  if (lower.includes("bsc") || lower.includes("science")) return "BSC";
+  if (lower.includes("other")) return "OTHER";
+
+  // If already short (e.g. CSE, IT, ME), return as is
+  if (s.length <= 6) return s.toUpperCase();
+
+  // Otherwise take initials
+  return s.split(/[\s-]+/).map(w => w[0]).join('').toUpperCase().slice(0, 4);
+}
+
 export function AdminAttendanceSheet() {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -386,23 +418,31 @@ export function AdminAttendanceSheet() {
                             return (
                               <div 
                                 key={m.id || mIdx} 
-                                className={`flex items-center gap-1.5 py-0.5 px-1 rounded leading-tight ${
+                                className={`flex items-center justify-between gap-1.5 py-0.5 px-1 rounded leading-tight ${
                                   isLdr ? "bg-amber-50 font-bold text-web border border-amber-200 print:bg-transparent print:border-none print:text-black" : "text-slate-800 print:text-black font-semibold"
                                 }`}
                               >
-                                <span className="font-mono text-[10px] text-slate-400 print:text-black w-4 shrink-0 font-bold">{mIdx + 1}.</span>
-                                {isLdr && <Crown size={12} className="text-gold shrink-0 print:hidden" />}
-                                <span className="whitespace-normal break-words font-bold">
-                                  {mName}
-                                </span>
-                                {isLdr && (
-                                  <span className="text-[8.5px] bg-gold text-web px-1 py-0.2 rounded font-black print:text-black print:border print:border-black shrink-0">
-                                    LDR
+                                <div className="flex items-center gap-1 min-w-0 flex-1">
+                                  <span className="font-mono text-[10px] text-slate-400 print:text-black w-4 shrink-0 font-bold">{mIdx + 1}.</span>
+                                  {isLdr && <Crown size={11} className="text-gold shrink-0 print:hidden" />}
+                                  <span className="whitespace-normal break-words font-bold">
+                                    {mName}
                                   </span>
-                                )}
-                                <span className={isFemale ? "text-pink-600 font-black text-[9px] print:text-black shrink-0 ml-auto" : "text-blue-600 font-black text-[9px] print:text-black shrink-0 ml-auto"}>
-                                  ({m.gender ? m.gender[0] : "M"})
-                                </span>
+                                  {isLdr && (
+                                    <span className="text-[8px] bg-gold text-web px-1 rounded font-black print:text-black print:border print:border-black shrink-0">
+                                      LDR
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="flex items-center gap-1 shrink-0 font-mono text-[9px] print:text-[8.5px] font-bold text-slate-600 print:text-black">
+                                  <span className={isFemale ? "text-pink-600 print:text-black" : "text-blue-600 print:text-black"}>
+                                    ({m.gender ? m.gender[0] : "M"})
+                                  </span>
+                                  <span className="font-black text-slate-700 print:text-black bg-slate-100 px-1 py-0.2 rounded print:bg-transparent print:p-0">
+                                    {getShortBranch(m.branch || team.leaderBranch || team.leader_branch)}
+                                  </span>
+                                </div>
                               </div>
                             );
                           })}
