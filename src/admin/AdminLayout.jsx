@@ -9,17 +9,17 @@ import { cn } from "../utils/cn";
 
 const links = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/admin/checkin", label: "Check-in & Goodies Desk 🎒🎫", icon: PackageCheck },
-  { to: "/admin/seating", label: "Table & Desk Placards 🪑🏷️", icon: TableIcon },
-  { to: "/admin/attendance", label: "Entry & Attendance Sheet 📄", icon: ClipboardCheck },
+  { to: "/admin/checkin", label: "Check-in & Goodies Desk", icon: PackageCheck },
+  { to: "/admin/seating", label: "Table & Desk Placards", icon: TableIcon },
+  { to: "/admin/attendance", label: "Entry & Attendance Sheet", icon: ClipboardCheck },
   { to: "/admin/registrations", label: "Registrations & Teams", icon: Shield },
   { to: "/admin/selections", label: "Selections & Approvals", icon: BadgeCheck },
-  { to: "/admin/final-teams", label: "Final Approved Teams 🏆", icon: Trophy },
+  { to: "/admin/final-teams", label: "Final Approved Teams", icon: Trophy },
   { to: "/admin/students", label: "Student Explorer", icon: GraduationCap },
   { to: "/admin/budget", label: "Budget & Ledger", icon: IndianRupee },
   { to: "/admin/payments", label: "Payment Verification", icon: Wallet },
   { to: "/admin/problems", label: "Problem Statements", icon: Puzzle },
-  { to: "/admin/security", label: "Security & Admin Audit 🔒", icon: Shield },
+  { to: "/admin/security", label: "Security & Admin Audit", icon: Shield },
   { to: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
