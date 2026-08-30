@@ -226,6 +226,20 @@ export async function adminRegisterTeam(payload) {
   });
 }
 
+export async function adminUpdateCheckin(teamId, payload) {
+  return api(`/api/admin/teams/${teamId}/checkin`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function adminBatchCheckin(payload) {
+  return api("/api/admin/teams/batch-checkin", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function adminUpdateSettings(patch) {
   return api("/api/admin/settings", { method: "POST", body: JSON.stringify(patch) });
 }
@@ -328,6 +342,28 @@ function mapTeam(team, members) {
     registeredAt: team.registered_at || team.registeredAt,
     registered_at: team.registered_at || team.registeredAt,
     created_at: team.registered_at || team.registeredAt || team.created_at,
+    entryStatus: team.entry_status || team.entryStatus || "PENDING",
+    entry_status: team.entry_status || team.entryStatus || "PENDING",
+    checkedInAt: team.checked_in_at || team.checkedInAt || null,
+    checked_in_at: team.checked_in_at || team.checkedInAt || null,
+    checkedInBy: team.checked_in_by || team.checkedInBy || null,
+    checked_in_by: team.checked_in_by || team.checkedInBy || null,
+    deskNumber: team.desk_number || team.deskNumber || null,
+    desk_number: team.desk_number || team.deskNumber || null,
+    goodiesStatus: team.goodies_status || team.goodiesStatus || "PENDING",
+    goodies_status: team.goodies_status || team.goodiesStatus || "PENDING",
+    goodiesCount: team.goodies_count ?? team.goodiesCount ?? 0,
+    goodies_count: team.goodies_count ?? team.goodiesCount ?? 0,
+    goodiesCollectedAt: team.goodies_collected_at || team.goodiesCollectedAt || null,
+    goodies_collected_at: team.goodies_collected_at || team.goodiesCollectedAt || null,
+    goodiesDistributedBy: team.goodies_distributed_by || team.goodiesDistributedBy || null,
+    goodies_distributed_by: team.goodies_distributed_by || team.goodiesDistributedBy || null,
+    checkinNotes: team.checkin_notes || team.checkinNotes || "",
+    checkin_notes: team.checkin_notes || team.checkinNotes || "",
+    presentMembersCount: team.present_members_count ?? team.presentMembersCount ?? 0,
+    present_members_count: team.present_members_count ?? team.presentMembersCount ?? 0,
+    presentMemberIds: team.present_member_ids || team.presentMemberIds || [],
+    present_member_ids: team.present_member_ids || team.presentMemberIds || [],
     payment: paymentObj,
     paymentMode,
     payment_mode: paymentMode,
@@ -355,6 +391,12 @@ function mapTeam(team, members) {
       student_id: member.student_id || member.studentId || "",
       isLeader: Boolean(member.is_leader),
       is_leader: Boolean(member.is_leader),
+      entryStatus: member.entry_status || member.entryStatus || "PENDING",
+      entry_status: member.entry_status || member.entryStatus || "PENDING",
+      checkedInAt: member.checked_in_at || member.checkedInAt || null,
+      checked_in_at: member.checked_in_at || member.checkedInAt || null,
+      goodiesReceived: Boolean(member.goodies_received || member.goodiesReceived),
+      goodies_received: Boolean(member.goodies_received || member.goodiesReceived),
     })),
   };
 }

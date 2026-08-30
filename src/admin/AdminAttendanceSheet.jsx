@@ -12,7 +12,10 @@ import {
   Building, 
   Sparkles,
   ShieldCheck,
-  GraduationCap
+  GraduationCap,
+  SlidersHorizontal,
+  PenTool,
+  CheckSquare
 } from "lucide-react";
 import { adminFetchTeams, subscribeTable } from "../services/apiService";
 import { downloadCsv, formatDate } from "../utils/cn";
@@ -24,6 +27,7 @@ export function AdminAttendanceSheet() {
   const [search, setSearch] = useState("");
   const [streamFilter, setStreamFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("CONFIRMED"); // "CONFIRMED", "ALL"
+  const [printOrientation, setPrintOrientation] = useState("portrait"); // "portrait" or "landscape"
 
   async function load() {
     setLoading(true);
@@ -99,38 +103,100 @@ export function AdminAttendanceSheet() {
 
   return (
     <div className="space-y-6 text-left">
+      {/* INLINE CSS FOR FLAWLESS A4 PRINTING & ZERO COLUMN CUTOFF */}
+      <style>{`
+        @media print {
+          @page {
+            size: ${printOrientation === "landscape" ? "A4 landscape" : "A4 portrait"};
+            margin: 6mm 5mm 6mm 5mm;
+          }
+          html, body {
+            background: #ffffff !important;
+            color: #000000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            font-size: 8.5pt !important;
+          }
+          .print-full-table {
+            width: 100% !important;
+            table-layout: fixed !important;
+            border-collapse: collapse !important;
+          }
+          .print-full-table th, 
+          .print-full-table td {
+            border: 1px solid #0f172a !important;
+            padding: 4px 4px !important;
+            font-size: 8pt !important;
+            line-height: 1.2 !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+          }
+          .print-avoid-break {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+          .print-header-repeat {
+            display: table-header-group !important;
+          }
+        }
+      `}</style>
+
       {/* SCREEN VIEW HEADER (Hidden in Print) */}
       <div className="print:hidden space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-spidey/10 border border-spidey/30 text-spidey font-mono text-xs font-bold uppercase tracking-wider mb-1.5">
+              <Sparkles size={13} /> Official Event Day Entry Sheet
+            </div>
             <h1 className="font-display text-3xl sm:text-4xl text-web flex items-center gap-2">
               <FileSpreadsheet className="text-spidey" size={32} /> Team Entry & Attendance Sheet
             </h1>
             <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-1">
-              Official printed verification sheet for Hackathon day entry desk with single-column squad rosters and leader signature slots.
+              Printable PDF verification roster with enlarged SIH emblem, 6-member single-column roster, Problem Statement codes, and physical Leader Signature slots.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Orientation Switcher */}
+            <div className="flex bg-slate-200 p-1 rounded-xl border border-slate-300 text-xs font-black uppercase">
+              <button
+                onClick={() => setPrintOrientation("portrait")}
+                className={`px-2.5 py-1.5 rounded-lg transition ${
+                  printOrientation === "portrait" ? "bg-web text-white shadow-xs" : "text-slate-700 hover:text-ink"
+                }`}
+                title="Portrait A4 (Default)"
+              >
+                📄 Portrait
+              </button>
+              <button
+                onClick={() => setPrintOrientation("landscape")}
+                className={`px-2.5 py-1.5 rounded-lg transition ${
+                  printOrientation === "landscape" ? "bg-web text-white shadow-xs" : "text-slate-700 hover:text-ink"
+                }`}
+                title="Landscape A4 (Extra Wide)"
+              >
+                📑 Landscape
+              </button>
+            </div>
+
             <button
               onClick={handlePrint}
-              className="rounded-xl border-2 border-web bg-web px-4 py-2.5 text-xs font-black uppercase text-white hover:bg-spidey transition shadow-comic flex items-center gap-2"
+              className="rounded-xl border-2 border-spidey bg-spidey px-4 py-2.5 text-xs font-black uppercase text-white hover:bg-spidey/90 transition shadow-comic flex items-center gap-2 cursor-pointer"
               title="Print or Save as PDF"
             >
-              <Printer size={16} /> 🖨️ Download / Print PDF Sheet
+              <Printer size={16} /> 🖨️ Print PDF Sheet
             </button>
 
-            <Button
-              variant="secondary"
+            <button
               onClick={handleExportCsv}
-              className="text-xs font-black shadow-comic flex items-center gap-1.5"
+              className="rounded-xl border-2 border-slate-700 bg-white px-3.5 py-2.5 text-xs font-black uppercase text-slate-800 hover:bg-slate-50 transition shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
               <Download size={14} /> Export CSV
-            </Button>
+            </button>
 
             <button
               onClick={() => load()}
-              className="rounded-xl border-2 border-web/20 bg-white p-2.5 text-slate-700 hover:bg-gold hover:text-web transition shadow-2xs"
+              className="rounded-xl border-2 border-slate-300 bg-white p-2.5 text-slate-700 hover:bg-slate-100 transition shadow-2xs"
               title="Refresh Data"
             >
               <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
@@ -139,16 +205,16 @@ export function AdminAttendanceSheet() {
         </div>
 
         {/* Filter Controls Bar */}
-        <div className="rounded-2xl border-2 border-web/20 bg-white p-4 shadow-sm space-y-3">
+        <div className="rounded-2xl border-2 border-slate-800 bg-white p-4 shadow-comic space-y-3">
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
             {/* Status & Stream Filters */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-black uppercase text-slate-400 mr-1">Filter:</span>
+              <span className="text-xs font-black uppercase text-slate-500 mr-1">Filter:</span>
               
               <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
                 <button
                   onClick={() => setStatusFilter("CONFIRMED")}
-                  className={`px-3 py-1 rounded-lg text-xs font-black uppercase transition ${
+                  className={`px-3 py-1 rounded-lg text-xs font-black uppercase transition cursor-pointer ${
                     statusFilter === "CONFIRMED" ? "bg-emerald-600 text-white shadow-xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
@@ -156,7 +222,7 @@ export function AdminAttendanceSheet() {
                 </button>
                 <button
                   onClick={() => setStatusFilter("ALL")}
-                  className={`px-3 py-1 rounded-lg text-xs font-black uppercase transition ${
+                  className={`px-3 py-1 rounded-lg text-xs font-black uppercase transition cursor-pointer ${
                     statusFilter === "ALL" ? "bg-web text-white shadow-xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
@@ -167,7 +233,7 @@ export function AdminAttendanceSheet() {
               <select
                 value={streamFilter}
                 onChange={(e) => setStreamFilter(e.target.value)}
-                className="rounded-xl border-2 border-web/20 bg-slate-50 px-3 py-1.5 text-xs font-bold text-ink focus:border-web focus:outline-none"
+                className="rounded-xl border-2 border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-bold text-ink focus:border-web focus:outline-hidden"
               >
                 <option value="ALL">All Streams / Degrees</option>
                 <option value="B.Tech">B.Tech / B.E.</option>
@@ -186,46 +252,85 @@ export function AdminAttendanceSheet() {
                 placeholder="Search Team, Reg ID, Leader, Member..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-xl border-2 border-web/20 bg-slate-50 py-2 pl-9 pr-3 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
+                className="w-full rounded-xl border-2 border-slate-300 bg-slate-50 py-2 pl-9 pr-3 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-hidden"
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* PRINT-ONLY OFFICIAL HEADER */}
-      <div className="hidden print:block text-center border-b-2 border-black pb-4 mb-4">
-        <h1 className="text-xl font-black uppercase tracking-wider text-black">
-          GTMC NANDED — SMART INDIA HACKATHON (SIH 2026)
-        </h1>
-        <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 mt-0.5">
-          Internal Hackathon — Official Team Entry & Attendance Verification Sheet
-        </h2>
-        <div className="flex justify-between items-center text-[10px] font-bold text-slate-600 mt-2 px-2">
-          <span>Date: ________________________</span>
-          <span>Reporting Desk / Check-in Counter</span>
-          <span>Total Teams Listed: {filteredTeams.length}</span>
+      {/* PRINT-ONLY OFFICIAL HEADER WITH ENLARGED SIH LOGO */}
+      <div className="hidden print:block border-b-2 border-black pb-3 mb-3">
+        <div className="flex items-center justify-between gap-4">
+          {/* Large Official SIH Logo */}
+          <div className="shrink-0">
+            <img
+              src="/sih-logo.png"
+              alt="Smart India Hackathon Logo"
+              className="h-16 w-auto object-contain drop-shadow-sm"
+            />
+          </div>
+
+          {/* Central Institution & Event Titles */}
+          <div className="flex-1 text-center space-y-0.5">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-800">
+              GRAMIN TECHNICAL & MANAGEMENT CAMPUS (GTMC), NANDED
+            </h3>
+            <h1 className="text-lg font-black uppercase tracking-tight text-black leading-tight">
+              SMART INDIA HACKATHON (SIH 2026) — INTERNAL HACKATHON
+            </h1>
+            <h2 className="text-[11px] font-extrabold uppercase tracking-wide text-slate-900 bg-slate-100 py-0.5 px-3 rounded inline-block border border-slate-300">
+              Official Team Entry & Squad Attendance Verification Sheet
+            </h2>
+          </div>
+
+          {/* Right Meta Stamp Box */}
+          <div className="shrink-0 border border-black rounded p-1.5 text-[9px] font-bold text-right leading-tight bg-slate-50">
+            <div>Desk: <span className="font-mono font-black">DESK-01</span></div>
+            <div>Date: <span className="font-mono">____/____/2026</span></div>
+            <div>Teams: <span className="font-mono font-black">{filteredTeams.length} Squads</span></div>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center text-[9.5px] font-bold text-black mt-2 pt-1 border-t border-dashed border-slate-400">
+          <span>Reporting Desk / Check-in Counter: _________________________</span>
+          <span>Time: 08:00 AM onwards</span>
+          <span>Stream: {streamFilter === "ALL" ? "All Degree Streams" : streamFilter}</span>
+          <span>Verified By: _________________________</span>
         </div>
       </div>
 
-      {/* TABLE SHEET (Screen + Printable format) */}
-      <div className="rounded-2xl border-2 border-web/20 bg-white shadow-sm overflow-hidden print:border-none print:shadow-none">
+      {/* TABLE SHEET (Screen + Printable format with 100% Fixed Columns) */}
+      <div className="rounded-2xl border-2 border-slate-800 bg-white shadow-comic overflow-hidden print:border-none print:shadow-none">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs min-w-[1000px] border-collapse divide-y divide-slate-200 print:min-w-full print:border print:border-black">
-            <thead className="bg-web text-white font-black uppercase text-[10px] tracking-wider print:bg-slate-200 print:text-black print:border-b-2 print:border-black">
+          <table className="w-full text-left text-xs min-w-[900px] border-collapse divide-y divide-slate-200 print:min-w-full print:w-full print-full-table">
+            <thead className="bg-web text-white font-black uppercase text-[10px] tracking-wider print:bg-slate-200 print:text-black print-header-repeat">
               <tr>
-                <th className="p-3 w-12 text-center print:border print:border-black">#</th>
-                <th className="p-3 w-32 print:border print:border-black">Team ID</th>
-                <th className="p-3 w-48 print:border print:border-black">Team Name & College</th>
-                <th className="p-3 min-w-[280px] print:border print:border-black">
+                {/* 1. Sr No (4%) */}
+                <th className="p-2.5 text-center w-[4%] print:w-[4%]">#</th>
+
+                {/* 2. Team ID (11%) */}
+                <th className="p-2.5 w-[11%] print:w-[11%]">Team ID</th>
+
+                {/* 3. Team Name & College (17%) */}
+                <th className="p-2.5 w-[17%] print:w-[17%]">Team Name & College</th>
+
+                {/* 4. Squad Members (35%) */}
+                <th className="p-2.5 w-[35%] print:w-[35%]">
                   All Team Members (6 Members Roster)
                 </th>
-                <th className="p-3 w-48 print:border print:border-black">Problem Statement</th>
-                <th className="p-3 w-36 text-center print:border print:border-black">
+
+                {/* 5. Problem Statement (17%) */}
+                <th className="p-2.5 w-[17%] print:w-[17%]">Problem Statement</th>
+
+                {/* 6. Sign of Leader (10%) */}
+                <th className="p-2.5 text-center w-[10%] print:w-[10%]">
                   Sign of Leader
                 </th>
-                <th className="p-3 w-28 text-center print:border print:border-black">
-                  Verification Status
+
+                {/* 7. Verification Status (6%) */}
+                <th className="p-2.5 text-center w-[6%] print:w-[6%]">
+                  Desk Check
                 </th>
               </tr>
             </thead>
@@ -239,40 +344,40 @@ export function AdminAttendanceSheet() {
                 return (
                   <tr 
                     key={team.id || idx} 
-                    className="hover:bg-slate-50/80 transition print:break-inside-avoid print:border-b print:border-black"
+                    className="hover:bg-slate-50/80 transition print-avoid-break print:border-b print:border-black"
                   >
                     {/* 1. Sr No */}
-                    <td className="p-3 text-center font-mono font-bold text-slate-500 print:border print:border-black print:text-black">
+                    <td className="p-2 text-center font-mono font-bold text-slate-600 print:text-black align-top">
                       {idx + 1}
                     </td>
 
                     {/* 2. Team ID */}
-                    <td className="p-3 print:border print:border-black">
-                      <span className="font-mono text-xs font-black text-spidey bg-spidey/10 px-2 py-0.5 rounded border border-spidey/20 inline-block print:text-black print:bg-transparent print:border-black">
+                    <td className="p-2 align-top">
+                      <div className="font-mono text-xs font-black text-web bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 inline-block print:text-black print:bg-transparent print:border-black print:text-[9.5px]">
                         {team.registrationId || team.registration_id}
-                      </span>
-                      <span className="text-[10px] text-slate-500 font-bold block mt-1">
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-bold block mt-1 print:text-black print:text-[8px]">
                         {team.leaderCourse || team.leader_course || "B.Tech"}
-                      </span>
+                      </div>
                     </td>
 
                     {/* 3. Team Name & College */}
-                    <td className="p-3 print:border print:border-black">
-                      <div className="font-display text-base text-web leading-tight print:text-black print:font-bold">
+                    <td className="p-2 align-top">
+                      <div className="font-display text-sm text-slate-900 leading-tight print:text-black print:font-black print:text-[10px]">
                         {team.teamName || team.team_name}
                       </div>
-                      <div className="text-[10px] text-slate-600 font-semibold mt-0.5 print:text-black">
+                      <div className="text-[10px] text-slate-600 font-medium mt-0.5 print:text-black print:text-[8.5px] truncate">
                         {team.college || "GTMC Nanded"}
                       </div>
-                      <div className="text-[10px] text-slate-500 mt-0.5 print:text-black font-mono">
-                        Ph: {team.phone || team.leader_phone || "—"}
+                      <div className="text-[10px] text-slate-700 mt-0.5 print:text-black font-mono font-bold print:text-[8.5px]">
+                        Ph: {team.leaderPhone || team.phone || "—"}
                       </div>
                     </td>
 
-                    {/* 4. All Team Members (Single Column) */}
-                    <td className="p-3 print:border print:border-black">
+                    {/* 4. All 6 Squad Members (Clean Single Column) */}
+                    <td className="p-2 align-top">
                       {members.length > 0 ? (
-                        <div className="space-y-1 text-xs">
+                        <div className="space-y-0.5 text-xs print:text-[8.5px]">
                           {members.map((m, mIdx) => {
                             const isLdr = m.isLeader || m.is_leader || mIdx === 0;
                             const isFemale = String(m.gender).toLowerCase() === "female";
@@ -280,81 +385,78 @@ export function AdminAttendanceSheet() {
                             return (
                               <div 
                                 key={m.id || mIdx} 
-                                className={`flex items-center justify-between gap-1.5 py-0.5 px-1.5 rounded ${
-                                  isLdr ? "bg-amber-50 font-bold text-web border border-amber-200 print:bg-transparent print:border-none" : "text-slate-700"
+                                className={`flex items-center justify-between gap-1 py-0.2 px-1 rounded ${
+                                  isLdr ? "bg-amber-50 font-bold text-web border border-amber-200 print:bg-transparent print:border-none print:text-black" : "text-slate-700 print:text-black"
                                 }`}
                               >
                                 <div className="flex items-center gap-1 min-w-0">
-                                  <span className="font-mono text-[10px] text-slate-400 w-4">{mIdx + 1}.</span>
-                                  {isLdr && <Crown size={11} className="text-gold shrink-0 print:hidden" />}
-                                  <span className="truncate">{m.name || m.full_name}</span>
-                                  {isLdr && <span className="text-[9px] bg-gold text-web px-1 rounded font-black print:text-black">LDR</span>}
+                                  <span className="font-mono text-[9px] text-slate-400 print:text-black w-3.5">{mIdx + 1}.</span>
+                                  {isLdr && <Crown size={10} className="text-gold shrink-0 print:hidden" />}
+                                  <span className="truncate font-medium">{m.name || m.full_name}</span>
+                                  {isLdr && <span className="text-[8px] bg-gold text-web px-1 rounded font-black print:text-black print:border print:border-black">LDR</span>}
                                 </div>
 
-                                <div className="flex items-center gap-1 text-[10px] shrink-0 font-mono text-slate-500 print:text-black">
+                                <div className="flex items-center gap-1 text-[9px] shrink-0 font-mono text-slate-500 print:text-black">
                                   <span className={isFemale ? "text-pink-600 font-bold print:text-black" : "text-blue-600 font-bold print:text-black"}>
                                     ({m.gender ? m.gender[0] : "M"})
                                   </span>
-                                  <span>{m.branch || team.leaderBranch || ""}</span>
+                                  <span className="truncate max-w-[80px] print:max-w-none">{m.branch || team.leaderBranch || ""}</span>
                                 </div>
                               </div>
                             );
                           })}
                         </div>
                       ) : (
-                        <div className="space-y-1 text-xs">
-                          <div className="font-bold text-web">1. {leaderName} (Team Leader)</div>
-                          <div className="text-slate-400 italic text-[10px]">Roster registered with 6 members</div>
+                        <div className="space-y-0.5 text-xs">
+                          <div className="font-bold text-web print:text-black">1. {leaderName} (Team Leader)</div>
+                          <div className="text-slate-400 italic text-[9px] print:text-black">6 members roster registered</div>
                         </div>
                       )}
                     </td>
 
-                    {/* 5. Problem Statement */}
-                    <td className="p-3 text-xs font-bold text-slate-700 print:border print:border-black print:text-black">
+                    {/* 5. Problem Statement (Properly Wrapped with Title & Code) */}
+                    <td className="p-2 align-top text-xs print:text-[8.5px]">
                       {team.isOpenInnovation ? (
                         <div>
-                          <span className="inline-flex items-center gap-1 text-spidey font-black bg-spidey/10 px-1.5 py-0.5 rounded text-[10px] print:text-black print:border print:border-black">
+                          <span className="inline-flex items-center gap-1 text-spidey font-black bg-spidey/10 px-1 py-0.2 rounded text-[9px] print:text-black print:border print:border-black">
                             🚀 Open Innovation
                           </span>
-                          <p className="text-[11px] text-web font-bold mt-1 line-clamp-2 print:text-black">
+                          <p className="text-[10px] text-slate-900 font-bold mt-0.5 print:text-black leading-tight break-words">
                             {team.openInnovationTitle || "Custom Innovation Project"}
                           </p>
                         </div>
                       ) : (
                         <div>
-                          <span className="font-mono text-xs font-black text-web block print:text-black">
-                            {team.selectedProblemId || "—"}
+                          <span className="font-mono text-[10px] font-black text-web block print:text-black">
+                            {team.selectedProblemId || team.selected_problem_id || "—"}
                           </span>
-                          <p className="text-[11px] text-slate-600 font-semibold mt-0.5 line-clamp-2 print:text-black">
-                            {team.selectedProblemTitle || "Not Selected"}
+                          <p className="text-[10px] text-slate-700 font-semibold mt-0.5 leading-tight print:text-black break-words">
+                            {team.selectedProblemTitle || team.selected_problem_title || "Not Selected"}
                           </p>
                         </div>
                       )}
                     </td>
 
-                    {/* 6. Sign of Leader (Physical Signature Line) */}
-                    <td className="p-3 text-center print:border print:border-black">
-                      <div className="h-12 border-2 border-dashed border-slate-300 rounded-lg flex flex-col justify-end p-1 print:border-black print:border-solid print:h-14">
-                        <span className="text-[9px] text-slate-400 uppercase font-black print:text-black block border-t border-slate-200 print:border-black pt-0.5">
-                          Leader Sign
+                    {/* 6. Sign of Leader (Signature Box) */}
+                    <td className="p-2 text-center align-middle">
+                      <div className="h-10 border border-slate-300 rounded flex flex-col justify-end p-0.5 print:border-black print:h-11 bg-slate-50/50 print:bg-transparent">
+                        <span className="text-[7.5px] text-slate-400 uppercase font-bold print:text-black block border-t border-dashed border-slate-300 print:border-black pt-0.2">
+                          Sign
                         </span>
                       </div>
                     </td>
 
-                    {/* 7. Verification Status */}
-                    <td className="p-3 text-center print:border print:border-black">
-                      {isPaid ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-[10px] font-black text-emerald-800 print:text-black print:border-black">
-                          <CheckCircle2 size={11} className="print:hidden" /> VERIFIED
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-black text-amber-800 print:text-black print:border-black">
-                          PENDING
-                        </span>
-                      )}
-                      <div className="mt-1 flex items-center justify-center gap-1 print:flex">
-                        <input type="checkbox" className="h-3.5 w-3.5 rounded border-slate-400" />
-                        <span className="text-[9px] text-slate-500 font-bold">Present</span>
+                    {/* 7. Verification / Goodies Status */}
+                    <td className="p-2 text-center align-middle">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-center gap-1">
+                          <input type="checkbox" className="h-3 w-3 rounded border-slate-400 print:border-black" />
+                          <span className="text-[8px] font-black uppercase text-slate-600 print:text-black">Entry</span>
+                        </div>
+                        <div className="flex items-center justify-center gap-1">
+                          <input type="checkbox" className="h-3 w-3 rounded border-slate-400 print:border-black" />
+                          <span className="text-[8px] font-black uppercase text-slate-600 print:text-black">Swag</span>
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -374,20 +476,20 @@ export function AdminAttendanceSheet() {
       </div>
 
       {/* PRINT-ONLY OFFICIAL FOOTER SIGNATURES */}
-      <div className="hidden print:flex justify-between items-end pt-12 mt-8 border-t border-black text-xs font-bold text-black px-4">
+      <div className="hidden print:flex justify-between items-end pt-10 mt-6 border-t-2 border-black text-xs font-bold text-black px-2">
         <div className="text-center">
-          <div className="w-48 border-b border-black mb-1"></div>
-          <span>Check-in Officer / Student Volunteer</span>
+          <div className="w-40 border-b border-black mb-1"></div>
+          <span className="text-[9px]">Check-in Officer / Volunteer</span>
         </div>
 
         <div className="text-center">
-          <div className="w-48 border-b border-black mb-1"></div>
-          <span>Internal SIH Coordinator</span>
+          <div className="w-40 border-b border-black mb-1"></div>
+          <span className="text-[9px]">SIH Internal Coordinator</span>
         </div>
 
         <div className="text-center">
-          <div className="w-48 border-b border-black mb-1"></div>
-          <span>Principal / Head of Institution (Seal)</span>
+          <div className="w-40 border-b border-black mb-1"></div>
+          <span className="text-[9px]">Principal / Head of Institution (Seal)</span>
         </div>
       </div>
     </div>

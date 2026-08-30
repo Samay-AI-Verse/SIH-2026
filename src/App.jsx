@@ -25,6 +25,7 @@ import { AdminBudget } from "./admin/AdminBudget";
 import { AdminFinalTeams } from "./admin/AdminFinalTeams";
 import { AdminSecurity } from "./admin/AdminSecurity";
 import { AdminAttendanceSheet } from "./admin/AdminAttendanceSheet";
+import { AdminCheckinDesk } from "./admin/AdminCheckinDesk";
 
 
 const Payment = lazy(() => import("./pages/Payment").then((m) => ({ default: m.Payment })));
@@ -60,6 +61,8 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
+            <Route path="checkin" element={<AdminCheckinDesk />} />
+            <Route path="desk" element={<AdminCheckinDesk />} />
             <Route path="registrations" element={<AdminRegistrations />} />
             <Route path="teams" element={<AdminTeams />} />
             <Route path="final-teams" element={<AdminFinalTeams />} />

@@ -140,6 +140,14 @@ export function AdminDashboard() {
             Real-time synchronization for candidate participants, confirmed teams, fees revenue collection, and date-wise registration analytics.
           </p>
         </div>
+
+        <a
+          href="/admin/checkin"
+          className="rounded-2xl border-2 border-spidey bg-spidey px-4 py-3 text-xs font-black uppercase tracking-wider text-white hover:bg-spidey/90 transition shadow-comic flex items-center justify-center gap-2 self-start sm:self-auto shrink-0"
+        >
+          <span>🎒 Event Day Check-in & Goodies Desk</span>
+          <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px]">LIVE</span>
+        </a>
       </div>
 
       {/* Main Metric Cards Grid */}
