@@ -469,16 +469,16 @@ export function AdminSeatingAndPlacards() {
                 >
                   {/* Top Header: Centered Large SIH & College Logo */}
                   <div>
-                    <div className="flex flex-col items-center justify-center pb-2 border-b-2 border-black text-center">
+                    <div className="flex flex-col items-center justify-center pb-2.5 border-b-2 border-black text-center">
                       <img
                         src="/sih-logo.png"
                         alt="SIH Logo"
-                        className="h-10 w-auto object-contain print:h-9 drop-shadow-xs mb-1"
+                        className="h-16 sm:h-20 w-auto object-contain print:h-16 drop-shadow-sm mb-1.5"
                       />
-                      <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-700 print:text-black leading-none">
+                      <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 print:text-black leading-tight">
                         GTMC NANDED · SMART INDIA HACKATHON 2026
                       </h4>
-                      <h5 className="text-[11px] font-black uppercase tracking-tight text-spidey print:text-black mt-0.5">
+                      <h5 className="text-[11px] sm:text-xs font-black uppercase tracking-tight text-spidey print:text-black mt-0.5">
                         INTERNAL HACKATHON
                       </h5>
                     </div>
