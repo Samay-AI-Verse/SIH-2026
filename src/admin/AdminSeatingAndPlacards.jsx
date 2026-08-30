@@ -15,19 +15,22 @@ import {
   Check,
   X,
   Scissors,
-  Filter
+  Filter,
+  ArrowUpDown
 } from "lucide-react";
 import { adminFetchTeams, adminUpdateTeamSeating, adminBatchUpdateSeating, subscribeTable } from "../services/apiService";
 import { Button } from "../components/ui/Button";
-import { getShortBranch } from "./AdminAttendanceSheet";
+import { getShortBranch, getNormalizedStream, getNormalizedYear } from "./AdminAttendanceSheet";
 
 export function AdminSeatingAndPlacards() {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [batchFilter, setBatchFilter] = useState("ALL"); // ALL, JUNIORS, SENIORS, UNASSIGNED, ASSIGNED
+  const [streamFilter, setStreamFilter] = useState("ALL"); // ALL, B.Tech, Diploma, B.Voc, BCA, MCA, B.Sc
   const [branchFilter, setBranchFilter] = useState("ALL");
   const [yearFilter, setYearFilter] = useState("ALL");
+  const [batchFilter, setBatchFilter] = useState("ALL"); // ALL, JUNIORS, SENIORS, UNASSIGNED, ASSIGNED
+  const [sortBy, setSortBy] = useState("YEAR_BRANCH"); // YEAR_BRANCH, STREAM_YEAR, BRANCH, REG_ID, DESK
   const [viewMode, setViewMode] = useState("PLACARDS"); // "PLACARDS" (4/page), "TABLE_LIST"
   
   // Auto-Assign Modal State
@@ -61,53 +64,57 @@ export function AdminSeatingAndPlacards() {
 
   // Helper to categorize Junior (1st/2nd Yr) vs Senior (3rd/Final Yr)
   function getTeamBatchInfo(team) {
-    const yrStr = String(team.leaderYear || team.leader_year || "").toLowerCase();
-    if (yrStr.includes("1st") || yrStr.includes("2nd") || yrStr.includes("fy") || yrStr.includes("sy") || yrStr.includes("first") || yrStr.includes("second")) {
+    const yr = getNormalizedYear(team);
+    if (yr.includes("1st") || yr.includes("2nd")) {
       return {
         batch: "JUNIOR",
         label: "Junior Batch (1st/2nd Year)",
-        floor: "1st Floor / Lab 101-104",
         color: "text-amber-700 bg-amber-50 border-amber-300"
       };
     }
     return {
       batch: "SENIOR",
       label: "Senior Batch (3rd/Final Year)",
-      floor: "2nd Floor / Lab 201-204",
       color: "text-indigo-700 bg-indigo-50 border-indigo-300"
     };
   }
 
-  // Branch & Year Analytics Breakdown
+  // Multi-dimensional Stream, Branch & Year Analytics Breakdown
   const analytics = useMemo(() => {
+    const streams = {};
     const branches = {};
     const years = {};
 
     teams.forEach((t) => {
-      const b = getShortBranch(t.leaderBranch || t.leader_branch || "CSE") || "OTHER";
+      const st = getNormalizedStream(t);
+      streams[st] = (streams[st] || 0) + 1;
+
+      const b = getShortBranch(t.leaderBranch || t.leader_branch);
       branches[b] = (branches[b] || 0) + 1;
 
-      const y = t.leaderYear || t.leader_year || "3rd Year";
+      const y = getNormalizedYear(t);
       years[y] = (years[y] || 0) + 1;
     });
 
-    return { branches, years };
+    return { streams, branches, years };
   }, [teams]);
 
   const filteredTeams = useMemo(() => {
-    return teams.filter((t) => {
+    const result = teams.filter((t) => {
       const batchInfo = getTeamBatchInfo(t);
       const hasDesk = Boolean(t.deskNumber || t.desk_number);
-      const shortB = getShortBranch(t.leaderBranch || t.leader_branch || "CSE");
-      const teamYear = t.leaderYear || t.leader_year || "";
+      const stream = getNormalizedStream(t);
+      const branch = getShortBranch(t.leaderBranch || t.leader_branch);
+      const year = getNormalizedYear(t);
 
       if (batchFilter === "JUNIORS" && batchInfo.batch !== "JUNIOR") return false;
       if (batchFilter === "SENIORS" && batchInfo.batch !== "SENIOR") return false;
       if (batchFilter === "UNASSIGNED" && hasDesk) return false;
       if (batchFilter === "ASSIGNED" && !hasDesk) return false;
 
-      if (branchFilter !== "ALL" && shortB !== branchFilter) return false;
-      if (yearFilter !== "ALL" && !teamYear.toLowerCase().includes(yearFilter.toLowerCase())) return false;
+      if (streamFilter !== "ALL" && stream !== streamFilter) return false;
+      if (branchFilter !== "ALL" && branch !== branchFilter) return false;
+      if (yearFilter !== "ALL" && year !== yearFilter) return false;
 
       if (search.trim()) {
         const q = search.toLowerCase().trim();
@@ -123,7 +130,44 @@ export function AdminSeatingAndPlacards() {
       }
       return true;
     });
-  }, [teams, batchFilter, branchFilter, yearFilter, search]);
+
+    // Multi-dimensional Sorting
+    result.sort((a, b) => {
+      if (sortBy === "YEAR_BRANCH") {
+        const yA = getNormalizedYear(a);
+        const yB = getNormalizedYear(b);
+        if (yA !== yB) return yA.localeCompare(yB);
+        const bA = getShortBranch(a.leaderBranch || a.leader_branch);
+        const bB = getShortBranch(b.leaderBranch || b.leader_branch);
+        if (bA !== bB) return bA.localeCompare(bB);
+        return (a.registrationId || "").localeCompare(b.registrationId || "");
+      }
+      if (sortBy === "STREAM_YEAR") {
+        const sA = getNormalizedStream(a);
+        const sB = getNormalizedStream(b);
+        if (sA !== sB) return sA.localeCompare(sB);
+        const yA = getNormalizedYear(a);
+        const yB = getNormalizedYear(b);
+        if (yA !== yB) return yA.localeCompare(yB);
+        return (a.registrationId || "").localeCompare(b.registrationId || "");
+      }
+      if (sortBy === "BRANCH") {
+        const bA = getShortBranch(a.leaderBranch || a.leader_branch);
+        const bB = getShortBranch(b.leaderBranch || b.leader_branch);
+        if (bA !== bB) return bA.localeCompare(bB);
+        return (a.registrationId || "").localeCompare(b.registrationId || "");
+      }
+      if (sortBy === "DESK") {
+        const dA = a.deskNumber || a.desk_number || "ZZZ";
+        const dB = b.deskNumber || b.desk_number || "ZZZ";
+        return dA.localeCompare(dB, undefined, { numeric: true, sensitivity: "base" });
+      }
+      // Default: REG_ID
+      return (a.registrationId || "").localeCompare(b.registrationId || "");
+    });
+
+    return result;
+  }, [teams, batchFilter, streamFilter, branchFilter, yearFilter, sortBy, search]);
 
   const juniorCount = useMemo(() => teams.filter((t) => getTeamBatchInfo(t).batch === "JUNIOR").length, [teams]);
   const seniorCount = useMemo(() => teams.filter((t) => getTeamBatchInfo(t).batch === "SENIOR").length, [teams]);
@@ -187,7 +231,7 @@ export function AdminSeatingAndPlacards() {
               <TableIcon className="text-spidey shrink-0" size={32} /> Table Assignment & Desk Placards
             </h1>
             <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-1">
-              Filter by Department/Branch & Year, assign tables, and generate clean 4-per-page A4 table placards with big bold team names and IDs.
+              Filter by Stream (Degree/Diploma), Department/Branch & Year, assign tables, and generate clean 4-per-page A4 table placards.
             </p>
           </div>
 
@@ -216,34 +260,90 @@ export function AdminSeatingAndPlacards() {
           </div>
         </div>
 
-        {/* Branch & Year Analytics Summary Pill Strip */}
-        <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="font-black uppercase text-[10px] text-slate-400 mr-1">Branch Distribution:</span>
-            {Object.entries(analytics.branches).map(([br, count]) => (
+        {/* Multi-Dimensional Analytics Breakdown Bar (Stream, Branch & Year) */}
+        <div className="rounded-3xl border-3 border-web bg-white p-4 shadow-comic space-y-3">
+          {/* Stream (Degree) Row */}
+          <div className="flex flex-wrap items-center gap-1.5 pb-2 border-b border-slate-100">
+            <span className="font-black uppercase text-[10.5px] text-slate-400 mr-1 flex items-center gap-1">
+              <GraduationCap size={13} className="text-spidey" /> Stream / Degree:
+            </span>
+            <button
+              onClick={() => setStreamFilter("ALL")}
+              className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+                streamFilter === "ALL"
+                  ? "bg-web text-white border-web shadow-xs"
+                  : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+              }`}
+            >
+              All Streams ({teams.length})
+            </button>
+            {Object.entries(analytics.streams).map(([st, count]) => (
               <button
-                key={br}
-                onClick={() => setBranchFilter(branchFilter === br ? "ALL" : br)}
-                className={`px-2 py-0.5 rounded-lg font-black text-[11px] uppercase transition cursor-pointer border ${
-                  branchFilter === br
-                    ? "bg-web text-white border-web shadow-xs"
+                key={st}
+                onClick={() => setStreamFilter(streamFilter === st ? "ALL" : st)}
+                className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+                  streamFilter === st
+                    ? "bg-spidey text-white border-spidey shadow-xs"
                     : "bg-white text-slate-700 border-slate-300 hover:bg-gold/30 hover:border-web"
                 }`}
               >
-                {br}: <span className="font-mono">{count}</span>
+                {st}: <span className="font-mono font-bold">{count}</span>
               </button>
             ))}
           </div>
 
+          {/* Branch Breakdown Row */}
+          <div className="flex flex-wrap items-center gap-1.5 pb-2 border-b border-slate-100">
+            <span className="font-black uppercase text-[10.5px] text-slate-400 mr-1 flex items-center gap-1">
+              <Building size={13} className="text-amber-600" /> Branch / Dept:
+            </span>
+            <button
+              onClick={() => setBranchFilter("ALL")}
+              className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+                branchFilter === "ALL"
+                  ? "bg-web text-white border-web shadow-xs"
+                  : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+              }`}
+            >
+              All Branches
+            </button>
+            {Object.entries(analytics.branches).map(([br, count]) => (
+              <button
+                key={br}
+                onClick={() => setBranchFilter(branchFilter === br ? "ALL" : br)}
+                className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+                  branchFilter === br
+                    ? "bg-amber-600 text-white border-amber-600 shadow-xs"
+                    : "bg-white text-slate-700 border-slate-300 hover:bg-gold/30"
+                }`}
+              >
+                {br}: <span className="font-mono font-bold">{count}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Year Breakdown Row */}
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="font-black uppercase text-[10px] text-slate-400 mr-1">Study Year:</span>
+            <span className="font-black uppercase text-[10.5px] text-slate-400 mr-1 flex items-center gap-1">
+              <Layers size={13} className="text-indigo-600" /> Study Year:
+            </span>
+            <button
+              onClick={() => setYearFilter("ALL")}
+              className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+                yearFilter === "ALL"
+                  ? "bg-web text-white border-web shadow-xs"
+                  : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+              }`}
+            >
+              All Years
+            </button>
             {Object.entries(analytics.years).map(([yr, count]) => (
               <button
                 key={yr}
                 onClick={() => setYearFilter(yearFilter === yr ? "ALL" : yr)}
-                className={`px-2 py-0.5 rounded-lg font-bold text-[11px] transition cursor-pointer border ${
+                className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
                   yearFilter === yr
-                    ? "bg-spidey text-white border-spidey shadow-xs"
+                    ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
                     : "bg-white text-slate-700 border-slate-300 hover:bg-gold/30"
                 }`}
               >
@@ -253,83 +353,56 @@ export function AdminSeatingAndPlacards() {
           </div>
         </div>
 
-        {/* Filter Controls Bar */}
-        <div className="rounded-3xl border-3 border-web bg-white p-4 shadow-comic space-y-3">
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-            {/* Batch Level Filters */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs font-black uppercase text-slate-400 mr-1">Floor:</span>
+        {/* Sorting & Secondary Controls Bar */}
+        <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-black uppercase text-[11px] text-slate-500 flex items-center gap-1">
+              <ArrowUpDown size={13} className="text-spidey" /> Sort Squads By:
+            </span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="rounded-xl border-2 border-web/30 bg-white px-3 py-1 text-xs font-bold text-ink focus:border-web"
+            >
+              <option value="YEAR_BRANCH">Study Year $\rightarrow$ Branch (1st Yr $\rightarrow$ 2nd Yr $\rightarrow$ 3rd Yr $\rightarrow$ 4th Yr)</option>
+              <option value="STREAM_YEAR">Degree Stream $\rightarrow$ Year (B.Tech $\rightarrow$ Diploma $\rightarrow$ B.Voc)</option>
+              <option value="BRANCH">Department / Branch (CSE $\rightarrow$ IT $\rightarrow$ E&TC $\rightarrow$ EE...)</option>
+              <option value="REG_ID">Team Registration ID (ENGG-SIH-01...)</option>
+              <option value="DESK">Assigned Table Number</option>
+            </select>
+          </div>
 
+          <div className="flex items-center gap-2">
+            <div className="flex bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
               <button
-                onClick={() => setBatchFilter("ALL")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase transition cursor-pointer ${
-                  batchFilter === "ALL" ? "bg-web text-white shadow-xs" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                onClick={() => setViewMode("PLACARDS")}
+                className={`px-3 py-1 rounded-lg text-xs font-black uppercase transition flex items-center gap-1 cursor-pointer ${
+                  viewMode === "PLACARDS" ? "bg-web text-white shadow-xs" : "text-slate-600"
                 }`}
+                title="4 Placards per A4 Page"
               >
-                All ({teams.length})
+                <LayoutGrid size={13} /> 4 / Sheet
               </button>
-
               <button
-                onClick={() => setBatchFilter("JUNIORS")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase transition cursor-pointer flex items-center gap-1 ${
-                  batchFilter === "JUNIORS" ? "bg-amber-600 text-white shadow-xs" : "bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100"
+                onClick={() => setViewMode("TABLE_LIST")}
+                className={`px-3 py-1 rounded-lg text-xs font-black uppercase transition flex items-center gap-1 cursor-pointer ${
+                  viewMode === "TABLE_LIST" ? "bg-web text-white shadow-xs" : "text-slate-600"
                 }`}
+                title="Table Master List"
               >
-                🏢 Floor 1: 1st & 2nd Yr ({juniorCount})
-              </button>
-
-              <button
-                onClick={() => setBatchFilter("SENIORS")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase transition cursor-pointer flex items-center gap-1 ${
-                  batchFilter === "SENIORS" ? "bg-indigo-600 text-white shadow-xs" : "bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100"
-                }`}
-              >
-                🏢 Floor 2: 3rd & Final Yr ({seniorCount})
-              </button>
-
-              <button
-                onClick={() => setBatchFilter("UNASSIGNED")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase transition cursor-pointer ${
-                  batchFilter === "UNASSIGNED" ? "bg-rose-600 text-white shadow-xs" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
-              >
-                Unassigned ({teams.length - assignedCount})
+                <List size={13} /> Master List
               </button>
             </div>
 
-            {/* View Mode & Search */}
-            <div className="flex items-center gap-2">
-              <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
-                <button
-                  onClick={() => setViewMode("PLACARDS")}
-                  className={`px-3 py-1 rounded-lg text-xs font-black uppercase transition flex items-center gap-1 cursor-pointer ${
-                    viewMode === "PLACARDS" ? "bg-white text-web shadow-xs border border-slate-300" : "text-slate-600"
-                  }`}
-                  title="4 Placards per A4 Page"
-                >
-                  <LayoutGrid size={13} /> 4 / Sheet
-                </button>
-                <button
-                  onClick={() => setViewMode("TABLE_LIST")}
-                  className={`px-3 py-1 rounded-lg text-xs font-black uppercase transition flex items-center gap-1 cursor-pointer ${
-                    viewMode === "TABLE_LIST" ? "bg-white text-web shadow-xs border border-slate-300" : "text-slate-600"
-                  }`}
-                  title="Table Master List"
-                >
-                  <List size={13} /> Master List
-                </button>
-              </div>
-
-              <div className="relative w-48 sm:w-60">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search Team, ID, Table..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full rounded-xl border-2 border-slate-300 bg-slate-50 py-1.5 pl-8 pr-3 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-hidden"
-                />
-              </div>
+            <div className="relative w-48 sm:w-56">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search Team, ID..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full rounded-xl border-2 border-slate-300 bg-white py-1.5 pl-8 pr-3 text-xs font-bold text-ink focus:border-web focus:outline-hidden"
+              />
             </div>
           </div>
         </div>
@@ -374,12 +447,11 @@ export function AdminSeatingAndPlacards() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:grid-cols-2 print:gap-3.5 placards-print-grid">
             {filteredTeams.map((team, idx) => {
-              const batchInfo = getTeamBatchInfo(team);
               const deskNo = team.deskNumber || team.desk_number;
               const isEditing = editingDeskId === team.id;
-              const shortBranch = getShortBranch(team.leaderBranch || team.leader_branch || "CSE");
-              const course = team.leaderCourse || team.leader_course || "B.Tech";
-              const studyYear = team.leaderYear || team.leader_year || "3rd Year";
+              const shortBranch = getShortBranch(team.leaderBranch || team.leader_branch);
+              const stream = getNormalizedStream(team);
+              const studyYear = getNormalizedYear(team);
               
               const isOpenInno = Boolean(team.is_open_innovation || team.isOpenInnovation);
               const rawProbId = team.selectedProblemId || team.selected_problem_id || "";
@@ -473,7 +545,7 @@ export function AdminSeatingAndPlacards() {
                       </h2>
 
                       <p className="text-xs font-black text-slate-700 print:text-black">
-                        {course} · {shortBranch} · {studyYear}
+                        {stream} · {shortBranch} · {studyYear}
                       </p>
                     </div>
                   </div>
@@ -520,7 +592,7 @@ export function AdminSeatingAndPlacards() {
             <div className="flex justify-between items-center text-[9px] font-bold text-slate-600 mt-1">
               <span>Date: Event Day</span>
               <span>Total Teams: {filteredTeams.length}</span>
-              <span>Floor 1: 1st/2nd Yr · Floor 2: 3rd/Final Yr</span>
+              <span>Stream / Branch / Year Sorted</span>
             </div>
           </div>
 
@@ -532,7 +604,7 @@ export function AdminSeatingAndPlacards() {
                   <th className="p-3 w-28 print:border print:border-black">Table #</th>
                   <th className="p-3 w-32 print:border print:border-black">Team ID</th>
                   <th className="p-3 min-w-[180px] print:border print:border-black">Team Name</th>
-                  <th className="p-3 w-40 print:border print:border-black">Branch & Year</th>
+                  <th className="p-3 w-44 print:border print:border-black">Stream, Branch & Year</th>
                   <th className="p-3 min-w-[200px] print:border print:border-black">Problem ID</th>
                   <th className="p-3 w-36 print:border print:border-black">Leader & Contact</th>
                 </tr>
@@ -540,10 +612,11 @@ export function AdminSeatingAndPlacards() {
 
               <tbody className="divide-y divide-slate-200 font-semibold print:divide-black">
                 {filteredTeams.map((team, idx) => {
-                  const batchInfo = getTeamBatchInfo(team);
                   const isEditing = editingDeskId === team.id;
                   const deskNo = team.deskNumber || team.desk_number || "—";
-                  const shortBranch = getShortBranch(team.leaderBranch || team.leader_branch || "CSE");
+                  const shortBranch = getShortBranch(team.leaderBranch || team.leader_branch);
+                  const stream = getNormalizedStream(team);
+                  const studyYear = getNormalizedYear(team);
 
                   return (
                     <tr key={team.id || idx} className="hover:bg-slate-50 transition print:border-b print:border-black">
@@ -600,9 +673,9 @@ export function AdminSeatingAndPlacards() {
                         {team.teamName || team.team_name}
                       </td>
 
-                      {/* Branch & Year */}
+                      {/* Stream, Branch & Year */}
                       <td className="p-3 print:border print:border-black text-[11px]">
-                        <span className="font-bold text-black">{shortBranch}</span> · <span className="text-slate-600 font-semibold">{team.leaderYear || "3rd Year"}</span>
+                        <span className="font-bold text-spidey">{stream}</span> · <span className="font-bold text-black">{shortBranch}</span> · <span className="text-slate-600 font-semibold">{studyYear}</span>
                       </td>
 
                       {/* Problem Statement ID */}

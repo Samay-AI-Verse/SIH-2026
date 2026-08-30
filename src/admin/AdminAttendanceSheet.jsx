@@ -22,35 +22,48 @@ import { downloadCsv, formatDate } from "../utils/cn";
 import { Button } from "../components/ui/Button";
 
 export function getShortBranch(branchStr) {
-  if (!branchStr) return "";
+  if (!branchStr) return "CSE";
   const s = String(branchStr).trim();
   
-  // If has parentheses like "Computer Science & Engineering (CSE)", extract inside:
+  // Extract parentheses first
   const match = s.match(/\(([^)]+)\)/);
-  if (match && match[1]) {
-    return match[1].trim().toUpperCase();
-  }
+  const textToCheck = (match && match[1] ? match[1] : s).toLowerCase().replace(/[^a-z0-9]/g, "");
 
-  const lower = s.toLowerCase();
-  if (lower.includes("computer") || lower.includes("cse") || lower.includes("software")) return "CSE";
-  if (lower.includes("information technology") || lower === "it") return "IT";
-  if (lower.includes("artificial") || lower.includes("ai") || lower.includes("data science") || lower.includes("aids")) return "AIDS";
-  if (lower.includes("electrical")) return "EE";
-  if (lower.includes("electronic") || lower.includes("etc") || lower.includes("extc")) return "ETC";
-  if (lower.includes("mechanical") || lower.includes("mech")) return "ME";
-  if (lower.includes("civil")) return "CE";
-  if (lower.includes("pharmacy") || lower.includes("pharm")) return "PHARM";
-  if (lower.includes("vocational") || lower.includes("bvoc") || lower.includes("b.voc")) return "BVOC";
-  if (lower.includes("bca")) return "BCA";
-  if (lower.includes("mca")) return "MCA";
-  if (lower.includes("bsc") || lower.includes("science")) return "BSC";
-  if (lower.includes("other")) return "OTHER";
+  if (textToCheck.includes("computer") || textToCheck.includes("cse") || textToCheck === "cs" || textToCheck.includes("software")) return "CSE";
+  if (textToCheck.includes("information") || textToCheck === "it") return "IT";
+  if (textToCheck.includes("aiml") || textToCheck.includes("aids") || textToCheck.includes("artificial") || textToCheck.includes("datascience")) return "AIDS/AIML";
+  if (textToCheck.includes("electronic") || textToCheck.includes("etc") || textToCheck.includes("extc") || textToCheck.includes("entc")) return "E&TC";
+  if (textToCheck.includes("electrical") || textToCheck === "ee") return "EE";
+  if (textToCheck.includes("mechanical") || textToCheck.includes("mech") || textToCheck === "me") return "ME";
+  if (textToCheck.includes("civil") || textToCheck === "ce") return "CE";
+  if (textToCheck.includes("pharm") || textToCheck.includes("dmlt")) return "PHARM/DMLT";
+  if (textToCheck.includes("bvoc") || textToCheck.includes("vocat")) return "BVOC";
+  if (textToCheck.includes("bca")) return "BCA";
+  if (textToCheck.includes("mca")) return "MCA";
+  if (textToCheck.includes("bsc") || textToCheck.includes("science")) return "BSC";
+  if (textToCheck.includes("other")) return "OTHER";
 
-  // If already short (e.g. CSE, IT, ME), return as is
   if (s.length <= 6) return s.toUpperCase();
-
-  // Otherwise take initials
   return s.split(/[\s-]+/).map(w => w[0]).join('').toUpperCase().slice(0, 4);
+}
+
+export function getNormalizedStream(team) {
+  const s = String(team.leaderCourse || team.leader_course || team.stream || "B.Tech").toLowerCase();
+  if (s.includes("dip") || s.includes("poly")) return "Diploma";
+  if (s.includes("voc")) return "B.Voc";
+  if (s.includes("bca")) return "BCA";
+  if (s.includes("mca")) return "MCA";
+  if (s.includes("bsc") || s.includes("science")) return "B.Sc";
+  return "B.Tech";
+}
+
+export function getNormalizedYear(team) {
+  const y = String(team.leaderYear || team.leader_year || "3rd Year").toLowerCase();
+  if (y.includes("1") || y.includes("first") || y.includes("fy") || y.includes("fe")) return "1st Year";
+  if (y.includes("2") || y.includes("second") || y.includes("sy") || y.includes("se")) return "2nd Year";
+  if (y.includes("3") || y.includes("third") || y.includes("ty") || y.includes("te")) return "3rd Year";
+  if (y.includes("4") || y.includes("four") || y.includes("final") || y.includes("be")) return "4th Year";
+  return "3rd Year";
 }
 
 export function AdminAttendanceSheet() {
@@ -58,6 +71,8 @@ export function AdminAttendanceSheet() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [streamFilter, setStreamFilter] = useState("ALL");
+  const [branchFilter, setBranchFilter] = useState("ALL");
+  const [yearFilter, setYearFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("CONFIRMED"); // "CONFIRMED", "ALL"
   const [printOrientation, setPrintOrientation] = useState("portrait"); // "portrait" or "landscape"
 
@@ -78,15 +93,38 @@ export function AdminAttendanceSheet() {
     return subscribeTable("teams", () => load().catch(() => undefined));
   }, []);
 
+  // Multi-dimensional Stream, Branch & Year Analytics Breakdown
+  const analytics = useMemo(() => {
+    const streams = {};
+    const branches = {};
+    const years = {};
+
+    teams.forEach((t) => {
+      const st = getNormalizedStream(t);
+      streams[st] = (streams[st] || 0) + 1;
+
+      const b = getShortBranch(t.leaderBranch || t.leader_branch);
+      branches[b] = (branches[b] || 0) + 1;
+
+      const y = getNormalizedYear(t);
+      years[y] = (years[y] || 0) + 1;
+    });
+
+    return { streams, branches, years };
+  }, [teams]);
+
   const filteredTeams = useMemo(() => {
     return teams.filter((t) => {
       const isConfirmed = t.registrationStatus === "CONFIRMED" || t.paymentStatus === "SUCCESS" || t.payment_status === "SUCCESS";
       if (statusFilter === "CONFIRMED" && !isConfirmed) return false;
 
-      const course = (t.leaderCourse || t.leader_course || t.stream || "B.Tech").trim();
-      if (streamFilter !== "ALL" && !course.toLowerCase().includes(streamFilter.toLowerCase())) {
-        return false;
-      }
+      const stream = getNormalizedStream(t);
+      const branch = getShortBranch(t.leaderBranch || t.leader_branch);
+      const year = getNormalizedYear(t);
+
+      if (streamFilter !== "ALL" && stream !== streamFilter) return false;
+      if (branchFilter !== "ALL" && branch !== branchFilter) return false;
+      if (yearFilter !== "ALL" && year !== yearFilter) return false;
 
       if (search.trim()) {
         const q = search.toLowerCase().trim();
@@ -101,7 +139,7 @@ export function AdminAttendanceSheet() {
       }
       return true;
     });
-  }, [teams, statusFilter, streamFilter, search]);
+  }, [teams, statusFilter, streamFilter, branchFilter, yearFilter, search]);
 
   function handlePrint() {
     window.print();
@@ -236,12 +274,105 @@ export function AdminAttendanceSheet() {
           </div>
         </div>
 
+        {/* Multi-Dimensional Analytics Breakdown Bar (Stream, Branch & Year) */}
+        <div className="rounded-3xl border-2 border-slate-800 bg-white p-4 shadow-comic space-y-3">
+          {/* Stream Row */}
+          <div className="flex flex-wrap items-center gap-1.5 pb-2 border-b border-slate-100">
+            <span className="font-black uppercase text-[10.5px] text-slate-400 mr-1 flex items-center gap-1">
+              <GraduationCap size={13} className="text-spidey" /> Stream / Degree:
+            </span>
+            <button
+              onClick={() => setStreamFilter("ALL")}
+              className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+                streamFilter === "ALL"
+                  ? "bg-web text-white border-web shadow-xs"
+                  : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+              }`}
+            >
+              All Streams ({teams.length})
+            </button>
+            {Object.entries(analytics.streams).map(([st, count]) => (
+              <button
+                key={st}
+                onClick={() => setStreamFilter(streamFilter === st ? "ALL" : st)}
+                className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+                  streamFilter === st
+                    ? "bg-spidey text-white border-spidey shadow-xs"
+                    : "bg-white text-slate-700 border-slate-300 hover:bg-gold/30 hover:border-web"
+                }`}
+              >
+                {st}: <span className="font-mono font-bold">{count}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Branch Row */}
+          <div className="flex flex-wrap items-center gap-1.5 pb-2 border-b border-slate-100">
+            <span className="font-black uppercase text-[10.5px] text-slate-400 mr-1 flex items-center gap-1">
+              <Building size={13} className="text-amber-600" /> Branch / Dept:
+            </span>
+            <button
+              onClick={() => setBranchFilter("ALL")}
+              className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+                branchFilter === "ALL"
+                  ? "bg-web text-white border-web shadow-xs"
+                  : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+              }`}
+            >
+              All Branches
+            </button>
+            {Object.entries(analytics.branches).map(([br, count]) => (
+              <button
+                key={br}
+                onClick={() => setBranchFilter(branchFilter === br ? "ALL" : br)}
+                className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+                  branchFilter === br
+                    ? "bg-amber-600 text-white border-amber-600 shadow-xs"
+                    : "bg-white text-slate-700 border-slate-300 hover:bg-gold/30"
+                }`}
+              >
+                {br}: <span className="font-mono font-bold">{count}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Year Row */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="font-black uppercase text-[10.5px] text-slate-400 mr-1 flex items-center gap-1">
+              <Layers size={13} className="text-indigo-600" /> Study Year:
+            </span>
+            <button
+              onClick={() => setYearFilter("ALL")}
+              className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+                yearFilter === "ALL"
+                  ? "bg-web text-white border-web shadow-xs"
+                  : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+              }`}
+            >
+              All Years
+            </button>
+            {Object.entries(analytics.years).map(([yr, count]) => (
+              <button
+                key={yr}
+                onClick={() => setYearFilter(yearFilter === yr ? "ALL" : yr)}
+                className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase transition cursor-pointer border ${
+                  yearFilter === yr
+                    ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                    : "bg-white text-slate-700 border-slate-300 hover:bg-gold/30"
+                }`}
+              >
+                {yr}: <span className="font-mono font-bold">{count}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Filter Controls Bar */}
         <div className="rounded-2xl border-2 border-slate-800 bg-white p-4 shadow-comic space-y-3">
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-            {/* Status & Stream Filters */}
+            {/* Status Filters */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-black uppercase text-slate-500 mr-1">Filter:</span>
+              <span className="text-xs font-black uppercase text-slate-500 mr-1">Status:</span>
               
               <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
                 <button
@@ -261,19 +392,6 @@ export function AdminAttendanceSheet() {
                   All Teams ({teams.length})
                 </button>
               </div>
-
-              <select
-                value={streamFilter}
-                onChange={(e) => setStreamFilter(e.target.value)}
-                className="rounded-xl border-2 border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-bold text-ink focus:border-web focus:outline-hidden"
-              >
-                <option value="ALL">All Streams / Degrees</option>
-                <option value="B.Tech">B.Tech / B.E.</option>
-                <option value="Diploma">Diploma</option>
-                <option value="B.Voc">B.Voc</option>
-                <option value="BCA">BCA</option>
-                <option value="MCA">MCA</option>
-              </select>
             </div>
 
             {/* Search Box */}
