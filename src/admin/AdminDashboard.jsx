@@ -40,7 +40,7 @@ export function AdminDashboard() {
     const totalCandidates = serverStats?.total_candidates ?? teams.reduce((sum, t) => sum + (t.members?.length || 6), 0);
     const confirmed = serverStats?.paid_teams ?? teams.filter((item) => item.registrationStatus === "CONFIRMED" || item.paymentStatus === "SUCCESS").length;
     const pending = serverStats?.pending_teams ?? payments.filter((item) => item.status === "PROCESSING" || item.status === "PENDING").length;
-    const revenue = serverStats?.total_revenue ?? budget?.total_revenue ?? payments.filter((item) => item.status === "SUCCESS").reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const revenue = serverStats?.total_revenue ?? budget?.total_revenue ?? (confirmed * 300);
     const expenses = serverStats?.total_expenses ?? budget?.total_expenses ?? 0;
     const netBalance = serverStats?.net_balance ?? budget?.net_balance ?? (revenue - expenses);
     const selected = serverStats?.selected_problems_count ?? teams.filter((item) => item.selectedProblemId).length;
