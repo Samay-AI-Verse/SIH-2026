@@ -247,6 +247,20 @@ export async function adminBatchCheckin(payload) {
   });
 }
 
+export async function adminUpdateTeamSeating(teamId, payload) {
+  return api(`/api/admin/teams/${teamId}/seating`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function adminBatchUpdateSeating(payload) {
+  return api("/api/admin/teams/batch-seating", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function adminUpdateSettings(patch) {
   return api("/api/admin/settings", { method: "POST", body: JSON.stringify(patch) });
 }
