@@ -525,3 +525,89 @@ export async function adminForceLogoutAll() {
   return res;
 }
 
+const TIMELINE_LOCAL_KEY = "sih_local_timeline_v1";
+
+export async function fetchTimeline() {
+  try {
+    const data = await api("/api/timeline");
+    if (data && typeof data === "object") {
+      // cache in local storage
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(TIMELINE_LOCAL_KEY, JSON.stringify(data));
+        } catch {}
+      }
+      return data;
+    }
+  } catch (err) {
+    // fallback to local cache
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem(TIMELINE_LOCAL_KEY);
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+  }
+  return {
+    published: false,
+    title: "Important Dates & Timeline",
+    subtitle: "Key dates and 2-day schedule for Smart India Hackathon 2026.",
+    events: [],
+  };
+}
+
+export async function adminFetchTimeline() {
+  try {
+    const data = await api("/api/admin/timeline");
+    if (data) {
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(TIMELINE_LOCAL_KEY, JSON.stringify(data));
+        } catch {}
+      }
+      return data;
+    }
+  } catch (err) {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem(TIMELINE_LOCAL_KEY);
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+  }
+  return {
+    published: false,
+    title: "Important Dates & Timeline",
+    subtitle: "Key dates and 2-day schedule for Smart India Hackathon 2026.",
+    events: [],
+  };
+}
+
+export async function adminSaveTimeline(payload) {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(TIMELINE_LOCAL_KEY, JSON.stringify(payload));
+    } catch {}
+  }
+  return api("/api/admin/timeline", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function adminToggleTimelinePublish(published) {
+  if (typeof window !== "undefined") {
+    try {
+      const cached = localStorage.getItem(TIMELINE_LOCAL_KEY);
+      const parsed = cached ? JSON.parse(cached) : {};
+      parsed.published = Boolean(published);
+      localStorage.setItem(TIMELINE_LOCAL_KEY, JSON.stringify(parsed));
+    } catch {}
+  }
+  return api("/api/admin/timeline/publish", {
+    method: "POST",
+    body: JSON.stringify({ published: Boolean(published) }),
+  });
+}
+
+

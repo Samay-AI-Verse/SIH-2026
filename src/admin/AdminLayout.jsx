@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
-import { BadgeCheck, LayoutDashboard, LogOut, Puzzle, Settings, Shield, Wallet, IndianRupee, GraduationCap, Menu, X, Trophy, ClipboardCheck, PackageCheck, Table as TableIcon } from "lucide-react";
+import { BadgeCheck, LayoutDashboard, LogOut, Puzzle, Settings, Shield, Wallet, IndianRupee, GraduationCap, Menu, X, Trophy, ClipboardCheck, PackageCheck, Table as TableIcon, CalendarDays } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { ColorMesh } from "../components/ColorMesh";
 import { WebOverlay } from "../components/SpideyArt";
@@ -9,6 +9,7 @@ import { cn } from "../utils/cn";
 
 const links = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/admin/timeline", label: "Timeline & Schedule", icon: CalendarDays },
   { to: "/admin/checkin", label: "Check-in & Goodies Desk", icon: PackageCheck },
   { to: "/admin/seating", label: "Table & Desk Placards", icon: TableIcon },
   { to: "/admin/attendance", label: "Entry & Attendance Sheet", icon: ClipboardCheck },

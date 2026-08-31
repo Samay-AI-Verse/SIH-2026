@@ -117,7 +117,27 @@ export function AdminSettings() {
           </div>
         </div>
 
-        {/* Card 2: Fee & Rules */}
+        {/* Card 2: Timeline & 2-Day Schedule Management */}
+        <div className="rounded-3xl border-3 border-web bg-white p-6 shadow-comic space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Public Website Display</span>
+              <h3 className="font-display text-2xl text-web mt-0.5">Hackathon Timeline & Schedule</h3>
+              <p className="text-xs text-slate-600 font-semibold mt-1">
+                Customize rounds, milestones, reporting hours, and push/publish the live 2-day schedule to the website.
+              </p>
+            </div>
+
+            <a
+              href="/admin/timeline"
+              className="inline-flex items-center gap-2 rounded-xl bg-spidey px-4 py-2.5 text-xs font-black uppercase tracking-wider text-white hover:bg-web transition shadow-comic shrink-0"
+            >
+              Manage & Push Timeline
+            </a>
+          </div>
+        </div>
+
+        {/* Card 3: Fee & Rules */}
         <div className="rounded-3xl border-3 border-web bg-white p-6 shadow-comic space-y-4">
           <h3 className="font-display text-2xl text-web">Registration Fee & Currency</h3>
           
