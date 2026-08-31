@@ -299,6 +299,57 @@ export function AdminEvaluationSheets() {
 
   return (
     <div className="space-y-6">
+      <style>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 8mm 6mm 8mm 6mm;
+          }
+          html, body {
+            background: #ffffff !important;
+            color: #000000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            font-size: 8.5pt !important;
+          }
+          .print-watermark-fixed {
+            display: flex !important;
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            width: 380px !important;
+            max-width: 80% !important;
+            opacity: 0.07 !important;
+            z-index: 0 !important;
+            pointer-events: none !important;
+            align-items: center !important;
+            justify-content: center !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .print-sheet-content {
+            position: relative !important;
+            z-index: 1 !important;
+          }
+          table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+          }
+          th, td {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          thead {
+            display: table-header-group !important;
+          }
+          tr {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+        }
+      `}</style>
+      
       {/* Screen-Only Control Toolbar (Hidden in Print) */}
       <div className="print:hidden space-y-5">
         {/* Header Title */}
@@ -388,7 +439,7 @@ export function AdminEvaluationSheets() {
         </div>
 
         {/* Search & Metadata Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-3.5 bg-slate-100/90 rounded-2xl border border-slate-200 text-xs">
           {/* Search Box */}
           <div className="relative">
             <Search className="absolute left-3 top-2.5 text-slate-400" size={15} />
@@ -467,36 +518,83 @@ export function AdminEvaluationSheets() {
       {/* ========================================================================= */}
       {/* PRINTABLE OFFICIAL SHEET VIEWPORT (STYLED FOR BOTH SCREEN & PRINT) */}
       {/* ========================================================================= */}
-      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-md print:shadow-none print:border-none print:p-0 print:m-0 print:rounded-none">
+      <div className="relative bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-md print:shadow-none print:border-none print:p-0 print:m-0 print:rounded-none overflow-hidden print-sheet-content">
         
-        {/* Printable Official Header */}
-        <div className="flex items-start justify-between border-b-2 border-slate-900 pb-3 mb-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">
-              {activeSheet === "mentor" && "Mentor Evaluation & Scoring Sheet"}
-              {activeSheet === "judge" && "Grand Finale / Jury Evaluation Score Sheet"}
-              {activeSheet === "swag" && "Swag & Goodies Distribution / Verification Tracker"}
-            </h2>
-            <div className="flex items-center gap-2 mt-1 text-xs">
-              <span className="font-black text-amber-600 uppercase tracking-wider">Smart India Hackathon 2026</span>
-              <span className="text-slate-400">|</span>
-              <span className="text-slate-600 font-semibold">
-                {activeSheet === "mentor" && "Round 1 & Round 2 Mentoring Checkpoints"}
-                {activeSheet === "judge" && "Official 5-Criteria SIH Scoring Matrix (Max 50 Marks)"}
-                {activeSheet === "swag" && "Participant Kit Handover & Real-Time Verification Checklist"}
-              </span>
-            </div>
-          </div>
-
-          <div className="text-right">
-            <div className="inline-block px-3 py-1 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">
-              Official Evaluator Sheet
-            </div>
-            <div className="text-[10px] text-slate-500 font-mono mt-1">
-              Date: {formatDate(new Date())}
-            </div>
-          </div>
+        {/* Fixed Watermark for Print (Repeats across all pages in center) */}
+        <div className="hidden print:flex print-watermark-fixed">
+          <img
+            src="/sih-logo.png"
+            alt="Smart India Hackathon Watermark"
+            className="w-full object-contain"
+          />
         </div>
+
+        {/* Screen Background Center Watermark */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden z-0 print:hidden opacity-[0.04] select-none">
+          <img
+            src="/sih-logo.png"
+            alt="Smart India Hackathon Watermark"
+            className="w-96 max-w-[70%] object-contain"
+          />
+        </div>
+
+        {/* Relative Inner Container */}
+        <div className="relative z-1">
+          {/* Printable Official Header with Smart India Hackathon & Collaborative Logos */}
+          <div className="border-b-2 border-slate-900 pb-3 mb-4">
+            <div className="flex items-center justify-between gap-4">
+              {/* Left: Official Smart India Hackathon Logo */}
+              <div className="shrink-0 flex items-center">
+                <img
+                  src="/sih-logo.png"
+                  alt="Smart India Hackathon 2026 Logo"
+                  className="h-16 sm:h-20 w-auto object-contain drop-shadow-xs"
+                />
+              </div>
+
+              {/* Center: Collaborative Bodies & Official Hackathon Dossier Titles */}
+              <div className="flex-1 text-center space-y-1">
+                <div className="text-[9.5px] font-black uppercase tracking-widest text-slate-700 flex items-center justify-center gap-1.5 flex-wrap">
+                  <span className="text-blue-900 font-extrabold">Ministry of Education</span>
+                  <span className="text-slate-400">•</span>
+                  <span className="text-amber-700 font-extrabold">Innovation Cell (MIC)</span>
+                  <span className="text-slate-400">•</span>
+                  <span className="text-slate-800 font-extrabold">AICTE</span>
+                  <span className="text-slate-400">•</span>
+                  <span className="text-slate-700 font-bold">GTMC Campus, Nanded</span>
+                </div>
+
+                <h1 className="text-lg sm:text-2xl font-black uppercase tracking-tight text-slate-900 leading-tight">
+                  {activeSheet === "mentor" && "Mentor Evaluation & Scoring Dossier"}
+                  {activeSheet === "judge" && "Grand Finale / Jury Evaluation Score Sheet"}
+                  {activeSheet === "swag" && "Swag & Goodies Distribution / Verification Tracker"}
+                </h1>
+
+                <div className="inline-flex items-center gap-2 px-3 py-0.5 bg-slate-100 border border-slate-300 rounded-full text-[10px] font-bold text-slate-800">
+                  <span className="text-amber-700 font-black tracking-wide">SMART INDIA HACKATHON 2026</span>
+                  <span className="text-slate-400">|</span>
+                  <span className="text-slate-700">
+                    {activeSheet === "mentor" && "Round 1 & Round 2 Mentoring Checkpoints (Max 30 Marks)"}
+                    {activeSheet === "judge" && "Official 5-Criteria SIH Scoring Matrix (Max 50 Marks)"}
+                    {activeSheet === "swag" && "Participant Kit Handover & Real-Time Verification Checklist"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Right: Evaluator Metadata Stamp Box */}
+              <div className="shrink-0 text-right space-y-1">
+                <div className="inline-block px-3 py-1 bg-slate-900 text-white rounded-lg text-[9.5px] font-black uppercase tracking-widest shadow-xs">
+                  Official Evaluator Sheet
+                </div>
+                <div className="text-[9.5px] text-slate-600 font-mono font-bold">
+                  Date: {formatDate(new Date())}
+                </div>
+                <div className="text-[9px] font-black text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded text-center">
+                  SIH 2026 INTERNAL
+                </div>
+              </div>
+            </div>
+          </div>
 
         {/* Evaluator Metadata Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs mb-4">
@@ -849,6 +947,7 @@ export function AdminEvaluationSheets() {
           <div>
             <b>Official Seal:</b> [ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ]
           </div>
+        </div>
         </div>
       </div>
     </div>
