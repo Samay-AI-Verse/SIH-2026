@@ -302,11 +302,18 @@ function mapTeam(team, members) {
   const leaderCourse = team.leader_course || team.leaderCourse || team.course || "";
   const leaderBranch = team.leader_branch || team.leaderBranch || team.branch || "";
   const leaderYear = team.leader_year || team.leaderYear || team.year || "";
-  const problemId = team.selected_problem_id || team.selectedProblemId || "";
-  const problemTitle = team.selected_problem_title || team.selectedProblemTitle || "";
+  const problemId = team.selected_problem_id || team.selectedProblemId || team.problem_id || team.problemId || "";
+  const problemTitle = team.selected_problem_title || team.selectedProblemTitle || team.problem_title || team.problemTitle || "";
   const problemCode = team.selected_problem_code || team.selectedProblemCode || problemId;
-  const isOpenInno = Boolean(team.is_open_innovation || team.isOpenInnovation);
-  const openInnoTitle = team.open_innovation_title || team.openInnovationTitle || "";
+  const isOpenInno = Boolean(
+    team.is_open_innovation || 
+    team.isOpenInnovation || 
+    problemId === "OPEN_INNOVATION" || 
+    team.selected_problem_id === "OPEN_INNOVATION" ||
+    team.selectedProblemId === "OPEN_INNOVATION" ||
+    Boolean(team.open_innovation_title || team.openInnovationTitle)
+  );
+  const openInnoTitle = team.open_innovation_title || team.openInnovationTitle || (problemId === "OPEN_INNOVATION" && problemTitle ? problemTitle : "") || "";
   const openInnoDesc = team.open_innovation_description || team.openInnovationDescription || "";
 
   const paymentObj = team.payment || null;

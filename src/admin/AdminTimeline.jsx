@@ -37,136 +37,211 @@ import { Button } from "../components/ui/Button";
 import { cn } from "../utils/cn";
 
 export const DEFAULT_SIH_TIMELINE_EVENTS = [
-  {
-    id: "evt-reg-deadline",
-    day: "Pre-Event",
-    date: "31 August 2026",
-    time: "11:59 PM",
-    title: "Registration & Fee Payment Cutoff",
-    category: "Milestone",
-    status: "COMPLETED",
-    venue: "Online Portal",
-    description: "Final cutoff for 6-member team registrations (incl. 1+ female member) and ₹300 UTR payment verification.",
-    highlight: true,
-  },
+  // --- DAY 1 ---
   {
     id: "evt-day1-reporting",
     day: "Day 1",
     date: "2 September 2026",
-    time: "08:00 AM - 09:30 AM",
-    title: "Team Reporting, Check-in & Goodies Distribution",
+    time: "9:30 – 10:00 AM",
+    title: "Team Reporting & Registration",
     category: "Check-in",
     status: "UPCOMING",
-    venue: "Registration Desk / Main Foyer",
-    description: "Teams collect official ID badges, hackathon kit, desk placard assignments, and campus Wi-Fi credentials.",
+    venue: "Registration Desk / Main Entrance",
+    description: "Teams report to the campus registration desk, verify attendance, collect participant kits, and receive desk allocations.",
     highlight: false,
   },
   {
-    id: "evt-day1-inaugural",
+    id: "evt-day1-seating",
     day: "Day 1",
     date: "2 September 2026",
-    time: "09:30 AM - 10:30 AM",
-    title: "Grand Inaugural Ceremony & Dignitary Address",
+    time: "10:00 – 10:30 AM",
+    title: "Team Seating & Final Instructions",
+    category: "Check-in",
+    status: "UPCOMING",
+    venue: "Hackathon Hall / Assigned Labs",
+    description: "Teams take their designated team tables/desks, connect to hackathon Wi-Fi network, and receive final lab & environment setup instructions.",
+    highlight: false,
+  },
+  {
+    id: "evt-day1-welcome",
+    day: "Day 1",
+    date: "2 September 2026",
+    time: "10:30 – 11:00 AM",
+    title: "Welcome & Introduction",
+    category: "Ceremony",
+    status: "UPCOMING",
+    venue: "Main Auditorium / Stage",
+    description: "Official welcome address to all participating teams, introducing faculties, event coordinators, and hackathon guidelines.",
+    highlight: false,
+  },
+  {
+    id: "evt-day1-opening",
+    day: "Day 1",
+    date: "2 September 2026",
+    time: "11:00 AM – 12:00 PM",
+    title: "🎤 Opening Ceremony",
     category: "Ceremony",
     status: "UPCOMING",
     venue: "Main Auditorium",
-    description: "Opening keynote by jury dignitaries, hackathon rules briefing, and problem statement scope announcements.",
+    description: "Grand opening ceremony with dignitaries, keynote address, lighting of the lamp, and motivating kickoff speech.",
     highlight: true,
   },
   {
-    id: "evt-day1-sprint1",
+    id: "evt-day1-briefing",
     day: "Day 1",
     date: "2 September 2026",
-    time: "10:30 AM",
-    title: "Hacking Sprint 1: Development & Architecture Kickoff",
+    time: "12:00 – 12:30 PM",
+    title: "Hackathon Briefing & Mission Allocation",
+    category: "Milestone",
+    status: "UPCOMING",
+    venue: "Main Auditorium / Hackathon Hall",
+    description: "Comprehensive hackathon rulebook walkthrough, evaluation criteria briefing, and official confirmation of assigned mission/problem statements.",
+    highlight: true,
+  },
+  {
+    id: "evt-day1-mission-start",
+    day: "Day 1",
+    date: "2 September 2026",
+    time: "12:30 – 1:30 PM",
+    title: "💻 Mission Completion Phase — Teams Begin Working on Assigned Mission",
     category: "Coding Sprint",
     status: "UPCOMING",
-    venue: "Assigned Team Desks / Labs",
-    description: "Development starts! Teams set up Git repositories, cloud databases, and core application scaffolds.",
-    highlight: false,
+    venue: "Assigned Team Desks",
+    description: "Coding starts! Teams begin system architecture planning, git repo initialization, UI wireframing, and initial feature implementation.",
+    highlight: true,
   },
   {
     id: "evt-day1-lunch",
     day: "Day 1",
     date: "2 September 2026",
-    time: "01:00 PM - 02:00 PM",
-    title: "Lunch & Networking Break",
+    time: "1:30 – 2:30 PM",
+    title: "🍱 Lunch Break",
     category: "Food & Refreshments",
     status: "UPCOMING",
-    venue: "Dining Hall",
-    description: "Energizing lunch break for all participating teams and coordinators.",
+    venue: "Dining Hall / Cafeteria",
+    description: "Nutritious lunch and relaxation break for all participating teams and faculty mentors.",
     highlight: false,
   },
   {
-    id: "evt-day1-round1",
+    id: "evt-day1-mentoring",
     day: "Day 1",
     date: "2 September 2026",
-    time: "02:30 PM - 05:00 PM",
-    title: "Mentoring Round 1: Idea Validation & System Architecture",
+    time: "2:30 – 5:30 PM",
+    title: "🚀 Mission Completion + Mentoring Round",
     category: "Mentoring",
     status: "UPCOMING",
-    venue: "Team Desks",
-    description: "Industry mentors and domain experts review system design, tech stack feasibility, and architecture diagrams.",
+    venue: "Team Desks & Labs",
+    description: "Teams continue working to complete their assigned mission. Mentors interact with teams, understand their approach, provide guidance and help them improve their solutions.",
     highlight: true,
   },
   {
-    id: "evt-day1-round2",
+    id: "evt-day1-end",
     day: "Day 1",
     date: "2 September 2026",
-    time: "08:30 PM - 10:30 PM",
-    title: "Mentoring Round 2: Progress Review & Integration Check",
-    category: "Evaluation Round",
-    status: "UPCOMING",
-    venue: "Team Desks",
-    description: "Jury checks mid-point implementation, API integration, and edge-case handling.",
-    highlight: false,
-  },
-  {
-    id: "evt-day1-midnight",
-    day: "Day 1 / Night",
-    date: "2-3 September 2026",
-    time: "12:00 AM - 01:00 AM",
-    title: "Midnight Snacks, Energy Drinks & Fun Activities",
-    category: "Food & Refreshments",
-    status: "UPCOMING",
-    venue: "Cafeteria & Chill Zone",
-    description: "Midnight coffee, energy snacks, music jam session, and overnight coding sprint.",
-    highlight: false,
-  },
-  {
-    id: "evt-day2-freeze",
-    day: "Day 2",
-    date: "3 September 2026",
-    time: "10:00 AM",
-    title: "Code Freeze & Final GitHub Repository Submission",
+    time: "5:30 PM",
+    title: "🔚 Day 1 Ends",
     category: "Milestone",
     status: "UPCOMING",
-    venue: "Online Submission Portal",
-    description: "All coding sprints freeze. Final commit hash, PPT deck, and live working prototype URLs submitted.",
-    highlight: true,
+    venue: "Hackathon Hall",
+    description: "Day 1 wraps up. Teams save and commit their Day 1 progress to GitHub. Mentors provide closing remarks for the day.",
+    highlight: false,
   },
+
+  // --- DAY 2 ---
   {
-    id: "evt-day2-jury",
+    id: "evt-day2-reporting",
     day: "Day 2",
     date: "3 September 2026",
-    time: "10:30 AM - 01:30 PM",
-    title: "Final Grand Jury Pitch & Live Prototype Demo",
-    category: "Jury Pitch",
+    time: "9:30 – 10:00 AM",
+    title: "Team Reporting",
+    category: "Check-in",
     status: "UPCOMING",
-    venue: "Jury Evaluation Hall",
-    description: "8-minute live working demonstration + 4-minute Q&A before the Grand Jury panel.",
+    venue: "Registration Desk / Main Entrance",
+    description: "Day 2 reporting, morning attendance verification, and morning refreshments.",
+    highlight: false,
+  },
+  {
+    id: "evt-day2-final-setup",
+    day: "Day 2",
+    date: "3 September 2026",
+    time: "10:00 – 10:30 AM",
+    title: "Final Setup & Submission Preparation",
+    category: "Milestone",
+    status: "UPCOMING",
+    venue: "Assigned Team Desks",
+    description: "Teams run final tests on their live prototypes, prepare PPT pitch decks, and test projector/screen sharing configurations.",
+    highlight: false,
+  },
+  {
+    id: "evt-day2-instructions",
+    day: "Day 2",
+    date: "3 September 2026",
+    time: "10:30 – 11:00 AM",
+    title: "Final Instructions for Judging",
+    category: "General",
+    status: "UPCOMING",
+    venue: "Hackathon Hall",
+    description: "Jury briefing and announcement of judging order, time limits (pitch + Q&A), and evaluation rubric criteria.",
+    highlight: false,
+  },
+  {
+    id: "evt-day2-judging",
+    day: "Day 2",
+    date: "3 September 2026",
+    time: "11:00 AM – 2:00 PM",
+    title: "⚖️ Judging Round — Evaluation of Teams & Solutions",
+    category: "Evaluation Round",
+    status: "UPCOMING",
+    venue: "Jury Evaluation Panels / Labs",
+    description: "Rigorous evaluation of teams and solutions by the internal judging committee. Live demo of working prototypes and Q&A.",
     highlight: true,
   },
   {
-    id: "evt-day2-valedictory",
+    id: "evt-day2-evaluation-prep",
     day: "Day 2",
     date: "3 September 2026",
-    time: "03:30 PM - 05:30 PM",
-    title: "Grand Valedictory Ceremony & Cash Prize Distribution",
+    time: "2:00 – 3:00 PM",
+    title: "Final Evaluation & Result Preparation",
+    category: "Evaluation Round",
+    status: "UPCOMING",
+    venue: "Jury Control Room",
+    description: "Judges consolidate scorecards, tally final points across criteria, and finalize the winner and runner-up nominations for SIH national nomination.",
+    highlight: false,
+  },
+  {
+    id: "evt-day2-setup-ceremony",
+    day: "Day 2",
+    date: "3 September 2026",
+    time: "3:00 – 3:15 PM",
+    title: "Closing Ceremony Setup",
+    category: "Ceremony",
+    status: "UPCOMING",
+    venue: "Main Auditorium",
+    description: "Teams and audience assemble in the Main Auditorium for the grand closing ceremony and felicitation.",
+    highlight: false,
+  },
+  {
+    id: "evt-day2-closing-ceremony",
+    day: "Day 2",
+    date: "3 September 2026",
+    time: "3:15 – 5:20 PM",
+    title: "🏆 CLOSING CEREMONY",
     category: "Award Ceremony",
     status: "UPCOMING",
     venue: "Main Auditorium",
-    description: "Announcement of SIH 2026 Champions, runner-ups, cash prizes distribution, and certificate distribution.",
+    description: "Grand valedictory session, announcement of hackathon winners, prize distribution, memento presentations, and coordinator acknowledgments.",
+    highlight: true,
+  },
+  {
+    id: "evt-day2-end",
+    day: "Day 2",
+    date: "3 September 2026",
+    time: "5:20 PM",
+    title: "✅ Hackathon Officially Ends",
+    category: "Milestone",
+    status: "UPCOMING",
+    venue: "Main Auditorium",
+    description: "Official conclusion of SIH 2026 Internal Hackathon. Group photo session, certificate distribution, and departure.",
     highlight: true,
   },
 ];
@@ -216,6 +291,34 @@ function getCategoryColor(cat) {
   }
 }
 
+export function sanitizeTimelineEvents(rawEvents) {
+  if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
+    return DEFAULT_SIH_TIMELINE_EVENTS;
+  }
+  const hasInvalid = rawEvents.some(
+    (e) => !e.day || e.day.toLowerCase().includes("night") || e.day.toLowerCase().includes("pre")
+  );
+  if (hasInvalid) {
+    return DEFAULT_SIH_TIMELINE_EVENTS;
+  }
+  return rawEvents.map((evt) => {
+    const isDay2 = evt.day === "Day 2" || (evt.date && evt.date.includes("3 September"));
+    const day = isDay2 ? "Day 2" : "Day 1";
+    const date = isDay2 ? "3 September 2026" : "2 September 2026";
+    return {
+      ...evt,
+      day,
+      date: evt.date || date,
+    };
+  });
+}
+
+const DAY_TABS = [
+  { id: "ALL", label: "All Events", badge: "2-Day Schedule" },
+  { id: "Day 1", label: "Day 1", badge: "2 Sept 2026" },
+  { id: "Day 2", label: "Day 2", badge: "3 Sept 2026" },
+];
+
 export function AdminTimeline() {
   const [published, setPublished] = useState(false);
   const [title, setTitle] = useState("Important Dates & Timeline");
@@ -234,11 +337,11 @@ export function AdminTimeline() {
   const [eventForm, setEventForm] = useState({
     day: "Day 1",
     date: "2 September 2026",
-    time: "09:00 AM",
+    time: "09:30 AM",
     title: "",
-    category: "Coding Sprint",
+    category: "Mentoring",
     status: "UPCOMING",
-    venue: "Main Hall",
+    venue: "Main Auditorium",
     description: "",
     highlight: false,
   });
@@ -255,10 +358,10 @@ export function AdminTimeline() {
         setPublished(Boolean(data.published));
         setTitle(data.title || "Important Dates & Timeline");
         setSubtitle(data.subtitle || "Key dates and 2-day schedule for Smart India Hackathon 2026.");
-        const loadedEvents = Array.isArray(data.events) && data.events.length > 0
+        const rawEvents = Array.isArray(data.events) && data.events.length > 0
           ? data.events
           : DEFAULT_SIH_TIMELINE_EVENTS;
-        setEvents(loadedEvents);
+        setEvents(sanitizeTimelineEvents(rawEvents));
       } else {
         setEvents(DEFAULT_SIH_TIMELINE_EVENTS);
       }
@@ -303,10 +406,22 @@ export function AdminTimeline() {
     await handleSaveAll(nextState);
   }
 
-  function handleLoadTemplate() {
-    if (window.confirm("Load the standard 2-Day SIH Schedule Template? This will populate the timeline with complete milestones.")) {
+  async function handleLoadTemplate() {
+    if (window.confirm("Load & Save the official 2-Day SIH Schedule (Day 1: 2 Sept, Day 2: 3 Sept)? This will remove all night plans and populate the clean schedule.")) {
       setEvents(DEFAULT_SIH_TIMELINE_EVENTS);
-      setMessage("Standard SIH 2-Day Schedule Template loaded. Click 'Save & Push to Website' to make it live.");
+      setSelectedDayFilter("ALL");
+      try {
+        await adminSaveTimeline({
+          published: published,
+          title: title.trim() || "Important Dates & Timeline",
+          subtitle: subtitle.trim() || "Key dates and 2-day schedule for Smart India Hackathon 2026.",
+          events: DEFAULT_SIH_TIMELINE_EVENTS,
+        });
+        setMessage("✅ Official 2-Day SIH Schedule (2 & 3 Sept) loaded and saved successfully!");
+        setTimeout(() => setMessage(""), 5000);
+      } catch (err) {
+        setMessage("Loaded 2-Day schedule template in editor. Click 'Save Draft' or 'Push Live' to save.");
+      }
     }
   }
 
@@ -315,7 +430,7 @@ export function AdminTimeline() {
     setEventForm({
       day: "Day 1",
       date: "2 September 2026",
-      time: "09:00 AM - 10:00 AM",
+      time: "09:30 AM - 10:30 AM",
       title: "",
       category: "Mentoring",
       status: "UPCOMING",
@@ -328,7 +443,13 @@ export function AdminTimeline() {
 
   function openEditModal(index) {
     setEditingIndex(index);
-    setEventForm({ ...events[index] });
+    const evt = events[index];
+    const isDay2 = evt.day === "Day 2" || (evt.date && evt.date.includes("3 September"));
+    setEventForm({
+      ...evt,
+      day: isDay2 ? "Day 2" : "Day 1",
+      date: evt.date || (isDay2 ? "3 September 2026" : "2 September 2026"),
+    });
     setModalOpen(true);
   }
 
@@ -377,7 +498,6 @@ export function AdminTimeline() {
     setEvents(updated);
   }
 
-  const daysList = ["ALL", ...new Set(events.map((e) => e.day || "Day 1"))];
   const filteredEvents = selectedDayFilter === "ALL" 
     ? events 
     : events.filter((e) => e.day === selectedDayFilter);
@@ -394,7 +514,7 @@ export function AdminTimeline() {
             Hackathon Timeline & Schedule
           </h1>
           <p className="text-xs sm:text-sm font-semibold text-slate-600">
-            Design rounds, milestones, and reporting schedules. Push live to the official website whenever ready.
+            2-Day Internal Hackathon Schedule: <strong>Day 1 (2 Sept)</strong> & <strong>Day 2 (3 Sept)</strong>. Push live whenever ready.
           </p>
         </div>
 
@@ -467,8 +587,8 @@ export function AdminTimeline() {
             
             <p className="text-xs sm:text-sm font-semibold text-slate-600 max-w-2xl leading-relaxed">
               {published
-                ? "The interactive 2-Day schedule, evaluation rounds, and timing details are currently VISIBLE on the public website home page."
-                : "Public visitors currently see the exciting 'Schedule Releasing Tomorrow / Coming Soon' teaser card. Toggle this switch when you are ready to publish the schedule live."}
+                ? "The interactive 2-Day schedule (2 & 3 September 2026) is currently VISIBLE on the public website home page."
+                : "Public visitors currently see the exciting 2-Day teaser card. Toggle this switch when you are ready to publish the schedule live."}
             </p>
           </div>
 
@@ -501,7 +621,7 @@ export function AdminTimeline() {
               <h3 className="font-display text-2xl text-web">Public Website Preview</h3>
             </div>
             <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-bold text-slate-700">
-              Status: {published ? "Visible Live" : "Hidden (Showing Coming Soon)"}
+              Status: {published ? "Visible Live" : "Hidden (Showing 2-Day Teaser)"}
             </span>
           </div>
 
@@ -520,19 +640,22 @@ export function AdminTimeline() {
 
           {/* Day Tabs */}
           <div className="flex flex-wrap items-center justify-center gap-2">
-            {daysList.map((day) => (
+            {DAY_TABS.map((tab) => (
               <button
-                key={day}
+                key={tab.id}
                 type="button"
-                onClick={() => setSelectedDayFilter(day)}
+                onClick={() => setSelectedDayFilter(tab.id)}
                 className={cn(
-                  "rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider transition border-2",
-                  selectedDayFilter === day
+                  "rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider transition border-2 flex items-center gap-2",
+                  selectedDayFilter === tab.id
                     ? "bg-web text-white border-web shadow-comic"
                     : "bg-white text-slate-700 border-slate-300 hover:border-web"
                 )}
               >
-                {day === "ALL" ? "All Events" : day}
+                <span>{tab.label}</span>
+                <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded", selectedDayFilter === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500")}>
+                  {tab.badge}
+                </span>
               </button>
             ))}
           </div>
@@ -567,7 +690,7 @@ export function AdminTimeline() {
                     <Clock size={13} className="shrink-0" />
                     <span>{evt.time}</span>
                     <span className="text-slate-400">•</span>
-                    <span>{evt.day}</span>
+                    <span>{evt.day} ({evt.date})</span>
                   </div>
                   {evt.venue && (
                     <div className="flex items-center gap-1.5 text-slate-500">
@@ -617,7 +740,7 @@ export function AdminTimeline() {
                   type="text"
                   value={subtitle}
                   onChange={(e) => setSubtitle(e.target.value)}
-                  placeholder="e.g. Key dates for Smart India Hackathon 2026..."
+                  placeholder="e.g. Key dates and 2-day schedule for Smart India Hackathon 2026."
                   className="w-full rounded-xl border-2 border-slate-300 bg-slate-50 px-3.5 py-2.5 text-xs sm:text-sm font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
                 />
               </div>
@@ -632,7 +755,7 @@ export function AdminTimeline() {
                   <Sparkles size={20} className="text-amber-500" /> Hackathon Milestones & Events ({events.length})
                 </h3>
                 <p className="text-xs text-slate-600 font-semibold mt-0.5">
-                  Add, edit, reorder, or customize timings for all rounds, check-in, mentoring, and ceremonies.
+                  Day 1 (2 September 2026) & Day 2 (3 September 2026) — No overnight plan.
                 </p>
               </div>
 
@@ -640,10 +763,10 @@ export function AdminTimeline() {
                 <button
                   type="button"
                   onClick={handleLoadTemplate}
-                  className="inline-flex items-center gap-1.5 rounded-xl border-2 border-slate-300 bg-slate-100 px-3.5 py-2 text-xs font-black text-slate-700 hover:bg-slate-200 transition shadow-2xs"
-                  title="Populate 10 standard events for 2-Day SIH"
+                  className="inline-flex items-center gap-1.5 rounded-xl border-2 border-web/30 bg-web/10 px-3.5 py-2 text-xs font-black text-web hover:bg-web hover:text-white transition shadow-2xs"
+                  title="Populate complete 2-Day SIH schedule (2 & 3 Sept)"
                 >
-                  <RefreshCw size={14} /> Load SIH 2-Day Template
+                  <RefreshCw size={14} /> Load SIH 2-Day Template (2 & 3 Sept)
                 </button>
 
                 <Button
@@ -659,19 +782,22 @@ export function AdminTimeline() {
             {/* Filter by Day */}
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-black uppercase text-slate-500 mr-1">Filter:</span>
-              {daysList.map((day) => (
+              {DAY_TABS.map((tab) => (
                 <button
-                  key={day}
+                  key={tab.id}
                   type="button"
-                  onClick={() => setSelectedDayFilter(day)}
+                  onClick={() => setSelectedDayFilter(tab.id)}
                   className={cn(
-                    "rounded-xl px-3 py-1.5 text-xs font-black uppercase tracking-wider transition border-2",
-                    selectedDayFilter === day
+                    "rounded-xl px-3.5 py-1.5 text-xs font-black uppercase tracking-wider transition border-2 flex items-center gap-1.5",
+                    selectedDayFilter === tab.id
                       ? "bg-web text-white border-web shadow-2xs"
                       : "bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-400"
                   )}
                 >
-                  {day === "ALL" ? "All Events" : day}
+                  <span>{tab.label}</span>
+                  <span className={cn("text-[10px] font-bold px-1.5 py-0.2 rounded", selectedDayFilter === tab.id ? "bg-white/20 text-white" : "bg-slate-200 text-slate-600")}>
+                    {tab.badge}
+                  </span>
                 </button>
               ))}
             </div>
@@ -703,8 +829,11 @@ export function AdminTimeline() {
                       {/* Left: Event Info */}
                       <div className="space-y-1.5 flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="rounded-md bg-slate-100 border border-slate-300 px-2 py-0.5 text-[10px] font-black uppercase text-slate-700">
-                            {evt.day}
+                          <span className={cn(
+                            "rounded-md border px-2 py-0.5 text-[10px] font-black uppercase",
+                            evt.day === "Day 2" ? "bg-red-50 text-red-800 border-red-200" : "bg-blue-50 text-blue-800 border-blue-200"
+                          )}>
+                            {evt.day} ({evt.date || (evt.day === "Day 2" ? "3 Sept" : "2 Sept")})
                           </span>
                           <span className={cn("rounded-md border px-2 py-0.5 text-[10px] font-black uppercase", getCategoryColor(evt.category))}>
                             {evt.category}
@@ -727,7 +856,7 @@ export function AdminTimeline() {
 
                         <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 font-bold">
                           <span className="flex items-center gap-1 text-spidey">
-                            <Clock size={13} /> {evt.time} ({evt.date})
+                            <Clock size={13} /> {evt.time}
                           </span>
                           {evt.venue && (
                             <span className="flex items-center gap-1 text-slate-500">
@@ -820,7 +949,7 @@ export function AdminTimeline() {
                   required
                   value={eventForm.title}
                   onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
-                  placeholder="e.g. Mentoring Round 1: Architecture Review"
+                  placeholder="e.g. Mentoring Round: Problem Statement Review"
                   className="w-full rounded-xl border-2 border-slate-300 bg-slate-50 px-3.5 py-2 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
                 />
               </div>
@@ -828,14 +957,22 @@ export function AdminTimeline() {
               {/* Day & Date */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block uppercase text-slate-600 mb-1">Day Tag</label>
-                  <input
-                    type="text"
+                  <label className="block uppercase text-slate-600 mb-1">Hackathon Day *</label>
+                  <select
                     value={eventForm.day}
-                    onChange={(e) => setEventForm({ ...eventForm, day: e.target.value })}
-                    placeholder="e.g. Day 1 / Day 2 / Pre-Event"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setEventForm({
+                        ...eventForm,
+                        day: val,
+                        date: val === "Day 2" ? "3 September 2026" : "2 September 2026",
+                      });
+                    }}
                     className="w-full rounded-xl border-2 border-slate-300 bg-slate-50 px-3 py-2 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
-                  />
+                  >
+                    <option value="Day 1">Day 1 (2 September 2026)</option>
+                    <option value="Day 2">Day 2 (3 September 2026)</option>
+                  </select>
                 </div>
 
                 <div>
@@ -858,7 +995,7 @@ export function AdminTimeline() {
                     type="text"
                     value={eventForm.time}
                     onChange={(e) => setEventForm({ ...eventForm, time: e.target.value })}
-                    placeholder="e.g. 02:30 PM - 05:00 PM"
+                    placeholder="e.g. 02:30 PM - 05:30 PM"
                     className="w-full rounded-xl border-2 border-slate-300 bg-slate-50 px-3 py-2 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
                   />
                 </div>
@@ -869,7 +1006,7 @@ export function AdminTimeline() {
                     type="text"
                     value={eventForm.venue}
                     onChange={(e) => setEventForm({ ...eventForm, venue: e.target.value })}
-                    placeholder="e.g. Main Auditorium / Lab B"
+                    placeholder="e.g. Main Auditorium / Assigned Labs"
                     className="w-full rounded-xl border-2 border-slate-300 bg-slate-50 px-3 py-2 text-xs font-bold text-ink focus:border-web focus:bg-white focus:outline-none"
                   />
                 </div>

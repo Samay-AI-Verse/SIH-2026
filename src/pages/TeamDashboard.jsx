@@ -21,7 +21,8 @@ import {
   Edit3,
   X,
   Save,
-  User
+  User,
+  Calendar
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Field, TextInput } from "../components/ui/Field";
@@ -225,6 +226,15 @@ export function TeamDashboard() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 pt-2 sm:pt-0">
+                  <a href="/#timeline" className="flex-1 sm:flex-initial">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-2 border-web text-xs font-black bg-white hover:bg-gold/20 w-full"
+                    >
+                      <Calendar size={13} className="mr-1.5 text-web" /> Event Schedule
+                    </Button>
+                  </a>
                   <Button
                     variant="outline"
                     size="sm"

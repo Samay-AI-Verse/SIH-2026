@@ -27,52 +27,59 @@ import { adminFetchTeams, fetchProblems, subscribeTable } from "../services/apiS
 import { downloadCsv, formatDate } from "../utils/cn";
 import { Button } from "../components/ui/Button";
 
-export function formatTeamCode(team, index, idFormat = "SIH_FORMAT") {
-  if (idFormat === "REG_ID") {
-    if (team.registrationId && team.registrationId.length <= 16 && !team.registrationId.includes("-4")) {
-      return team.registrationId;
-    }
-    if (team.registration_id && team.registration_id.length <= 16 && !team.registration_id.includes("-4")) {
-      return team.registration_id;
-    }
-    if (team.id && team.id.length > 8) {
-      return `REG-${team.id.slice(0, 6).toUpperCase()}`;
-    }
-  }
-  
+export function formatTeamCode(team, index, idFormat = "REG_ID") {
   if (idFormat === "DESK" && (team.deskNumber || team.desk_number)) {
     return `Desk-${team.deskNumber || team.desk_number}`;
   }
-
-  // If team has an explicit clean SIH format registration ID (not a 36-char raw UUID)
-  if (team.registrationId && (team.registrationId.startsWith("SIH") || team.registrationId.startsWith("TM-")) && team.registrationId.length <= 14) {
-    return team.registrationId;
-  }
-  if (team.registration_id && (team.registration_id.startsWith("SIH") || team.registration_id.startsWith("TM-")) && team.registration_id.length <= 14) {
-    return team.registration_id;
+  if (idFormat === "SIH_FORMAT") {
+    return `SIH-TM-${101 + index}`;
   }
 
-  // Standard Official Clean SIH Code: SIH-TM-101, SIH-TM-102 ...
+  // Default: Official Clean Registration ID (e.g. BSC-SIH-30, ENGG-SIH-23, DIPLOMA-SIH-39, GTMC-SIH-01)
+  const regId = team.registrationId || team.registration_id || team.regId || team.reg_id;
+  if (regId && regId.trim() && !regId.includes("-4") && regId.length <= 20) {
+    return regId.trim();
+  }
+  if (regId && regId.trim()) {
+    return regId.trim();
+  }
+  if (team.id && team.id.length > 8 && team.id.length < 32) {
+    return team.id;
+  }
+  if (team.id && team.id.length >= 32) {
+    return `REG-${team.id.slice(0, 6).toUpperCase()}`;
+  }
+
   return `SIH-TM-${101 + index}`;
 }
 
 export function resolveProblemTitle(team, problemsMap = {}) {
   // 1. Check Open Innovation
-  const isOpenInno = Boolean(team.is_open_innovation || team.isOpenInnovation);
+  const isOpenInno = Boolean(
+    team.is_open_innovation || 
+    team.isOpenInnovation || 
+    team.selected_problem_id === "OPEN_INNOVATION" || 
+    team.selectedProblemId === "OPEN_INNOVATION" ||
+    team.problem_id === "OPEN_INNOVATION" ||
+    team.problemId === "OPEN_INNOVATION"
+  );
   const openInnoTitle = team.open_innovation_title || team.openInnovationTitle || team.open_innovation_description || team.openInnovationDescription;
-  if (isOpenInno && openInnoTitle && openInnoTitle.trim()) {
-    return `[Open Innovation] ${openInnoTitle.trim()}`;
+  if (isOpenInno) {
+    if (openInnoTitle && openInnoTitle.trim()) {
+      return `[OPEN INNOVATION] ${openInnoTitle.trim()}`;
+    }
+    return `[OPEN INNOVATION] Custom Innovation Project`;
   }
 
   // 2. Check selected problem ID / code in problemsMap lookup
   const pid = team.selected_problem_id || team.selectedProblemId || team.problem_id || team.problemId;
   const pcode = team.selected_problem_code || team.selectedProblemCode || team.problem_code || team.problemCode;
   
-  if (pid && problemsMap[pid]) {
+  if (pid && pid !== "OPEN_INNOVATION" && problemsMap[pid]) {
     const p = problemsMap[pid];
     return `[${p.code || pid}] ${p.title}`;
   }
-  if (pcode && problemsMap[pcode]) {
+  if (pcode && pcode !== "OPEN_INNOVATION" && problemsMap[pcode]) {
     const p = problemsMap[pcode];
     return `[${p.code || pcode}] ${p.title}`;
   }
@@ -80,17 +87,22 @@ export function resolveProblemTitle(team, problemsMap = {}) {
   // 3. Check selected problem title directly on team
   const selTitle = team.selected_problem_title || team.selectedProblemTitle;
   if (selTitle && selTitle.trim()) {
-    const codePrefix = pcode ? `[${pcode}] ` : "";
-    return `${codePrefix}${selTitle.trim()}`;
+    const codeTag = pid && pid !== "OPEN_INNOVATION" ? `[${pid}] ` : pcode ? `[${pcode}] ` : "";
+    return `${codeTag}${selTitle.trim()}`;
   }
 
-  // 4. Check project title / custom title
+  // 4. Check if problem ID exists without title
+  if (pid && pid !== "OPEN_INNOVATION") {
+    return `[${pid}] Problem Statement ${pid}`;
+  }
+
+  // 5. Check project title / custom title
   const projTitle = team.project_title || team.projectTitle || team.title || team.topic;
   if (projTitle && projTitle.trim()) {
     return projTitle.trim();
   }
 
-  // 5. Check problem title / statement
+  // 6. Check problem title / statement
   const pTitle = team.problem_title || team.problemTitle;
   if (pTitle && pTitle.trim() && pTitle !== "Smart India Hackathon Innovation Challenge") {
     return pTitle.trim();
@@ -101,14 +113,10 @@ export function resolveProblemTitle(team, problemsMap = {}) {
     return pStmt.trim();
   }
 
-  // 6. Check category
+  // 7. Check category
   const cat = team.problemCategory || team.category || team.psCategory;
   if (cat && cat.trim()) {
-    return `${cat.trim()} Innovation Solution`;
-  }
-
-  if (isOpenInno) {
-    return "[Open Innovation] Custom Project Solution";
+    return `${cat.trim()} Innovation Track`;
   }
 
   return "Smart India Hackathon Innovation Challenge";
@@ -122,7 +130,7 @@ export function AdminEvaluationSheets() {
   const [trackFilter, setTrackFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("CONFIRMED"); // "CONFIRMED", "ALL"
   const [activeSheet, setActiveSheet] = useState("mentor"); // "mentor", "judge", "swag"
-  const [idFormat, setIdFormat] = useState("SIH_FORMAT"); // "SIH_FORMAT", "REG_ID", "DESK"
+  const [idFormat, setIdFormat] = useState("REG_ID"); // "REG_ID", "DESK", "SIH_FORMAT"
   const [labRoom, setLabRoom] = useState("Lab-01");
   const [liveScores, setLiveScores] = useState({}); // { [teamKey]: { c1, c2, c3, c4, c5 } }
   const [customTitles, setCustomTitles] = useState({}); // { [teamKey]: editedTitle }
@@ -400,9 +408,9 @@ export function AdminEvaluationSheets() {
               onChange={(e) => setIdFormat(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-hidden"
             >
-              <option value="SIH_FORMAT">ID: SIH-TM-101 (Official Clean)</option>
-              <option value="REG_ID">ID: Registration Code / ID</option>
-              <option value="DESK">ID: Desk / Table Number</option>
+              <option value="REG_ID">🆔 Official Registration ID (e.g. BSC-SIH-30)</option>
+              <option value="DESK">🪑 Desk / Table No. (e.g. Desk-01)</option>
+              <option value="SIH_FORMAT">🔢 Sequential Code (SIH-TM-101)</option>
             </select>
           </div>
 

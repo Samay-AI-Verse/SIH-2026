@@ -492,15 +492,20 @@ export function AdminRegistrations() {
 
                       {/* Problem Statement */}
                       <td className="px-4 py-3.5 text-xs font-bold text-slate-700">
-                        <div className="flex items-center justify-between gap-1">
-                          {team.isOpenInnovation ? (
-                            <span className="inline-flex items-center gap-1 text-spidey font-black bg-spidey/10 px-2 py-0.5 rounded border border-spidey/20 truncate max-w-[200px]" title={team.openInnovationTitle || "Open Innovation"}>
-                              🚀 {team.openInnovationTitle || "Open Innovation"}
+                        <div className="flex items-center justify-between gap-1.5">
+                          {team.isOpenInnovation || team.is_open_innovation || team.selectedProblemId === "OPEN_INNOVATION" ? (
+                            <span className="inline-flex items-center gap-1 font-black text-amber-900 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-md truncate max-w-[220px]" title={team.openInnovationTitle || team.open_innovation_title || "Open Innovation"}>
+                              🚀 [OPEN INNOVATION] {team.openInnovationTitle || team.open_innovation_title || "Custom Idea"}
                             </span>
-                          ) : (
-                            <div className="max-w-[200px] truncate" title={team.selectedProblemTitle || team.selectedProblemId || "Not Selected"}>
-                              {team.selectedProblemTitle || team.selectedProblemId || <span className="text-slate-400 font-normal">Not Selected</span>}
+                          ) : team.selectedProblemId ? (
+                            <div className="flex items-center gap-1.5 max-w-[220px] truncate" title={`${team.selectedProblemId}: ${team.selectedProblemTitle || ""}`}>
+                              <span className="font-mono text-[11px] font-black text-web bg-web/10 border border-web/30 px-1.5 py-0.5 rounded shrink-0">
+                                {team.selectedProblemId}
+                              </span>
+                              <span className="truncate text-slate-800 font-semibold">{team.selectedProblemTitle || "Assigned"}</span>
                             </div>
+                          ) : (
+                            <span className="text-slate-400 font-medium italic">Not Selected</span>
                           )}
                           <button
                             type="button"

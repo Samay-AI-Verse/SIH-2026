@@ -22,8 +22,14 @@ import { SectionHeading } from "./ui/SectionHeading";
 import { Button } from "./ui/Button";
 import { WHATSAPP_GROUP_URL } from "../utils/constants";
 import { fetchTimeline, subscribeTable } from "../services/apiService";
-import { DEFAULT_SIH_TIMELINE_EVENTS } from "../admin/AdminTimeline";
+import { DEFAULT_SIH_TIMELINE_EVENTS, sanitizeTimelineEvents } from "../admin/AdminTimeline";
 import { cn } from "../utils/cn";
+
+const PUBLIC_DAY_FILTERS = [
+  { id: "ALL", label: "All 2-Day Schedule" },
+  { id: "Day 1", label: "🟦 Day 1 (2 Sept 2026)" },
+  { id: "Day 2", label: "🟥 Day 2 (3 Sept 2026)" },
+];
 
 function getCategoryBadge(cat) {
   switch (cat) {
@@ -54,8 +60,8 @@ export function Timeline() {
   const [modalOpen, setModalOpen] = useState(false);
   const [timelineData, setTimelineData] = useState({
     published: false,
-    title: "Important Dates & Timeline",
-    subtitle: "Key dates for Smart India Hackathon 2026. Complete your team registration before the deadline to participate in the 2-day Grand Finale.",
+    title: "Official 2-Day Internal Hackathon Schedule",
+    subtitle: "Complete timeline for Smart India Hackathon Internal Rounds. Track registration milestones, mission completion sprint, and final jury evaluation.",
     events: DEFAULT_SIH_TIMELINE_EVENTS,
   });
   const [activeDay, setActiveDay] = useState("ALL");
@@ -68,11 +74,12 @@ export function Timeline() {
       try {
         const data = await fetchTimeline();
         if (isMounted && data) {
+          const rawEvents = Array.isArray(data.events) && data.events.length > 0 ? data.events : DEFAULT_SIH_TIMELINE_EVENTS;
           setTimelineData({
             published: Boolean(data.published),
-            title: data.title || "Important Dates & Timeline",
-            subtitle: data.subtitle || "Key dates for Smart India Hackathon 2026. Complete your team registration before the deadline to participate in the 2-day Grand Finale.",
-            events: Array.isArray(data.events) && data.events.length > 0 ? data.events : DEFAULT_SIH_TIMELINE_EVENTS,
+            title: data.title || "Official 2-Day Internal Hackathon Schedule",
+            subtitle: data.subtitle || "Complete timeline for Smart India Hackathon Internal Rounds. Track registration milestones, mission completion sprint, and final jury evaluation.",
+            events: sanitizeTimelineEvents(rawEvents),
           });
         }
       } catch {
@@ -97,7 +104,6 @@ export function Timeline() {
   const events = timelineData.events || [];
 
   // Filter events
-  const uniqueDays = ["ALL", ...new Set(events.map((e) => e.day || "Day 1"))];
   const filteredEvents = events.filter((e) => {
     const matchesDay = activeDay === "ALL" || e.day === activeDay;
     const matchesSearch = 
@@ -114,8 +120,8 @@ export function Timeline() {
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           eyebrow="Official Schedule"
-          title={timelineData.title || "Important Dates & Timeline"}
-          copy={timelineData.subtitle || "Key dates for Smart India Hackathon 2026. Complete your team registration before the deadline to participate in the 2-day Grand Finale."}
+          title={timelineData.title || "Internal Hackathon 2-Day Timeline"}
+          copy={timelineData.subtitle || "Complete timeline for Smart India Hackathon Internal Rounds. Track registration milestones, mission completion sprint, and final jury evaluation."}
         />
 
         {/* 2 MAIN FOCUS CARDS: REGISTRATION DEADLINE & GRAND FINALE */}
@@ -127,13 +133,13 @@ export function Timeline() {
                 <Clock size={14} /> Cutoff Deadline
               </span>
               <span className="rounded-md bg-red-100 px-2.5 py-0.5 text-xs font-black text-red-700">
-                LIVE NOW
+                REGISTRATION CUTOFF
               </span>
             </div>
 
             <div className="mt-6">
               <p className="font-ui text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-ink/60">
-                Registration Deadline
+                Team Registration Deadline
               </p>
               <h3 className="mt-1 font-display text-4xl sm:text-5xl lg:text-6xl text-spidey">
                 31 August 2026
@@ -161,18 +167,57 @@ export function Timeline() {
 
             <div className="mt-6">
               <p className="font-ui text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-ink/60">
-                Grand Finale Dates
+                Internal Hackathon Dates
               </p>
               <h3 className="mt-1 font-display text-4xl sm:text-5xl lg:text-6xl text-web">
                 2 & 3 September 2026
               </h3>
               <p className="mt-3 text-xs sm:text-sm font-bold text-ink/80 leading-relaxed">
-                Official 2-Day Hackathon Grand Finale featuring live problem solving, mentor evaluation rounds, working prototype demos, and awards ceremony.
+                Day 1: Mission Completion & Mentoring (12:30 PM - 5:30 PM). Day 2: Final Jury Evaluation (11:00 AM - 2:00 PM) and Closing Ceremony.
               </p>
 
               <div className="mt-6 inline-flex items-center gap-2 rounded-xl border-2 border-web/30 bg-web/10 px-3.5 py-2 text-xs font-black text-web">
-                <Trophy size={15} className="text-amber-600" /> National Innovation Grand Finale & Cash Prizes
+                <Trophy size={15} className="text-amber-600" /> Internal Hackathon Evaluation & National SIH Nominations
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 🎯 DAY 1 & DAY 2 CORE OBJECTIVES BANNER */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          {/* Day 1 Focus Banner */}
+          <div className="rounded-2xl border-3 border-web/60 bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-white p-5 shadow-xs flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-web text-white font-black text-xl shadow-xs">
+              D1
+            </div>
+            <div>
+              <span className="inline-flex items-center gap-1 rounded-md bg-blue-100 text-blue-800 px-2 py-0.5 text-[10px] font-black uppercase">
+                🟦 DAY 1 MAIN OBJECTIVE
+              </span>
+              <h4 className="font-display text-base sm:text-lg text-web mt-0.5">
+                12:30 PM – 5:30 PM = MISSION COMPLETION
+              </h4>
+              <p className="text-xs text-slate-600 font-bold">
+                Teams build their working prototype & interact with domain mentors.
+              </p>
+            </div>
+          </div>
+
+          {/* Day 2 Focus Banner */}
+          <div className="rounded-2xl border-3 border-spidey/60 bg-gradient-to-r from-red-500/10 via-red-500/5 to-white p-5 shadow-xs flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-spidey text-white font-black text-xl shadow-xs">
+              D2
+            </div>
+            <div>
+              <span className="inline-flex items-center gap-1 rounded-md bg-rose-100 text-rose-800 px-2 py-0.5 text-[10px] font-black uppercase">
+                🟥 DAY 2 MAIN OBJECTIVE
+              </span>
+              <h4 className="font-display text-base sm:text-lg text-spidey mt-0.5">
+                11:00 AM – 2:00 PM = JUDGING ROUND
+              </h4>
+              <p className="text-xs text-slate-600 font-bold">
+                Live prototype demo & Q&A followed by 🏆 3:15 PM Closing Ceremony.
+              </p>
             </div>
           </div>
         </div>
@@ -183,27 +228,27 @@ export function Timeline() {
 
         {isPublished ? (
           /* 🟢 LIVE DYNAMIC TIMELINE SECTION (WHEN ADMIN PUSHES LIVE) */
-          <div className="mt-12 space-y-8 animate-in fade-in duration-500">
+          <div className="mt-10 space-y-8 animate-in fade-in duration-500">
             {/* Control Bar: Day Filter Tabs & Search */}
             <div className="rounded-3xl border-3 border-web bg-white p-6 shadow-comic flex flex-col md:flex-row md:items-center justify-between gap-4">
               {/* Day Tabs */}
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs font-black uppercase tracking-wider text-slate-400 mr-1 hidden sm:inline">
-                  Schedule:
+                  Filter Day:
                 </span>
-                {uniqueDays.map((day) => (
+                {PUBLIC_DAY_FILTERS.map((tab) => (
                   <button
-                    key={day}
+                    key={tab.id}
                     type="button"
-                    onClick={() => setActiveDay(day)}
+                    onClick={() => setActiveDay(tab.id)}
                     className={cn(
                       "rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider transition border-2",
-                      activeDay === day
+                      activeDay === tab.id
                         ? "bg-web text-white border-web shadow-comic -translate-y-0.5"
                         : "bg-slate-50 text-slate-700 border-slate-300 hover:border-web hover:bg-white"
                     )}
                   >
-                    {day === "ALL" ? "All Milestones" : day}
+                    {tab.label}
                   </button>
                 ))}
               </div>
@@ -213,7 +258,7 @@ export function Timeline() {
                 <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search rounds, events..."
+                  placeholder="Search activities, rounds..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full rounded-xl border-2 border-slate-300 bg-slate-50 pl-9 pr-3.5 py-2 text-xs font-bold text-ink placeholder:text-slate-400 focus:border-web focus:bg-white focus:outline-none"
@@ -233,7 +278,7 @@ export function Timeline() {
             {filteredEvents.length === 0 ? (
               <div className="rounded-3xl border-3 border-dashed border-slate-300 bg-white/60 p-12 text-center">
                 <Calendar className="mx-auto text-slate-400 mb-3" size={40} />
-                <h4 className="font-display text-xl text-web">No Milestones Found</h4>
+                <h4 className="font-display text-xl text-web">No Activities Found</h4>
                 <p className="text-xs font-bold text-slate-500 mt-1">
                   Try clearing your search query or switching the day filter tab.
                 </p>
@@ -251,7 +296,7 @@ export function Timeline() {
                     key={evt.id || idx}
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.04 }}
+                    transition={{ delay: idx * 0.03 }}
                     className={cn(
                       "relative flex flex-col justify-between overflow-hidden rounded-3xl border-3 bg-white p-6 shadow-comic transition hover:-translate-y-1.5",
                       evt.highlight
@@ -294,7 +339,7 @@ export function Timeline() {
                       <div className="mt-3.5 space-y-1.5 text-xs font-bold text-slate-700">
                         <div className="flex items-center gap-2 text-spidey">
                           <Clock size={15} className="shrink-0" />
-                          <span>{evt.time}</span>
+                          <span className="text-sm font-black">{evt.time}</span>
                           <span className="text-slate-300">•</span>
                           <span>{evt.day}</span>
                         </div>
@@ -383,7 +428,7 @@ export function Timeline() {
         )}
       </div>
 
-      {/* Interactive Coming Soon / Round Schedule Modal */}
+      {/* Interactive 2-Day Schedule Modal (Complete Tabular Breakdown) */}
       <AnimatePresence>
         {modalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-black/75 backdrop-blur-sm animate-in fade-in overflow-hidden">
@@ -391,7 +436,7 @@ export function Timeline() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-3xl border-3 sm:border-4 border-web bg-white p-6 sm:p-8 shadow-2xl text-center overflow-y-auto"
+              className="relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-3xl border-3 sm:border-4 border-web bg-white p-6 sm:p-8 shadow-2xl text-left overflow-y-auto"
             >
               <button
                 type="button"
@@ -402,44 +447,120 @@ export function Timeline() {
                 <X size={18} />
               </button>
 
-              <div className="mx-auto mb-3 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl border-3 border-web bg-gold text-web shrink-0 shadow-2xs">
-                <Calendar size={28} />
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border-3 border-web bg-gold text-web shrink-0 shadow-2xs">
+                  <Calendar size={24} />
+                </div>
+                <div>
+                  <span className="inline-block rounded-full bg-spidey/15 border border-spidey/30 px-3 py-0.5 text-xs font-black text-spidey uppercase tracking-wider">
+                    SIH INTERNAL HACKATHON
+                  </span>
+                  <h3 className="font-display text-2xl sm:text-3xl text-web">
+                    Final 2-Day Timeline
+                  </h3>
+                </div>
               </div>
 
-              <span className="inline-block rounded-full bg-spidey/15 border border-spidey/30 px-3 py-0.5 text-xs font-black text-spidey uppercase tracking-wider mx-auto">
-                2-DAY EVENT SCHEDULE
-              </span>
+              {/* Day 1 Section */}
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center justify-between bg-blue-50 border-2 border-web/30 px-3.5 py-2 rounded-xl">
+                  <h4 className="font-display text-base text-web flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-blue-600" />
+                    🟦 DAY 1 — Opening & Mission Completion
+                  </h4>
+                  <span className="text-[11px] font-black text-blue-700 uppercase">2 Sept 2026</span>
+                </div>
 
-              <h3 className="mt-3 font-display text-2xl sm:text-3xl text-web">
-                2-Day Grand Finale Schedule
-              </h3>
+                <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 overflow-hidden text-xs">
+                  <div className="flex items-center justify-between p-2.5 bg-slate-50/50 font-bold">
+                    <span className="text-spidey font-mono w-36 shrink-0">9:30 – 10:00 AM</span>
+                    <span className="text-slate-800 flex-1">Team Reporting & Registration</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-white font-bold">
+                    <span className="text-spidey font-mono w-36 shrink-0">10:00 – 10:30 AM</span>
+                    <span className="text-slate-800 flex-1">Team Seating & Final Instructions</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-slate-50/50 font-bold">
+                    <span className="text-spidey font-mono w-36 shrink-0">10:30 – 11:00 AM</span>
+                    <span className="text-slate-800 flex-1">Welcome & Introduction</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-amber-50 font-black text-amber-900 border-l-4 border-amber-500">
+                    <span className="text-spidey font-mono w-36 shrink-0">11:00 AM – 12:00 PM</span>
+                    <span className="flex-1">🎤 Opening Ceremony</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-white font-bold">
+                    <span className="text-spidey font-mono w-36 shrink-0">12:00 – 12:30 PM</span>
+                    <span className="text-slate-800 flex-1">Hackathon Briefing & Mission Allocation</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-emerald-50 font-black text-emerald-900 border-l-4 border-emerald-500">
+                    <span className="text-spidey font-mono w-36 shrink-0">12:30 – 1:30 PM</span>
+                    <span className="flex-1">💻 Mission Completion Phase — Teams Begin Working</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-slate-50/50 font-bold">
+                    <span className="text-spidey font-mono w-36 shrink-0">1:30 – 2:30 PM</span>
+                    <span className="text-slate-800 flex-1">🍱 Lunch Break</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-purple-50 font-black text-purple-900 border-l-4 border-purple-500">
+                    <span className="text-spidey font-mono w-36 shrink-0">2:30 – 5:30 PM</span>
+                    <span className="flex-1">🚀 Mission Completion + Mentoring Round</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-slate-50/50 font-bold">
+                    <span className="text-spidey font-mono w-36 shrink-0">5:30 PM</span>
+                    <span className="text-slate-800 flex-1">🔚 Day 1 Ends</span>
+                  </div>
+                </div>
 
-              <div className="mt-4 space-y-2.5 rounded-2xl border-2 border-web/20 bg-slate-50 p-4 text-left text-xs font-bold text-ink/80">
-                <p className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-                  <strong>31 August 2026:</strong> Registration Deadline (11:59 PM)
-                </p>
-                <p className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-                  <strong>Day 1 (2 Sept 2026):</strong> Team Check-in & Hackathon Kickoff
-                </p>
-                <p className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-                  <strong>Day 1 (2 Sept 2026):</strong> Mentoring & Architecture Review Rounds
-                </p>
-                <p className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-                  <strong>Day 2 (3 Sept 2026):</strong> Final Working Prototype Jury Pitch
-                </p>
-                <p className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-                  <strong>Day 2 (3 Sept 2026):</strong> Grand Valedictory & Award Ceremony
-                </p>
+                <div className="rounded-xl border border-blue-300 bg-blue-50/70 p-3 text-xs font-bold text-blue-900 flex items-center gap-2">
+                  <Sparkles size={16} className="text-amber-600 shrink-0" />
+                  <span><strong>🎯 Day 1 Core Objective:</strong> 12:30 PM – 5:30 PM = MISSION COMPLETION</span>
+                </div>
               </div>
 
-              <p className="mt-4 text-xs font-bold text-ink/60">
-                Detailed reporting times and mentor guidelines are shared inside the official WhatsApp group.
-              </p>
+              {/* Day 2 Section */}
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center justify-between bg-red-50 border-2 border-spidey/30 px-3.5 py-2 rounded-xl">
+                  <h4 className="font-display text-base text-spidey flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-red-600" />
+                    🟥 DAY 2 — Judging & Closing
+                  </h4>
+                  <span className="text-[11px] font-black text-rose-700 uppercase">3 Sept 2026</span>
+                </div>
+
+                <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 overflow-hidden text-xs">
+                  <div className="flex items-center justify-between p-2.5 bg-slate-50/50 font-bold">
+                    <span className="text-spidey font-mono w-36 shrink-0">9:30 – 10:00 AM</span>
+                    <span className="text-slate-800 flex-1">Team Reporting</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-white font-bold">
+                    <span className="text-spidey font-mono w-36 shrink-0">10:00 – 10:30 AM</span>
+                    <span className="text-slate-800 flex-1">Final Setup & Submission Preparation</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-slate-50/50 font-bold">
+                    <span className="text-spidey font-mono w-36 shrink-0">10:30 – 11:00 AM</span>
+                    <span className="text-slate-800 flex-1">Final Instructions for Judging</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-indigo-50 font-black text-indigo-900 border-l-4 border-indigo-500">
+                    <span className="text-spidey font-mono w-36 shrink-0">11:00 AM – 2:00 PM</span>
+                    <span className="flex-1">⚖️ Judging Round — Evaluation of Teams & Solutions</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-white font-bold">
+                    <span className="text-spidey font-mono w-36 shrink-0">2:00 – 3:00 PM</span>
+                    <span className="text-slate-800 flex-1">Final Evaluation & Result Preparation</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-slate-50/50 font-bold">
+                    <span className="text-spidey font-mono w-36 shrink-0">3:00 – 3:15 PM</span>
+                    <span className="text-slate-800 flex-1">Closing Ceremony Setup</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-amber-50 font-black text-amber-900 border-l-4 border-amber-500">
+                    <span className="text-spidey font-mono w-36 shrink-0">3:15 – 5:20 PM</span>
+                    <span className="flex-1">🏆 CLOSING CEREMONY</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-emerald-50 font-black text-emerald-900 border-l-4 border-emerald-500">
+                    <span className="text-spidey font-mono w-36 shrink-0">5:20 PM</span>
+                    <span className="flex-1">✅ Hackathon Officially Ends</span>
+                  </div>
+                </div>
+              </div>
 
               <div className="mt-6 flex flex-col sm:flex-row gap-2">
                 <a

@@ -266,9 +266,18 @@ export function AdminSelections() {
                   <div className="rounded-xl border-2 border-web/20 bg-slate-50 p-3 text-xs space-y-1">
                     <p className="font-black text-web">Problem Statement / Category:</p>
                     <p className="font-bold text-ink">
-                      {team.isOpenInnovation
-                        ? `🚀 Open Innovation: ${team.openInnovationTitle || "Custom Project Idea"}`
-                        : team.selectedProblemTitle || "General Category"}
+                      {team.isOpenInnovation || team.is_open_innovation || team.selectedProblemId === "OPEN_INNOVATION"
+                        ? `🚀 [OPEN INNOVATION] ${team.openInnovationTitle || team.open_innovation_title || "Custom Project Idea"}`
+                        : team.selectedProblemId ? (
+                          <span className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-mono text-[11px] font-black text-web bg-web/10 border border-web/30 px-1.5 py-0.5 rounded">
+                              {team.selectedProblemId}
+                            </span>
+                            <span>{team.selectedProblemTitle || "Assigned Problem Statement"}</span>
+                          </span>
+                        ) : (
+                          team.selectedProblemTitle || "General Category"
+                        )}
                     </p>
                   </div>
 
