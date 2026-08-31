@@ -19,11 +19,55 @@ import {
   ChevronDown,
   Calendar,
   Building,
-  CheckSquare
+  CheckSquare,
+  Hash
 } from "lucide-react";
 import { adminFetchTeams, subscribeTable } from "../services/apiService";
 import { downloadCsv, formatDate } from "../utils/cn";
 import { Button } from "../components/ui/Button";
+
+export function formatTeamCode(team, index, idFormat = "SIH_FORMAT") {
+  if (idFormat === "REG_ID") {
+    if (team.registrationId && team.registrationId.length <= 16 && !team.registrationId.includes("-4")) {
+      return team.registrationId;
+    }
+    if (team.id && team.id.length > 8) {
+      return `REG-${team.id.slice(0, 6).toUpperCase()}`;
+    }
+  }
+  
+  if (idFormat === "DESK" && (team.deskNumber || team.desk_number)) {
+    return `Desk-${team.deskNumber || team.desk_number}`;
+  }
+
+  // If team has an explicit clean SIH format registration ID (not a 36-char raw UUID)
+  if (team.registrationId && (team.registrationId.startsWith("SIH") || team.registrationId.startsWith("TM-")) && team.registrationId.length <= 14) {
+    return team.registrationId;
+  }
+
+  // Standard Official Clean SIH Code: SIH-TM-101, SIH-TM-102 ...
+  return `SIH-TM-${101 + index}`;
+}
+
+export function getProblemStatementText(team) {
+  if (team.selectedProblemTitle && team.selectedProblemTitle.trim()) {
+    const code = team.selectedProblemCode ? `[${team.selectedProblemCode}] ` : "";
+    return `${code}${team.selectedProblemTitle}`;
+  }
+  if (team.openInnovationTitle && team.openInnovationTitle.trim()) {
+    return `[Open Innovation] ${team.openInnovationTitle}`;
+  }
+  if (team.problemTitle && team.problemTitle.trim() && team.problemTitle !== "Smart India Hackathon Innovation Challenge") {
+    return team.problemTitle;
+  }
+  if (team.problemStatement && team.problemStatement.trim()) {
+    return team.problemStatement;
+  }
+  if (team.problemCategory || team.category) {
+    return `${team.problemCategory || team.category} Track Innovation`;
+  }
+  return "Smart India Hackathon 2026 Solution";
+}
 
 export function AdminEvaluationSheets() {
   const [teams, setTeams] = useState([]);
@@ -32,8 +76,7 @@ export function AdminEvaluationSheets() {
   const [trackFilter, setTrackFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("CONFIRMED"); // "CONFIRMED", "ALL"
   const [activeSheet, setActiveSheet] = useState("mentor"); // "mentor", "judge", "swag"
-  const [mentorRound, setMentorRound] = useState("Checkpoint 1");
-  const [mentorName, setMentorName] = useState("");
+  const [idFormat, setIdFormat] = useState("SIH_FORMAT"); // "SIH_FORMAT", "REG_ID", "DESK"
   const [labRoom, setLabRoom] = useState("Lab-01");
   const [liveScores, setLiveScores] = useState({}); // { [teamId]: { c1, c2, c3, c4, c5 } }
   const [includeBlankRows, setIncludeBlankRows] = useState(true);
@@ -72,7 +115,6 @@ export function AdminEvaluationSheets() {
       if (statusFilter === "CONFIRMED") {
         const isConfirmed = t.paymentStatus === "SUCCESS" || t.status === "CONFIRMED" || t.status === "APPROVED";
         if (!isConfirmed && teams.some(item => item.paymentStatus === "SUCCESS")) {
-          // If some are confirmed, respect filter, otherwise show all
           return false;
         }
       }
@@ -87,10 +129,11 @@ export function AdminEvaluationSheets() {
       if (search.trim()) {
         const q = search.toLowerCase();
         const tid = (t.teamId || t.id || "").toLowerCase();
+        const regId = (t.registrationId || "").toLowerCase();
         const tname = (t.teamName || t.name || "").toLowerCase();
-        const ps = (t.problemTitle || t.problemStatement || t.psTitle || "").toLowerCase();
+        const ps = getProblemStatementText(t).toLowerCase();
         const leader = (t.leaderName || "").toLowerCase();
-        if (!tid.includes(q) && !tname.includes(q) && !ps.includes(q) && !leader.includes(q)) {
+        if (!tid.includes(q) && !regId.includes(q) && !tname.includes(q) && !ps.includes(q) && !leader.includes(q)) {
           return false;
         }
       }
@@ -99,19 +142,19 @@ export function AdminEvaluationSheets() {
     });
   }, [teams, statusFilter, trackFilter, search]);
 
-  const handleScoreChange = (teamId, field, val) => {
+  const handleScoreChange = (teamKey, field, val) => {
     const num = Math.min(10, Math.max(0, parseFloat(val) || 0));
     setLiveScores(prev => ({
       ...prev,
-      [teamId]: {
-        ...prev[teamId],
+      [teamKey]: {
+        ...prev[teamKey],
         [field]: val === "" ? "" : num
       }
     }));
   };
 
-  const getTeamTotal = (teamId, mode = "mentor") => {
-    const s = liveScores[teamId] || {};
+  const getTeamTotal = (teamKey, mode = "mentor") => {
+    const s = liveScores[teamKey] || {};
     if (mode === "mentor") {
       const c1 = parseFloat(s.c1) || 0;
       const c2 = parseFloat(s.c2) || 0;
@@ -134,37 +177,45 @@ export function AdminEvaluationSheets() {
 
   const handleExportCsv = () => {
     if (activeSheet === "mentor") {
-      const rows = filteredTeams.map((t, idx) => ({
-        "S.No": idx + 1,
-        "Team ID": t.teamId || t.id,
-        "Team Name": t.teamName || t.name,
-        "Leader Name": t.leaderName || "",
-        "Problem Statement": t.problemTitle || t.problemStatement || "N/A",
-        "Problem & Innovation (Max 10)": liveScores[t.teamId || t.id]?.c1 ?? "",
-        "Mission 1 Progress (Max 10)": liveScores[t.teamId || t.id]?.c2 ?? "",
-        "Mission 2 Execution (Max 10)": liveScores[t.teamId || t.id]?.c3 ?? "",
-        "Total Score (Max 30)": getTeamTotal(t.teamId || t.id, "mentor"),
-      }));
+      const rows = filteredTeams.map((t, idx) => {
+        const teamCode = formatTeamCode(t, idx, idFormat);
+        const teamKey = t.id || teamCode;
+        return {
+          "S.No": idx + 1,
+          "Team ID": teamCode,
+          "Team Name": t.teamName || t.name,
+          "Leader Name": t.leaderName || "",
+          "Problem Statement": getProblemStatementText(t),
+          "Problem & Innovation (Max 10)": liveScores[teamKey]?.c1 ?? "",
+          "Mission 1 Progress (Max 10)": liveScores[teamKey]?.c2 ?? "",
+          "Mission 2 Execution (Max 10)": liveScores[teamKey]?.c3 ?? "",
+          "Total Score (Max 30)": getTeamTotal(teamKey, "mentor"),
+        };
+      });
       downloadCsv(rows, `SIH_2026_Mentor_Evaluation_${formatDate(new Date())}.csv`);
     } else if (activeSheet === "judge") {
-      const rows = filteredTeams.map((t, idx) => ({
-        "S.No": idx + 1,
-        "Team ID": t.teamId || t.id,
-        "Team Name": t.teamName || t.name,
-        "Leader Name": t.leaderName || "",
-        "Problem Statement": t.problemTitle || t.problemStatement || "N/A",
-        "C1: Problem & Inno (10M)": liveScores[t.teamId || t.id]?.c1 ?? "",
-        "C2: UI/UX Design (10M)": liveScores[t.teamId || t.id]?.c2 ?? "",
-        "C3: Tech Stack & HW (10M)": liveScores[t.teamId || t.id]?.c3 ?? "",
-        "C4: Working Demo (10M)": liveScores[t.teamId || t.id]?.c4 ?? "",
-        "C5: PPT & Q&A (10M)": liveScores[t.teamId || t.id]?.c5 ?? "",
-        "Total Score (Max 50)": getTeamTotal(t.teamId || t.id, "judge"),
-      }));
+      const rows = filteredTeams.map((t, idx) => {
+        const teamCode = formatTeamCode(t, idx, idFormat);
+        const teamKey = t.id || teamCode;
+        return {
+          "S.No": idx + 1,
+          "Team ID": teamCode,
+          "Team Name": t.teamName || t.name,
+          "Leader Name": t.leaderName || "",
+          "Problem Statement": getProblemStatementText(t),
+          "C1: Problem & Inno (10M)": liveScores[teamKey]?.c1 ?? "",
+          "C2: UI/UX Design (10M)": liveScores[teamKey]?.c2 ?? "",
+          "C3: Tech Stack & HW (10M)": liveScores[teamKey]?.c3 ?? "",
+          "C4: Working Demo (10M)": liveScores[teamKey]?.c4 ?? "",
+          "C5: PPT & Q&A (10M)": liveScores[teamKey]?.c5 ?? "",
+          "Total Score (Max 50)": getTeamTotal(teamKey, "judge"),
+        };
+      });
       downloadCsv(rows, `SIH_2026_Jury_Evaluation_${formatDate(new Date())}.csv`);
     } else {
       const rows = filteredTeams.map((t, idx) => ({
         "S.No": idx + 1,
-        "Team ID": t.teamId || t.id,
+        "Team ID": formatTeamCode(t, idx, idFormat),
         "Team Name": t.teamName || t.name,
         "Leader": t.leaderName || "",
         "Members Count": (t.members || []).length || 6,
@@ -191,7 +242,7 @@ export function AdminEvaluationSheets() {
               </h1>
             </div>
             <p className="mt-1 text-xs text-slate-500 font-medium">
-              Real-time scorecards, live evaluation matrix, and print-ready judging sheets for Smart India Hackathon 2026.
+              Real-time scorecards, live evaluation matrix, and clean print-ready judging sheets for Smart India Hackathon 2026.
             </p>
           </div>
 
@@ -266,7 +317,7 @@ export function AdminEvaluationSheets() {
         </div>
 
         {/* Search & Metadata Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
           {/* Search Box */}
           <div className="relative">
             <Search className="absolute left-3 top-2.5 text-slate-400" size={15} />
@@ -277,6 +328,19 @@ export function AdminEvaluationSheets() {
               onChange={(e) => setSearch(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 py-2 text-xs font-medium focus:border-blue-500 focus:bg-white focus:outline-hidden"
             />
+          </div>
+
+          {/* ID Format Selector */}
+          <div>
+            <select
+              value={idFormat}
+              onChange={(e) => setIdFormat(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-blue-900 focus:border-blue-500 focus:bg-white focus:outline-hidden"
+            >
+              <option value="SIH_FORMAT">ID: SIH-TM-101 (Official Clean)</option>
+              <option value="REG_ID">ID: Registration Code / ID</option>
+              <option value="DESK">ID: Desk / Table Number</option>
+            </select>
           </div>
 
           {/* Track Filter */}
@@ -311,7 +375,7 @@ export function AdminEvaluationSheets() {
           <div className="flex items-center gap-2">
             <input
               type="text"
-              placeholder="Lab / Panel Room No."
+              placeholder="Lab Room No."
               value={labRoom}
               onChange={(e) => setLabRoom(e.target.value)}
               className="w-1/2 rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-medium focus:border-blue-500 focus:bg-white focus:outline-hidden"
@@ -413,8 +477,8 @@ export function AdminEvaluationSheets() {
               <thead>
                 <tr className="bg-slate-900 text-white text-[11px] font-bold text-center">
                   <th className="border border-slate-500 py-2.5 px-2 w-8">#</th>
-                  <th className="border border-slate-500 py-2.5 px-2 w-24">Team ID</th>
-                  <th className="border border-slate-500 py-2.5 px-2 w-36 text-left">Team Name</th>
+                  <th className="border border-slate-500 py-2.5 px-2 w-28">Team ID</th>
+                  <th className="border border-slate-500 py-2.5 px-2 w-44 text-left">Team Name</th>
                   <th className="border border-slate-500 py-2.5 px-2 text-left">Problem Statement / Title</th>
                   <th className="border border-slate-500 py-2.5 px-2 w-24">1. Problem & Inno<br/><span className="text-[9px] font-normal text-slate-300">(Max 10)</span></th>
                   <th className="border border-slate-500 py-2.5 px-2 w-24">2. Mission 1 Progress<br/><span className="text-[9px] font-normal text-slate-300">(Max 10)</span></th>
@@ -424,16 +488,19 @@ export function AdminEvaluationSheets() {
               </thead>
               <tbody>
                 {filteredTeams.map((team, idx) => {
-                  const tid = team.teamId || team.id || `SIH-TM-${101 + idx}`;
+                  const teamCode = formatTeamCode(team, idx, idFormat);
+                  const teamKey = team.id || teamCode;
                   const tname = team.teamName || team.name || "Team";
-                  const ps = team.problemTitle || team.problemStatement || team.psTitle || "Smart India Hackathon Innovation Challenge";
-                  const score = liveScores[tid] || {};
-                  const total = getTeamTotal(tid, "mentor");
+                  const ps = getProblemStatementText(team);
+                  const score = liveScores[teamKey] || {};
+                  const total = getTeamTotal(teamKey, "mentor");
 
                   return (
-                    <tr key={tid} className={idx % 2 === 1 ? "bg-slate-50" : "bg-white"}>
+                    <tr key={teamKey} className={idx % 2 === 1 ? "bg-slate-50" : "bg-white"}>
                       <td className="border border-slate-300 py-2.5 px-2 text-center font-bold text-slate-700">{idx + 1}</td>
-                      <td className="border border-slate-300 py-2.5 px-2 text-center font-mono font-black text-blue-900">{tid}</td>
+                      <td className="border border-slate-300 py-2.5 px-2 text-center font-mono font-black text-blue-900 bg-blue-50/20">
+                        {teamCode}
+                      </td>
                       <td className="border border-slate-300 py-2.5 px-2 font-bold text-slate-900">
                         {tname}
                         {team.leaderName && <div className="text-[10px] text-slate-500 font-normal">Lead: {team.leaderName}</div>}
@@ -447,7 +514,7 @@ export function AdminEvaluationSheets() {
                           min="0"
                           max="10"
                           value={score.c1 ?? ""}
-                          onChange={(e) => handleScoreChange(tid, "c1", e.target.value)}
+                          onChange={(e) => handleScoreChange(teamKey, "c1", e.target.value)}
                           placeholder="—"
                           className="w-14 text-center py-1 font-bold text-slate-900 border border-slate-200 rounded focus:border-blue-500 focus:outline-hidden print:border-none print:placeholder-transparent"
                         />
@@ -458,7 +525,7 @@ export function AdminEvaluationSheets() {
                           min="0"
                           max="10"
                           value={score.c2 ?? ""}
-                          onChange={(e) => handleScoreChange(tid, "c2", e.target.value)}
+                          onChange={(e) => handleScoreChange(teamKey, "c2", e.target.value)}
                           placeholder="—"
                           className="w-14 text-center py-1 font-bold text-slate-900 border border-slate-200 rounded focus:border-blue-500 focus:outline-hidden print:border-none print:placeholder-transparent"
                         />
@@ -469,7 +536,7 @@ export function AdminEvaluationSheets() {
                           min="0"
                           max="10"
                           value={score.c3 ?? ""}
-                          onChange={(e) => handleScoreChange(tid, "c3", e.target.value)}
+                          onChange={(e) => handleScoreChange(teamKey, "c3", e.target.value)}
                           placeholder="—"
                           className="w-14 text-center py-1 font-bold text-slate-900 border border-slate-200 rounded focus:border-blue-500 focus:outline-hidden print:border-none print:placeholder-transparent"
                         />
@@ -508,8 +575,8 @@ export function AdminEvaluationSheets() {
               <thead>
                 <tr className="bg-slate-900 text-white text-[11px] font-bold text-center">
                   <th className="border border-slate-500 py-2.5 px-2 w-8">#</th>
-                  <th className="border border-slate-500 py-2.5 px-2 w-24">Team ID</th>
-                  <th className="border border-slate-500 py-2.5 px-2 w-32 text-left">Team Name</th>
+                  <th className="border border-slate-500 py-2.5 px-2 w-28">Team ID</th>
+                  <th className="border border-slate-500 py-2.5 px-2 w-40 text-left">Team Name</th>
                   <th className="border border-slate-500 py-2.5 px-2 text-left">Problem Statement</th>
                   <th className="border border-slate-500 py-2 px-1 w-20">C1: Problem<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
                   <th className="border border-slate-500 py-2 px-1 w-20">C2: UI/UX<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
@@ -521,16 +588,19 @@ export function AdminEvaluationSheets() {
               </thead>
               <tbody>
                 {filteredTeams.map((team, idx) => {
-                  const tid = team.teamId || team.id || `SIH-TM-${101 + idx}`;
+                  const teamCode = formatTeamCode(team, idx, idFormat);
+                  const teamKey = team.id || teamCode;
                   const tname = team.teamName || team.name || "Team";
-                  const ps = team.problemTitle || team.problemStatement || team.psTitle || "Smart India Hackathon Innovation Challenge";
-                  const score = liveScores[tid] || {};
-                  const total = getTeamTotal(tid, "judge");
+                  const ps = getProblemStatementText(team);
+                  const score = liveScores[teamKey] || {};
+                  const total = getTeamTotal(teamKey, "judge");
 
                   return (
-                    <tr key={tid} className={idx % 2 === 1 ? "bg-slate-50" : "bg-white"}>
+                    <tr key={teamKey} className={idx % 2 === 1 ? "bg-slate-50" : "bg-white"}>
                       <td className="border border-slate-300 py-2 px-2 text-center font-bold text-slate-700">{idx + 1}</td>
-                      <td className="border border-slate-300 py-2 px-2 text-center font-mono font-black text-indigo-900">{tid}</td>
+                      <td className="border border-slate-300 py-2 px-2 text-center font-mono font-black text-indigo-900 bg-indigo-50/20">
+                        {teamCode}
+                      </td>
                       <td className="border border-slate-300 py-2 px-2 font-bold text-slate-900">
                         {tname}
                       </td>
@@ -543,7 +613,7 @@ export function AdminEvaluationSheets() {
                           min="0"
                           max="10"
                           value={score.c1 ?? ""}
-                          onChange={(e) => handleScoreChange(tid, "c1", e.target.value)}
+                          onChange={(e) => handleScoreChange(teamKey, "c1", e.target.value)}
                           placeholder="—"
                           className="w-11 text-center py-1 font-bold text-slate-900 border border-slate-200 rounded focus:border-indigo-500 focus:outline-hidden print:border-none print:placeholder-transparent"
                         />
@@ -554,7 +624,7 @@ export function AdminEvaluationSheets() {
                           min="0"
                           max="10"
                           value={score.c2 ?? ""}
-                          onChange={(e) => handleScoreChange(tid, "c2", e.target.value)}
+                          onChange={(e) => handleScoreChange(teamKey, "c2", e.target.value)}
                           placeholder="—"
                           className="w-11 text-center py-1 font-bold text-slate-900 border border-slate-200 rounded focus:border-indigo-500 focus:outline-hidden print:border-none print:placeholder-transparent"
                         />
@@ -565,7 +635,7 @@ export function AdminEvaluationSheets() {
                           min="0"
                           max="10"
                           value={score.c3 ?? ""}
-                          onChange={(e) => handleScoreChange(tid, "c3", e.target.value)}
+                          onChange={(e) => handleScoreChange(teamKey, "c3", e.target.value)}
                           placeholder="—"
                           className="w-11 text-center py-1 font-bold text-slate-900 border border-slate-200 rounded focus:border-indigo-500 focus:outline-hidden print:border-none print:placeholder-transparent"
                         />
@@ -576,7 +646,7 @@ export function AdminEvaluationSheets() {
                           min="0"
                           max="10"
                           value={score.c4 ?? ""}
-                          onChange={(e) => handleScoreChange(tid, "c4", e.target.value)}
+                          onChange={(e) => handleScoreChange(teamKey, "c4", e.target.value)}
                           placeholder="—"
                           className="w-11 text-center py-1 font-bold text-slate-900 border border-slate-200 rounded focus:border-indigo-500 focus:outline-hidden print:border-none print:placeholder-transparent"
                         />
@@ -587,7 +657,7 @@ export function AdminEvaluationSheets() {
                           min="0"
                           max="10"
                           value={score.c5 ?? ""}
-                          onChange={(e) => handleScoreChange(tid, "c5", e.target.value)}
+                          onChange={(e) => handleScoreChange(teamKey, "c5", e.target.value)}
                           placeholder="—"
                           className="w-11 text-center py-1 font-bold text-slate-900 border border-slate-200 rounded focus:border-indigo-500 focus:outline-hidden print:border-none print:placeholder-transparent"
                         />
@@ -627,8 +697,8 @@ export function AdminEvaluationSheets() {
               <thead>
                 <tr className="bg-slate-900 text-white text-[11px] font-bold text-center">
                   <th className="border border-slate-500 py-2.5 px-2 w-8">#</th>
-                  <th className="border border-slate-500 py-2.5 px-2 w-24">Team ID</th>
-                  <th className="border border-slate-500 py-2.5 px-2 w-36 text-left">Team & Leader</th>
+                  <th className="border border-slate-500 py-2.5 px-2 w-28">Team ID</th>
+                  <th className="border border-slate-500 py-2.5 px-2 w-44 text-left">Team & Leader</th>
                   <th className="border border-slate-500 py-2 px-2 w-16">Members</th>
                   <th className="border border-slate-500 py-2 px-2 w-28">T-Shirt Sizes</th>
                   <th className="border border-slate-500 py-2 px-2 w-20">ID Badges</th>
@@ -640,14 +710,17 @@ export function AdminEvaluationSheets() {
               </thead>
               <tbody>
                 {filteredTeams.map((team, idx) => {
-                  const tid = team.teamId || team.id || `SIH-TM-${101 + idx}`;
+                  const teamCode = formatTeamCode(team, idx, idFormat);
+                  const teamKey = team.id || teamCode;
                   const tname = team.teamName || team.name || "Team";
                   const membersCount = (team.members || []).length || 6;
 
                   return (
-                    <tr key={tid} className={idx % 2 === 1 ? "bg-slate-50" : "bg-white"}>
+                    <tr key={teamKey} className={idx % 2 === 1 ? "bg-slate-50" : "bg-white"}>
                       <td className="border border-slate-300 py-2.5 px-2 text-center font-bold text-slate-700">{idx + 1}</td>
-                      <td className="border border-slate-300 py-2.5 px-2 text-center font-mono font-black text-emerald-900">{tid}</td>
+                      <td className="border border-slate-300 py-2.5 px-2 text-center font-mono font-black text-emerald-900 bg-emerald-50/20">
+                        {teamCode}
+                      </td>
                       <td className="border border-slate-300 py-2.5 px-2 font-bold text-slate-900">
                         {tname}
                         {team.leaderName && <div className="text-[10px] text-slate-500 font-normal">{team.leaderName}</div>}
