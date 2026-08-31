@@ -25,6 +25,7 @@ import { AdminBudget } from "./admin/AdminBudget";
 import { AdminFinalTeams } from "./admin/AdminFinalTeams";
 import { AdminSecurity } from "./admin/AdminSecurity";
 import { AdminAttendanceSheet } from "./admin/AdminAttendanceSheet";
+import { AdminEvaluationSheets } from "./admin/AdminEvaluationSheets";
 import { AdminCheckinDesk } from "./admin/AdminCheckinDesk";
 import { AdminSeatingAndPlacards } from "./admin/AdminSeatingAndPlacards";
 import { AdminTimeline } from "./admin/AdminTimeline";
@@ -64,6 +65,9 @@ export default function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="timeline" element={<AdminTimeline />} />
+            <Route path="evaluation" element={<AdminEvaluationSheets />} />
+            <Route path="eval" element={<AdminEvaluationSheets />} />
+            <Route path="scores" element={<AdminEvaluationSheets />} />
             <Route path="checkin" element={<AdminCheckinDesk />} />
             <Route path="desk" element={<AdminCheckinDesk />} />
             <Route path="seating" element={<AdminSeatingAndPlacards />} />
