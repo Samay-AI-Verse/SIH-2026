@@ -568,12 +568,59 @@ export function AdminCertificates() {
         </div>
 
         {/* RIGHT COLUMN: Official Real-Style SIH 2026 Landscape Certificate Preview */}
-        <div className="lg:col-span-8 print:w-full print:p-0">
-          <div className="bg-slate-300/60 p-2 sm:p-5 rounded-2xl border border-slate-300 shadow-inner overflow-x-auto print:p-0 print:bg-transparent print:border-none">
+        <div className="lg:col-span-8 print:w-full print:p-0 print:m-0">
+          {/* Dedicated Print Style specifically for Certificate */}
+          <style>{`
+            @media print {
+              @page {
+                size: A4 landscape;
+                margin: 0 !important;
+              }
+              html, body, #root {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                overflow: hidden !important;
+              }
+              body * {
+                visibility: hidden !important;
+              }
+              .cert-printable-sheet, .cert-printable-sheet * {
+                visibility: visible !important;
+              }
+              .cert-printable-sheet {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+                z-index: 999999 !important;
+                background: #ffffff !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              .cert-printable-sheet img {
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: fill !important;
+              }
+            }
+          `}</style>
+
+          <div className="bg-slate-300/60 p-2 sm:p-5 rounded-2xl border border-slate-300 shadow-inner overflow-x-auto print:p-0 print:m-0 print:bg-transparent print:border-none">
             {/* The Print Container */}
             <div
               ref={printRef}
-              className="mx-auto bg-white text-slate-900 relative shadow-2xl rounded-md print:shadow-none print:rounded-none overflow-hidden select-none"
+              className="cert-printable-sheet mx-auto bg-white text-slate-900 relative shadow-2xl rounded-md print:rounded-none overflow-hidden select-none"
               style={{
                 width: "100%",
                 maxWidth: "920px",
@@ -588,47 +635,49 @@ export function AdminCertificates() {
                 className="absolute inset-0 w-full h-full object-fill pointer-events-none"
               />
 
-              {/* Exact Dynamic Text Overlay mapped to template coordinates */}
-              <div className="absolute inset-0 flex flex-col items-center pointer-events-none z-10">
-                {/* Dynamic Student Name & Team Name (Aligned safely below the green Certificate script) */}
-                <div
-                  className="w-full text-center px-8"
-                  style={{
-                    marginTop: "52%"
-                  }}
-                >
-                  <h1 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black uppercase text-[#1e3a8a] tracking-wider drop-shadow-xs">
+              {/* Exact Dynamic Text Overlay safely placed in the white gap (Y: 53% to 70%) */}
+              <div 
+                className="absolute inset-x-0 flex flex-col items-center justify-between text-center pointer-events-none z-10"
+                style={{
+                  top: "54%",
+                  bottom: "31%",
+                  left: "12%",
+                  right: "12%"
+                }}
+              >
+                {/* Dynamic Student Name (Sits right below Certificate) */}
+                <div className="w-full">
+                  <h1 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black uppercase text-[#1e3a8a] tracking-wider drop-shadow-xs leading-none">
                     {certData.studentName}
                   </h1>
-                  <div className="w-40 sm:w-56 md:w-72 h-0.5 sm:h-1 bg-[#ea580c] mx-auto mt-1" />
-
-                  {/* Elegant Team Presentation with Ornaments */}
-                  <div className="flex items-center justify-center gap-2 mt-2 sm:mt-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c]" />
-                    <p className="text-[11px] sm:text-xs md:text-sm font-medium text-slate-600 font-serif italic">
-                      of Team{" "}
-                      <span className="font-sans font-black not-italic text-slate-900 tracking-wide text-xs sm:text-sm md:text-base ml-1">
-                        {certData.teamName}
-                      </span>
-                    </p>
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c]" />
-                  </div>
-
-                  <p className="text-[8px] sm:text-[10px] md:text-[11px] text-slate-500 max-w-xl mx-auto mt-2 leading-tight hidden sm:block">
-                    for active innovation, technical excellence, and committed participation in the Smart India Hackathon 2026 Internal College Round.
-                  </p>
-
+                  <div className="w-36 sm:w-52 md:w-64 h-0.5 sm:h-1 bg-[#ea580c] mx-auto mt-1" />
                 </div>
+
+                {/* Elegant Team Presentation with Ornaments */}
+                <div className="flex items-center justify-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c]" />
+                  <p className="text-[11px] sm:text-xs md:text-sm font-medium text-slate-600 font-serif italic">
+                    of Team{" "}
+                    <span className="font-sans font-black not-italic text-slate-900 tracking-wide text-xs sm:text-sm md:text-base ml-1">
+                      {certData.teamName}
+                    </span>
+                  </p>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c]" />
+                </div>
+
+                {/* Description */}
+                <p className="text-[8px] sm:text-[10px] md:text-[11px] text-slate-500 max-w-xl mx-auto leading-tight">
+                  for active innovation, technical excellence, and committed participation in the Smart India Hackathon 2026 Internal College Round.
+                </p>
               </div>
             </div>
           </div>
-
 
           {/* Quick Action bar underneath preview */}
           <div className="print:hidden mt-3 flex items-center justify-between text-xs text-slate-600 px-2">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <strong>Official Template Active:</strong> Generated with real SIH 2026 partner emblems & signatures.
+              <strong>Official Template Active:</strong> Clean Landscape A4 without website headers/sidebar.
             </span>
             <button
               onClick={handlePrintCertificate}
@@ -638,6 +687,7 @@ export function AdminCertificates() {
             </button>
           </div>
         </div>
+
 
       </div>
 

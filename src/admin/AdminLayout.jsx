@@ -33,8 +33,11 @@ export function AdminLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="relative min-h-svh text-ink lg:grid lg:grid-cols-[270px_1fr] bg-slate-100/95">
-      <ColorMesh />
+    <div className="relative min-h-svh text-ink lg:grid lg:grid-cols-[270px_1fr] bg-slate-100/95 print:block print:bg-white print:m-0 print:p-0">
+      <div className="print:hidden">
+        <ColorMesh />
+      </div>
+
 
       {/* Top Navigation Bar for Small Screens (Mobile / Tablet) */}
       <header className="relative z-30 flex items-center justify-between overflow-hidden web-bg px-4 py-3 text-white lg:hidden print:hidden">
