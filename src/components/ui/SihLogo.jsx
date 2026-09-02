@@ -11,7 +11,7 @@ export function SihLogo({ variant = "light", size = "md", className }) {
   return (
     <div className={cn("inline-flex items-center group leading-none select-none", className)}>
       <img
-        src="/sih-logo.png"
+        src="/sih_official_logo.png?v=3"
         alt="Smart India Hackathon 2026 Logo"
         className={cn(
           "w-auto object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-sm",

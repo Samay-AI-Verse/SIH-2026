@@ -569,158 +569,80 @@ export function AdminCertificates() {
 
         {/* RIGHT COLUMN: Official Real-Style SIH 2026 Landscape Certificate Preview */}
         <div className="lg:col-span-8 print:w-full print:p-0">
-          <div className="bg-slate-200/70 p-3 sm:p-5 rounded-2xl border border-slate-300/80 shadow-inner overflow-x-auto print:p-0 print:bg-transparent print:border-none">
+          <div className="bg-slate-300/60 p-2 sm:p-5 rounded-2xl border border-slate-300 shadow-inner overflow-x-auto print:p-0 print:bg-transparent print:border-none">
             {/* The Print Container */}
             <div
               ref={printRef}
-              className="mx-auto bg-[#fdfbf7] text-slate-900 relative shadow-2xl rounded-sm print:shadow-none print:rounded-none overflow-hidden"
+              className="mx-auto bg-white text-slate-900 relative shadow-2xl rounded-md print:shadow-none print:rounded-none overflow-hidden select-none"
               style={{
                 width: "100%",
-                maxWidth: "880px",
-                aspectRatio: "1.414 / 1", // A4 Landscape ratio
-                padding: "24px",
+                maxWidth: "920px",
+                aspectRatio: "1492 / 1054", // Exact ratio of official 2nd - 3rd.png certificate
                 boxSizing: "border-box"
               }}
             >
-              {/* Luxury Triple Border */}
-              <div className="w-full h-full border-4 border-[#1e3a8a] relative p-2 box-border flex flex-col justify-between">
-                <div className="w-full h-full border-2 border-[#d97706] p-4 relative box-border flex flex-col justify-between">
-                  {/* Ornate Corner Rosettes */}
-                  <div className="absolute top-1 left-1 w-3 h-3 bg-[#d97706] rounded-full border border-[#1e3a8a]" />
-                  <div className="absolute top-1 right-1 w-3 h-3 bg-[#d97706] rounded-full border border-[#1e3a8a]" />
-                  <div className="absolute bottom-1 left-1 w-3 h-3 bg-[#d97706] rounded-full border border-[#1e3a8a]" />
-                  <div className="absolute bottom-1 right-1 w-3 h-3 bg-[#d97706] rounded-full border border-[#1e3a8a]" />
+              {/* Official Certificate Background Image */}
+              <img
+                src="/sih_official_certificate_template.png?v=2"
+                alt="SIH Official Certificate Template"
+                className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+              />
 
-                  {/* Watermark in background */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-[0.05] pointer-events-none select-none">
-                    <img src="/sih-logo.png" alt="Watermark" className="w-80 object-contain" />
-                  </div>
+              {/* Exact Dynamic Text Overlay mapped to template coordinates */}
+              <div className="absolute inset-0 flex flex-col items-center pointer-events-none z-10">
+                {/* Dynamic Student Name (Aligned right into the center body below "Certificate") */}
+                <div
+                  className="w-full text-center px-8"
+                  style={{
+                    marginTop: "51.5%"
+                  }}
+                >
+                  <p className="text-[10px] sm:text-xs md:text-sm italic font-serif text-slate-600 mb-1">
+                    This is proudly presented to
+                  </p>
+                  <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-black uppercase text-[#1e3a8a] tracking-wider drop-shadow-xs">
+                    {certData.studentName}
+                  </h1>
+                  <div className="w-48 sm:w-64 md:w-80 h-0.5 sm:h-1 bg-[#ea580c] mx-auto mt-1" />
 
-                  {/* 1. TOP HEADER: Official Collaborative Partner Badges */}
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2">
-                      {/* Left: Ministry / AICTE Logo text badges */}
-                      <div className="flex items-center gap-3">
-                        <div className="text-center">
-                          <p className="text-[9px] font-black uppercase tracking-wider text-slate-800">
-                            MINISTRY OF EDUCATION
-                          </p>
-                          <p className="text-[8px] font-semibold text-slate-500">GOVT. OF INDIA</p>
-                        </div>
-                        <span className="text-slate-300 text-xs">|</span>
-                        <div className="text-center">
-                          <p className="text-[9px] font-black uppercase tracking-wider text-blue-900">
-                            AICTE & MIC
-                          </p>
-                          <p className="text-[8px] font-semibold text-slate-500">INNOVATION CELL</p>
-                        </div>
-                      </div>
+                  {/* Team Name and Role */}
+                  <p className="text-[10px] sm:text-xs md:text-sm font-bold text-slate-800 mt-2 sm:mt-3">
+                    of Team <span className="text-[#1e3a8a] font-black">"{certData.teamName}"</span> as{" "}
+                    <span className="text-[#ea580c] font-black">
+                      {certData.role === "Leader" ? "Team Leader" : "Active Team Member"}
+                    </span>
+                  </p>
 
-                      {/* Center: SIH Official Logo */}
-                      <div className="flex items-center gap-2">
-                        <img src="/sih-logo.png" alt="SIH 2026" className="h-10 sm:h-11 object-contain" />
-                      </div>
-
-                      {/* Right: Institution / Host Badge */}
-                      <div className="text-right">
-                        <p className="text-[9px] font-black uppercase tracking-wider text-slate-800">
-                          INTERNAL HACKATHON
-                        </p>
-                        <p className="text-[8px] font-bold text-amber-700">SIH 2026 EDITION</p>
-                      </div>
-                    </div>
-
-                    <div className="text-center mt-3">
-                      <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-[#d97706]">
-                        {certData.subHeader}
-                      </p>
-                      <h2 className="text-base sm:text-lg font-black uppercase tracking-wide text-[#1e3a8a] mt-0.5">
-                        {certData.eventTitle}
-                      </h2>
-                    </div>
-                  </div>
-
-                  {/* 2. CENTER BODY: Certificate of ... & Student Details */}
-                  <div className="relative z-10 text-center my-auto py-2">
-                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-serif italic font-extrabold text-[#0f172a] tracking-wide">
-                      {certData.certType}
-                    </h3>
-                    <div className="w-44 h-0.5 bg-[#d97706] mx-auto mt-1 mb-2" />
-
-                    <p className="text-xs italic text-slate-500 font-serif">
-                      This is proudly presented to
+                  {/* College / Institution */}
+                  {certData.collegeName && (
+                    <p className="text-[9px] sm:text-[11px] md:text-xs text-slate-600 font-medium italic mt-0.5">
+                      representing {certData.collegeName}
                     </p>
+                  )}
 
-                    {/* Student Full Name */}
-                    <div className="my-2">
-                      <span className="text-xl sm:text-2xl lg:text-3xl font-sans font-black uppercase text-[#1e3a8a] tracking-wider px-6 py-0.5 border-b-2 border-[#d97706] inline-block">
-                        {certData.studentName}
-                      </span>
-                    </div>
-
-                    {/* Team and College details */}
-                    <p className="text-xs sm:text-sm font-semibold text-slate-800 mt-2">
-                      of Team <strong className="text-blue-900 font-black">"{certData.teamName}"</strong> as{" "}
-                      <span className="text-amber-700 font-bold">{certData.role === "Leader" ? "Team Leader" : "Active Member"}</span>
-                    </p>
-
-                    {certData.collegeName && (
-                      <p className="text-xs text-slate-600 font-medium italic mt-0.5">
-                        representing {certData.collegeName}
-                      </p>
-                    )}
-
-                    <p className="text-[11px] sm:text-xs text-slate-500 max-w-xl mx-auto mt-2 leading-relaxed">
-                      {certData.description}
-                    </p>
-                  </div>
-
-                  {/* 3. BOTTOM FOOTER: Official Signatures & Seal */}
-                  <div className="relative z-10 pt-2 border-t border-slate-200">
-                    <div className="grid grid-cols-3 items-end text-center">
-                      {/* Left Signatory */}
-                      <div className="text-center px-2">
-                        <div className="w-32 border-b border-slate-800 mx-auto mb-1" />
-                        <p className="text-[11px] font-black text-slate-900">{certData.sign1Name}</p>
-                        <p className="text-[9px] text-slate-500 font-medium">{certData.sign1Title}</p>
-                      </div>
-
-                      {/* Center Seal */}
-                      <div className="text-center">
-                        <div className="inline-block p-1 border border-amber-600 rounded-full bg-amber-50/50 mb-1">
-                          <span className="text-[9px] font-black text-amber-700 uppercase px-2 py-0.5 block">
-                            ★ VERIFIED MERIT RECORD ★
-                          </span>
-                        </div>
-                        <p className="text-[9px] text-slate-500">Issued: {certData.issueDate}</p>
-                      </div>
-
-                      {/* Right Signatory */}
-                      <div className="text-center px-2">
-                        <div className="w-32 border-b border-slate-800 mx-auto mb-1" />
-                        <p className="text-[11px] font-black text-slate-900">{certData.sign2Name}</p>
-                        <p className="text-[9px] text-slate-500 font-medium">{certData.sign2Title}</p>
-                      </div>
-                    </div>
-                  </div>
+                  <p className="text-[8px] sm:text-[10px] md:text-[11px] text-slate-500 max-w-xl mx-auto mt-2 leading-tight hidden sm:block">
+                    for exemplary technical innovation, teamwork, and dedicated participation in Smart India Hackathon 2026.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Quick Action bar underneath preview */}
-          <div className="print:hidden mt-3 flex items-center justify-between text-xs text-slate-500 px-2">
-            <span>
-              💡 <strong>Instant A4 Landscape PDF:</strong> Click "Print / Save A4 PDF" or press <kbd className="bg-slate-200 px-1 py-0.5 rounded font-mono text-slate-800">Ctrl + P</kbd>. Select <em>"Save as PDF"</em> with <em>Landscape</em> orientation.
+          <div className="print:hidden mt-3 flex items-center justify-between text-xs text-slate-600 px-2">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <strong>Official Template Active:</strong> Generated with real SIH 2026 partner emblems & signatures.
             </span>
             <button
               onClick={handlePrintCertificate}
-              className="text-indigo-700 font-bold hover:underline flex items-center gap-1"
+              className="text-indigo-700 font-bold hover:underline flex items-center gap-1 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-2xs"
             >
-              <Printer size={13} /> Direct Print
+              <Printer size={13} /> Direct Print A4 Landscape
             </button>
           </div>
         </div>
+
       </div>
 
       {/* Configuration & SMTP Modal (Same as before) */}

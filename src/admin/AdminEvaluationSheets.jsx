@@ -322,10 +322,10 @@ export function AdminEvaluationSheets() {
             top: 50% !important;
             left: 50% !important;
             transform: translate(-50%, -50%) !important;
-            width: ${orientation === "landscape" ? "420px" : "340px"} !important;
+            width: ${orientation === "landscape" ? "360px" : "280px"} !important;
             max-width: 80% !important;
-            opacity: 0.07 !important;
-            z-index: 0 !important;
+            opacity: 0.16 !important;
+            z-index: 50 !important;
             pointer-events: none !important;
             align-items: center !important;
             justify-content: center !important;
@@ -568,18 +568,18 @@ export function AdminEvaluationSheets() {
         {/* Fixed Watermark for Print (Repeats across all pages in center) */}
         <div className="hidden print:flex print-watermark-fixed">
           <img
-            src="/sih-logo.png"
-            alt="Smart India Hackathon Watermark"
+            src="/sih_official_logo.png?v=3"
+            alt="Smart India Hackathon Official Watermark"
             className="w-full object-contain"
           />
         </div>
 
         {/* Screen Background Center Watermark */}
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden z-0 print:hidden opacity-[0.04] select-none">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden z-0 print:hidden opacity-10 select-none">
           <img
-            src="/sih-logo.png"
-            alt="Smart India Hackathon Watermark"
-            className="w-96 max-w-[70%] object-contain"
+            src="/sih_official_logo.png?v=3"
+            alt="Smart India Hackathon Official Watermark"
+            className="w-96 max-w-[60%] object-contain"
           />
         </div>
 
@@ -591,7 +591,7 @@ export function AdminEvaluationSheets() {
               {/* Left: Official Smart India Hackathon Logo */}
               <div className="shrink-0 flex items-center">
                 <img
-                  src="/sih-logo.png"
+                  src="/sih_official_logo.png?v=3"
                   alt="Smart India Hackathon 2026 Logo"
                   className="h-16 sm:h-20 w-auto object-contain drop-shadow-xs"
                 />
@@ -805,8 +805,16 @@ export function AdminEvaluationSheets() {
         {/* TABLE 2: JURY GRAND FINALE EVALUATION TABLE (CLEAN 10 COLUMNS) */}
         {/* ========================================================================= */}
         {activeSheet === "judge" && (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-slate-400 text-xs">
+          <div className="overflow-x-auto relative">
+            {/* Dedicated watermark behind jury list table */}
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden z-0 print:hidden opacity-10 select-none">
+              <img
+                src="/sih_official_logo.png?v=3"
+                alt="Smart India Hackathon Official Watermark"
+                className="w-[420px] max-w-[60%] object-contain"
+              />
+            </div>
+            <table className="w-full border-collapse border border-slate-400 text-xs relative z-1">
               <thead>
                 <tr className="bg-slate-900 text-white text-[11px] font-bold text-center">
                   <th className="border border-slate-500 py-2.5 px-2 w-8">#</th>
@@ -832,7 +840,7 @@ export function AdminEvaluationSheets() {
                   const total = getTeamTotal(teamKey, "judge");
 
                   return (
-                    <tr key={teamKey} className={idx % 2 === 1 ? "bg-slate-50" : "bg-white"}>
+                    <tr key={teamKey} className={idx % 2 === 1 ? "bg-slate-50/70 print:bg-transparent" : "bg-white/70 print:bg-transparent"}>
                       <td className="border border-slate-300 py-2 px-2 text-center font-bold text-slate-700">{idx + 1}</td>
                       <td className="border border-slate-300 py-2 px-2 text-center font-mono font-black text-indigo-900 bg-indigo-50/20">
                         {teamCode}
