@@ -642,10 +642,18 @@ export async function adminSendTeamCertificates(teamId) {
   });
 }
 
+export async function adminSendCustomCertificate(payload) {
+  return api("/api/admin/certificates/send-custom", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export function getMemberCertificateDownloadUrl(memberId) {
   const token = getAdminToken();
   return `${API_BASE}/api/admin/certificates/member/${memberId}?token=${encodeURIComponent(token || "")}`;
 }
+
 
 export function getCertificateSamplePreviewUrl(studentName, teamName, college, role) {
   const token = getAdminToken();

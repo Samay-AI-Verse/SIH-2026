@@ -29,13 +29,18 @@ import {
   adminFetchCertConfig,
   adminSaveCertConfig,
   adminTestSmtp,
-  adminSendTeamCertificates
+  adminSendTeamCertificates,
+  adminSendCustomCertificate
 } from "../services/apiService";
 
 export function AdminCertificates() {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [customEmail, setCustomEmail] = useState("");
+  const [sendingCustomEmail, setSendingCustomEmail] = useState(false);
+  const [customEmailResult, setCustomEmailResult] = useState(null);
+
   const [selectedTeamId, setSelectedTeamId] = useState("");
   const [selectedMemberIndex, setSelectedMemberIndex] = useState(0);
 
@@ -390,8 +395,38 @@ export function AdminCertificates() {
     }
   };
 
+  // Send customized certificate directly to any student/leader email
+  const handleSendCustomCertificate = async () => {
+    if (!customEmail || !customEmail.includes("@")) {
+      alert("Please enter a valid student email address.");
+      return;
+    }
+    const conf = window.confirm(
+      `Send certificate for "${certData.studentName}" (${certData.teamName}) to:\n${customEmail}?`
+    );
+    if (!conf) return;
+
+    setSendingCustomEmail(true);
+    setCustomEmailResult(null);
+    try {
+      const res = await adminSendCustomCertificate({
+        student_name: certData.studentName,
+        student_email: customEmail,
+        team_name: certData.teamName,
+        college_name: certData.collegeName,
+        role: certData.role
+      });
+      setCustomEmailResult({ success: true, message: res.message || "Certificate emailed successfully!" });
+    } catch (err) {
+      setCustomEmailResult({ success: false, message: err.message || "Failed to send email." });
+    } finally {
+      setSendingCustomEmail(false);
+    }
+  };
+
   // Bulk dispatch with 2-Step Safety Verification
   const handleBulkDispatch = async () => {
+
     // STEP 1: Initial Warning & Count
     const step1 = window.confirm(
       `⚠️ STEP 1 of 2: BULK EMAIL DISPATCH INITIATION\n\n` +
@@ -698,20 +733,56 @@ export function AdminCertificates() {
                 className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded-lg"
               />
             </div>
+
+            {/* Direct Email Dispatch for Custom/Corrected Student */}
+            <div className="pt-2 border-t border-slate-100 space-y-2">
+              <label className="block text-[11px] font-black uppercase text-indigo-900 tracking-wider">
+                Send to Specific Student Email
+              </label>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="email"
+                  value={customEmail}
+                  onChange={(e) => setCustomEmail(e.target.value)}
+                  placeholder="student@example.com"
+                  className="flex-1 text-xs px-2.5 py-1.5 border border-indigo-200 rounded-lg bg-indigo-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <button
+                  onClick={handleSendCustomCertificate}
+                  disabled={sendingCustomEmail || !customEmail}
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 text-white font-bold text-xs rounded-lg transition flex items-center gap-1 shrink-0 shadow-xs"
+                >
+                  <Send size={12} className={sendingCustomEmail ? "animate-spin" : ""} />
+                  {sendingCustomEmail ? "Sending..." : "Send"}
+                </button>
+              </div>
+              {customEmailResult && (
+                <div
+                  className={`text-[11px] font-medium p-2 rounded-lg flex items-center gap-1.5 ${
+                    customEmailResult.success
+                      ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                      : "bg-rose-50 text-rose-800 border border-rose-200"
+                  }`}
+                >
+                  {customEmailResult.success ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
+                  <span>{customEmailResult.message}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
+
         {/* RIGHT COLUMN: Official Real-Style SIH 2026 Landscape Certificate Preview */}
         <div className="lg:col-span-8">
-          <div className="bg-slate-300/60 p-2 sm:p-5 rounded-2xl border border-slate-300 shadow-inner overflow-x-auto">
-            {/* The Certificate Container */}
+          <div className="bg-slate-300/60 p-3 sm:p-6 rounded-2xl border border-slate-300 shadow-inner overflow-x-auto flex items-center justify-center">
+            {/* The Certificate Container with larger desktop scaling */}
             <div
               id="sih-certificate-render-node"
               ref={printRef}
-              className="mx-auto bg-white text-slate-900 relative shadow-2xl rounded-md overflow-hidden select-none"
+              className="w-full bg-white text-slate-900 relative shadow-2xl rounded-md overflow-hidden select-none"
               style={{
-                width: "100%",
-                maxWidth: "920px",
+                maxWidth: "1020px",
                 aspectRatio: "1492 / 1054", // Exact ratio of official 2nd - 3rd.png certificate
                 boxSizing: "border-box"
               }}
@@ -724,28 +795,28 @@ export function AdminCertificates() {
                 crossOrigin="anonymous"
               />
 
-              {/* Exact Dynamic Text Overlay safely placed in the white gap (Y: 53.5% to 69%) */}
+              {/* Exact Dynamic Text Overlay safely placed in the white gap (Y: 52% to 70%) */}
               <div 
                 className="absolute inset-x-0 flex flex-col items-center justify-between text-center pointer-events-none z-10"
                 style={{
-                  top: "54%",
+                  top: "52%",
                   bottom: "31.5%",
-                  left: "10%",
-                  right: "10%"
+                  left: "8%",
+                  right: "8%"
                 }}
               >
                 {/* Dynamic Student Name (Sits right below Certificate) */}
                 <div className="w-full">
-                  <h1 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black uppercase text-[#1e3a8a] tracking-wider drop-shadow-xs leading-none">
+                  <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-black uppercase text-[#1e3a8a] tracking-wider drop-shadow-xs leading-tight">
                     {certData.studentName}
                   </h1>
-                  <div className="w-36 sm:w-52 md:w-64 h-0.5 sm:h-1 bg-[#ea580c] mx-auto mt-1" />
+                  <div className="w-40 sm:w-56 md:w-72 h-0.5 sm:h-1 bg-[#ea580c] mx-auto mt-0.5" />
                 </div>
 
                 {/* Elegant Team Presentation with Ornaments */}
                 <div className="flex items-center justify-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c]" />
-                  <p className="text-[11px] sm:text-xs md:text-sm font-medium text-slate-600 font-serif italic">
+                  <p className="text-xs sm:text-sm md:text-base font-medium text-slate-600 font-serif italic">
                     of Team{" "}
                     <span className="font-sans font-black not-italic text-slate-900 tracking-wide text-xs sm:text-sm md:text-base ml-1">
                       {certData.teamName}
@@ -755,12 +826,13 @@ export function AdminCertificates() {
                 </div>
 
                 {/* Description */}
-                <p className="text-[8px] sm:text-[10px] md:text-[11px] text-slate-500 max-w-xl mx-auto leading-tight">
+                <p className="text-[9px] sm:text-[11px] md:text-xs text-slate-500 max-w-2xl mx-auto leading-tight">
                   for active innovation, technical excellence, and committed participation in the Smart India Hackathon 2026 Internal College Round.
                 </p>
               </div>
             </div>
           </div>
+
 
           {/* Action bar underneath preview */}
           <div className="mt-3 flex items-center justify-between text-xs text-slate-600 px-2">
