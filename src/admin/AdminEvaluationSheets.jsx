@@ -213,7 +213,8 @@ export function AdminEvaluationSheets() {
   }, [teams, statusFilter, trackFilter, search, problemsMap]);
 
   const handleScoreChange = (teamKey, field, val) => {
-    const num = Math.min(10, Math.max(0, parseFloat(val) || 0));
+    const maxVal = field === "c2" ? 15 : field === "c5" ? 5 : 10;
+    const num = Math.min(maxVal, Math.max(0, parseFloat(val) || 0));
     setLiveScores(prev => ({
       ...prev,
       [teamKey]: {
@@ -222,6 +223,7 @@ export function AdminEvaluationSheets() {
       }
     }));
   };
+
 
   const getTeamTotal = (teamKey, mode = "mentor") => {
     const s = liveScores[teamKey] || {};
@@ -275,12 +277,13 @@ export function AdminEvaluationSheets() {
           "Team Name": t.teamName || t.team_name || t.name,
           "Leader Name": t.leaderName || t.leader_name || "",
           "Problem Statement": problemTitle,
-          "C1: Idea and Innovation (10M)": liveScores[teamKey]?.c1 ?? "",
-          "C2: Implementation (15M)": liveScores[teamKey]?.c2 ?? "",
-          "C3: Demo and Functionality (10M)": liveScores[teamKey]?.c3 ?? "",
-          "C4: Communication and Presentation (10M)": liveScores[teamKey]?.c4 ?? "",
-          "C5: Question and Answering (5M)": liveScores[teamKey]?.c5 ?? "",
+          "Idea & Innovation (10M)": liveScores[teamKey]?.c1 ?? "",
+          "Implementation (15M)": liveScores[teamKey]?.c2 ?? "",
+          "Demo & Functionality (10M)": liveScores[teamKey]?.c3 ?? "",
+          "Comm. & Presentation (10M)": liveScores[teamKey]?.c4 ?? "",
+          "Question & Answering (5M)": liveScores[teamKey]?.c5 ?? "",
           "Total Score (Max 50)": getTeamTotal(teamKey, "judge"),
+
         };
       });
       downloadCsv(rows, `SIH_2026_Jury_Evaluation_${formatDate(new Date())}.csv`);
@@ -810,12 +813,13 @@ export function AdminEvaluationSheets() {
                   <th className="border border-slate-500 py-2.5 px-2 w-28">Team ID</th>
                   <th className="border border-slate-500 py-2.5 px-2 w-40 text-left">Team Name</th>
                   <th className="border border-slate-500 py-2.5 px-2 text-left">Problem Statement / Project Title</th>
-                  <th className="border border-slate-500 py-2 px-1 w-24">C1: Idea & Innovation<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
-                  <th className="border border-slate-500 py-2 px-1 w-24">C2: Implementation<br/><span className="text-[9px] font-normal text-slate-300">(15M)</span></th>
-                  <th className="border border-slate-500 py-2 px-1 w-24">C3: Demo & Functionality<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
-                  <th className="border border-slate-500 py-2 px-1 w-28">C4: Comm. & Presentation<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
-                  <th className="border border-slate-500 py-2 px-1 w-24">C5: Question & Answering<br/><span className="text-[9px] font-normal text-slate-300">(5M)</span></th>
+                  <th className="border border-slate-500 py-2 px-1 w-24">Idea & Innovation<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
+                  <th className="border border-slate-500 py-2 px-1 w-24">Implementation<br/><span className="text-[9px] font-normal text-slate-300">(15M)</span></th>
+                  <th className="border border-slate-500 py-2 px-1 w-24">Demo & Functionality<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
+                  <th className="border border-slate-500 py-2 px-1 w-28">Comm. & Presentation<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
+                  <th className="border border-slate-500 py-2 px-1 w-24">Question & Answering<br/><span className="text-[9px] font-normal text-slate-300">(5M)</span></th>
                   <th className="border border-slate-500 py-2.5 px-2 w-20 bg-indigo-900">Total<br/><span className="text-[9px] font-normal text-slate-300">(/50)</span></th>
+
                 </tr>
               </thead>
               <tbody>
