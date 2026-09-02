@@ -947,7 +947,7 @@ export function AdminCertificates() {
       {/* Main Studio Grid: Left Directory + Center Live Stage + Right Quick Editor */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 print:block items-start">
         {/* COLUMN 1: Team & Member Directory (Hidden when printing) */}
-        <div className="print:hidden lg:col-span-3 space-y-4">
+        <div className="print:hidden lg:col-span-4 xl:col-span-3 space-y-4">
           {/* Team Selector Box */}
           <div className="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs">
             <div className="flex items-center justify-between mb-2.5">
@@ -1135,7 +1135,7 @@ export function AdminCertificates() {
 
 
         {/* COLUMN 2: Official Real-Style SIH 2026 Landscape Certificate Preview */}
-        <div className="lg:col-span-5 xl:col-span-6 space-y-3">
+        <div className="lg:col-span-8 xl:col-span-9 space-y-3">
           <div className="bg-slate-300/60 p-2 sm:p-4 rounded-2xl border border-slate-300 shadow-inner overflow-x-auto flex items-center justify-center">
             {/* The Certificate Container with responsive scaling */}
             <div
@@ -1241,52 +1241,81 @@ export function AdminCertificates() {
             </div>
           </div>
         </div>
+      </div>
 
+      {/* DEDICATED BOTTOM SECTION: Full-Width Studio Controls & Email Dispatcher */}
+      <div className="print:hidden bg-white rounded-3xl border border-slate-200/90 shadow-xl p-6 sm:p-8 space-y-6">
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-blue-600 text-white rounded-2xl shadow-md">
+              <Sliders size={20} />
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                Certificate Content Editor & Dedicated Dispatch Hub
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Customize certificate fields dynamically or dispatch packages directly to team leaders & members.
+              </p>
+            </div>
+          </div>
 
-        {/* COLUMN 3: Right-Side Quick Content Editor & Instant Email Dispatch */}
-        <div className="print:hidden lg:col-span-4 xl:col-span-3 space-y-4 lg:sticky lg:top-4">
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-md p-4 space-y-3.5">
-            {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleResetToSelectedMember}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition shadow-2xs cursor-pointer"
+            >
+              <RotateCcw size={14} className="text-indigo-600" /> Reset Fields to Current Member
+            </button>
+          </div>
+        </div>
+
+        {/* 2 Wide Side-by-Side Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* CARD 1: Quick Content Editor (lg:col-span-6) */}
+          <div className="lg:col-span-6 bg-slate-50/80 rounded-2xl border border-slate-200/80 p-5 sm:p-6 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
-                  <Edit3 size={15} />
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-700 flex items-center justify-center font-bold">
+                  <Edit3 size={17} />
                 </div>
                 <div>
-                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">
                     Quick Content Editor
                   </h3>
-                  <p className="text-[10px] text-slate-400 font-medium">Real-time dynamic overlay</p>
+                  <p className="text-[11px] text-slate-400 font-medium">Real-time dynamic canvas overlay</p>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Live Sync
+                Live Sync Active
               </span>
             </div>
 
-            {/* Form Fields */}
-            <div className="space-y-3">
+            {/* Content Fields */}
+            <div className="space-y-4">
               {/* Student Name */}
               <div>
-                <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
-                  <User size={12} className="text-blue-600" />
-                  Student Name
+                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
+                  <User size={14} className="text-blue-600" />
+                  Student Full Name
                 </label>
                 <input
                   type="text"
                   value={certData.studentName}
                   onChange={(e) => setCertData({ ...certData, studentName: e.target.value })}
                   placeholder="Enter student full name"
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl font-bold text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs"
+                  className="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl font-bold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs"
                 />
               </div>
 
               {/* Team Name and Role */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
-                    <Users size={12} className="text-indigo-600" />
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
+                    <Users size={14} className="text-indigo-600" />
                     Team Name
                   </label>
                   <input
@@ -1294,39 +1323,39 @@ export function AdminCertificates() {
                     value={certData.teamName}
                     onChange={(e) => setCertData({ ...certData, teamName: e.target.value })}
                     placeholder="Team Name"
-                    className="w-full text-xs px-2.5 py-2 border border-slate-300 rounded-xl font-medium text-slate-800 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs"
+                    className="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl font-bold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs"
                   />
                 </div>
                 <div>
-                  <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
-                    <Award size={12} className="text-amber-600" />
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
+                    <Award size={14} className="text-amber-600" />
                     Role
                   </label>
                   <div className="relative">
                     <select
                       value={certData.role}
                       onChange={(e) => setCertData({ ...certData, role: e.target.value })}
-                      className="w-full text-xs px-2.5 py-2 border border-slate-300 rounded-xl font-medium text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs appearance-none pr-7 cursor-pointer"
+                      className="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs appearance-none pr-8 cursor-pointer"
                     >
                       <option value="Leader">Team Leader</option>
                       <option value="Member">Team Member</option>
                     </select>
-                    <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
                 </div>
               </div>
 
               {/* Certificate Type */}
               <div>
-                <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
-                  <Award size={12} className="text-emerald-600" />
+                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
+                  <Award size={14} className="text-emerald-600" />
                   Certificate Type
                 </label>
                 <div className="relative">
                   <select
                     value={certData.certType}
                     onChange={(e) => setCertData({ ...certData, certType: e.target.value })}
-                    className="w-full text-xs px-2.5 py-2 border border-blue-200 rounded-xl font-bold text-blue-900 bg-blue-50/40 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs appearance-none pr-7 cursor-pointer"
+                    className="w-full text-sm px-3.5 py-2.5 border border-blue-200 rounded-xl font-bold text-blue-900 bg-blue-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs appearance-none pr-8 cursor-pointer"
                   >
                     <option value="PARTICIPATION">📜 CERTIFICATE OF PARTICIPATION</option>
                     <option value="MERIT & EXCELLENCE">🌟 CERTIFICATE OF MERIT & EXCELLENCE</option>
@@ -1334,14 +1363,14 @@ export function AdminCertificates() {
                     <option value="RUNNER UP">🥈 CERTIFICATE OF RUNNER UP</option>
                     <option value="APPRECIATION">🎖️ CERTIFICATE OF APPRECIATION</option>
                   </select>
-                  <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-blue-600 pointer-events-none" />
+                  <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-600 pointer-events-none" />
                 </div>
               </div>
 
               {/* College / Institution */}
               <div>
-                <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
-                  <Building size={12} className="text-slate-600" />
+                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
+                  <Building size={14} className="text-slate-600" />
                   College / Institution
                 </label>
                 <input
@@ -1349,248 +1378,248 @@ export function AdminCertificates() {
                   value={certData.collegeName}
                   onChange={(e) => setCertData({ ...certData, collegeName: e.target.value })}
                   placeholder="College Name"
-                  className="w-full text-xs px-2.5 py-2 border border-slate-300 rounded-xl text-slate-800 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs"
+                  className="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs"
                 />
               </div>
             </div>
+          </div>
 
-            {/* Quick Reset Link */}
-            <div className="flex items-center justify-end pt-0.5">
-              <button
-                type="button"
-                onClick={handleResetToSelectedMember}
-                className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-indigo-600 transition"
-                title="Reset fields to the current selected team member"
-              >
-                <RotateCcw size={11} /> Reset to Selected Member
-              </button>
-            </div>
-
-            {/* DEDICATED CERTIFICATE EMAIL DISPATCH HUB */}
-            <div className="pt-3 border-t border-slate-200 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                  <Mail size={13} className="text-blue-600" />
-                  Email Dispatch Hub
-                </label>
-                {/* Mode Switcher Tabs */}
-                <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-[10px] font-bold">
-                  <button
-                    type="button"
-                    onClick={() => setDispatchTab("team")}
-                    className={`px-2 py-0.5 rounded-md transition flex items-center gap-1 ${
-                      dispatchTab === "team"
-                        ? "bg-indigo-600 text-white shadow-2xs font-black"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    <Package size={11} /> Team (All 6)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDispatchTab("single")}
-                    className={`px-2 py-0.5 rounded-md transition flex items-center gap-1 ${
-                      dispatchTab === "single"
-                        ? "bg-indigo-600 text-white shadow-2xs font-black"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    <User size={11} /> Single Student
-                  </button>
+          {/* CARD 2: Dedicated Email Dispatch & Download Hub (lg:col-span-6) */}
+          <div className="lg:col-span-6 bg-slate-50/80 rounded-2xl border border-slate-200/80 p-5 sm:p-6 space-y-4 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-700 flex items-center justify-center font-bold">
+                  <Mail size={17} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">
+                    Email Dispatch Hub
+                  </h3>
+                  <p className="text-[11px] text-slate-400 font-medium">Send certificates via Gmail SMTP</p>
                 </div>
               </div>
 
-              {/* TAB 1: DEDICATED TEAM PACKAGE (All 6 member certificates in a single email) */}
-              {dispatchTab === "team" && (
-                <div className="space-y-2.5 bg-gradient-to-br from-indigo-50/70 via-blue-50/50 to-slate-50 p-3 rounded-xl border border-indigo-200/90 animate-in fade-in duration-150">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-black text-indigo-950 flex items-center gap-1 truncate max-w-[170px]">
-                      <Package size={12} className="text-indigo-600 shrink-0" />
-                      <span className="truncate">{currentTeam?.name || "Team Package"}</span>
-                    </span>
-                    <span className="text-[9px] font-black bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded shrink-0">
-                      All {(currentTeam?.members || []).length || 6} Certs Attached
-                    </span>
-                  </div>
+              {/* Mode Switcher Tabs */}
+              <div className="flex items-center bg-white p-1 rounded-xl border border-slate-200 text-xs font-bold shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setDispatchTab("team")}
+                  className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
+                    dispatchTab === "team"
+                      ? "bg-indigo-600 text-white shadow-xs font-black"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Package size={13} /> Team Package (All 6)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDispatchTab("single")}
+                  className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
+                    dispatchTab === "single"
+                      ? "bg-indigo-600 text-white shadow-xs font-black"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <User size={13} /> Single Student
+                </button>
+              </div>
+            </div>
 
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-600 mb-0.5">
-                      Send to Team Email (Leader or Custom):
-                    </label>
-                    <input
-                      type="email"
-                      value={teamTargetEmail}
-                      onChange={(e) => setTeamTargetEmail(e.target.value)}
-                      placeholder="leader@example.com"
-                      className="w-full text-xs px-2.5 py-1.5 border border-indigo-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono shadow-2xs"
-                    />
-                  </div>
+            {/* TAB 1: DEDICATED TEAM PACKAGE */}
+            {dispatchTab === "team" && (
+              <div className="space-y-4 bg-gradient-to-br from-indigo-50/90 via-blue-50/60 to-white p-4 sm:p-5 rounded-2xl border border-indigo-200 shadow-xs animate-in fade-in duration-150">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-black text-indigo-950 flex items-center gap-1.5 truncate">
+                    <Package size={16} className="text-indigo-600 shrink-0" />
+                    <span className="truncate">{currentTeam?.name || currentTeam?.teamName || "Team Package"}</span>
+                  </span>
+                  <span className="text-xs font-black bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-lg border border-indigo-200 shrink-0">
+                    All {(currentTeam?.members || []).length || 6} Certs Attached
+                  </span>
+                </div>
 
-                  {/* CC Members Checkbox */}
-                  <label className="flex items-center gap-2 cursor-pointer pt-0.5 text-[11px] text-slate-700 select-none">
-                    <input
-                      type="checkbox"
-                      checked={teamCcMembers}
-                      onChange={(e) => setTeamCcMembers(e.target.checked)}
-                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5"
-                    />
-                    <span className="font-medium text-[10px]">
-                      Also CC all registered members with email
-                    </span>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Send to Team Email (Leader or Custom):
                   </label>
+                  <input
+                    type="email"
+                    value={teamTargetEmail}
+                    onChange={(e) => setTeamTargetEmail(e.target.value)}
+                    placeholder="leader@example.com"
+                    className="w-full text-sm px-3.5 py-2.5 border border-indigo-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono shadow-2xs"
+                  />
+                </div>
 
-                  {/* Members Included List */}
-                  <div className="space-y-1 bg-white/80 p-2 rounded-lg border border-indigo-100 text-[10px]">
-                    <p className="font-bold text-slate-600 uppercase text-[9px] tracking-wider flex items-center gap-1 mb-1">
-                      <CheckCheck size={11} className="text-emerald-600" />
-                      All {(currentTeam?.members || []).length || 6} Member PDFs Attached:
-                    </p>
-                    <div className="max-h-20 overflow-y-auto space-y-0.5 pr-1">
-                      {(currentTeam?.members || []).map((m, idx) => (
-                        <div key={idx} className="flex items-center justify-between text-slate-700">
-                          <span className="truncate flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                            <span className="truncate font-medium">{m.full_name || m.name}</span>
-                          </span>
-                          <span className="text-[9px] text-slate-400 font-mono shrink-0 ml-1">
-                            {m.is_leader ? "Leader" : "Member"}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                {/* CC Members Checkbox */}
+                <label className="flex items-center gap-2.5 cursor-pointer text-xs text-slate-700 select-none">
+                  <input
+                    type="checkbox"
+                    checked={teamCcMembers}
+                    onChange={(e) => setTeamCcMembers(e.target.checked)}
+                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
+                  />
+                  <span className="font-semibold">
+                    Also send a CC copy to all registered team member emails
+                  </span>
+                </label>
+
+                {/* Members Included List */}
+                <div className="bg-white/90 p-3 rounded-xl border border-indigo-100 space-y-2">
+                  <p className="font-bold text-slate-700 uppercase text-[10px] tracking-wider flex items-center gap-1.5">
+                    <CheckCheck size={13} className="text-emerald-600" />
+                    All {(currentTeam?.members || []).length || 6} Member PDFs in this Email Package:
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-32 overflow-y-auto pr-1">
+                    {(currentTeam?.members || []).map((m, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-slate-800 text-xs px-2 py-1 bg-slate-50 rounded-lg border border-slate-100">
+                        <span className="truncate flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                          <span className="truncate font-medium">{m.full_name || m.name}</span>
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono shrink-0 ml-1">
+                          {m.is_leader ? "Leader" : "Member"}
+                        </span>
+                      </div>
+                    ))}
                   </div>
+                </div>
 
-                  {/* Dispatch Team Button */}
+                {/* Action Buttons: Email + ZIP */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <button
+                    type="button"
                     onClick={() => handleSendSingleTeam(currentTeam)}
                     disabled={sendingTeamEmail || !teamTargetEmail}
-                    className="w-full py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 disabled:opacity-50 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 active:scale-95"
+                    className="py-3 px-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
                   >
-                    <Send size={12} className={sendingTeamEmail ? "animate-spin" : ""} />
+                    <Send size={15} className={sendingTeamEmail ? "animate-spin" : ""} />
                     {sendingTeamEmail
                       ? "Dispatching 6 Certificates..."
                       : `Send All ${(currentTeam?.members || []).length || 6} Certs in Single Mail`}
                   </button>
 
-                  {/* Direct Team ZIP Download Button */}
                   <button
                     type="button"
-                    onClick={() => handleDownloadTeamZip(currentTeam?.id, currentTeam?.name)}
+                    onClick={() => handleDownloadTeamZip(currentTeam?.id, currentTeam?.name || currentTeam?.teamName)}
                     disabled={downloadingZipId === currentTeam?.id || !currentTeam}
-                    className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 active:scale-95"
+                    className="py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
                   >
-                    <Archive size={12} />
-                    {downloadingZipId === currentTeam?.id ? "Packing ZIP..." : "Direct Download Entire Team Package (.ZIP)"}
+                    <Archive size={15} />
+                    {downloadingZipId === currentTeam?.id ? "Packing ZIP..." : "Download Team ZIP"}
                   </button>
-
-                  {/* Feedback Message */}
-                  {teamEmailResult && (
-                    <div
-                      className={`text-[11px] font-medium p-2.5 rounded-lg flex items-center justify-between gap-2 animate-in fade-in duration-200 ${
-                        teamEmailResult.success
-                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                          : "bg-rose-50 text-rose-800 border border-rose-200"
-                      }`}
-                    >
-                      <div className="flex items-center gap-1.5 truncate">
-                        {teamEmailResult.success ? (
-                          <CheckCircle2 size={14} className="shrink-0 text-emerald-600" />
-                        ) : (
-                          <XCircle size={14} className="shrink-0 text-rose-600" />
-                        )}
-                        <span className="truncate">{teamEmailResult.message}</span>
-                      </div>
-                      <button
-                        onClick={() => setTeamEmailResult(null)}
-                        className="text-slate-400 hover:text-slate-700 text-xs font-bold shrink-0 ml-1"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  )}
                 </div>
-              )}
 
-              {/* TAB 2: SINGLE STUDENT CERTIFICATE */}
-              {dispatchTab === "single" && (
-                <div className="space-y-2.5 bg-gradient-to-br from-indigo-50/60 via-slate-50/50 to-blue-50/40 p-3 rounded-xl border border-indigo-100 animate-in fade-in duration-150">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-indigo-950 flex items-center gap-1 truncate max-w-[180px]">
-                      <User size={12} className="text-indigo-600 shrink-0" />
-                      <span className="truncate">{certData.studentName}</span>
-                    </span>
-                    <span className="text-[9px] font-bold bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded">
-                      1 Certificate
-                    </span>
-                  </div>
-
-                  {/* Quick Fill suggestion if leaderEmail exists and differs */}
-                  {currentTeam?.leaderEmail && customEmail !== currentTeam.leaderEmail && (
-                    <button
-                      type="button"
-                      onClick={() => setCustomEmail(currentTeam.leaderEmail)}
-                      className="text-[10px] text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 truncate"
-                    >
-                      💡 Use leader email: <span className="font-mono font-bold truncate">{currentTeam.leaderEmail}</span>
-                    </button>
-                  )}
-
-                  <div className="flex items-center gap-1.5">
-                    <div className="relative flex-1">
-                      <input
-                        type="email"
-                        value={customEmail}
-                        onChange={(e) => setCustomEmail(e.target.value)}
-                        placeholder="student@example.com"
-                        className="w-full text-xs pl-2.5 pr-2 py-2 border border-indigo-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-2xs font-mono"
-                      />
+                {/* Feedback Message */}
+                {teamEmailResult && (
+                  <div
+                    className={`text-xs font-bold p-3 rounded-xl flex items-center justify-between gap-2 animate-in fade-in duration-200 ${
+                      teamEmailResult.success
+                        ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                        : "bg-rose-50 text-rose-800 border border-rose-200"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      {teamEmailResult.success ? (
+                        <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+                      ) : (
+                        <XCircle size={16} className="shrink-0 text-rose-600" />
+                      )}
+                      <span className="truncate">{teamEmailResult.message}</span>
                     </div>
+                    <button
+                      onClick={() => setTeamEmailResult(null)}
+                      className="text-slate-400 hover:text-slate-700 text-sm font-bold shrink-0 ml-1"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 2: SINGLE STUDENT CERTIFICATE */}
+            {dispatchTab === "single" && (
+              <div className="space-y-4 bg-gradient-to-br from-indigo-50/60 via-slate-50/50 to-blue-50/40 p-4 sm:p-5 rounded-2xl border border-indigo-100 shadow-xs animate-in fade-in duration-150">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-black uppercase tracking-wider text-indigo-950 flex items-center gap-1.5 truncate">
+                    <User size={15} className="text-indigo-600 shrink-0" />
+                    <span className="truncate">{certData.studentName}</span>
+                  </span>
+                  <span className="text-xs font-bold bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-lg">
+                    1 Individual Certificate
+                  </span>
+                </div>
+
+                {/* Quick Fill suggestion if leaderEmail exists and differs */}
+                {currentTeam?.leaderEmail && customEmail !== currentTeam.leaderEmail && (
+                  <button
+                    type="button"
+                    onClick={() => setCustomEmail(currentTeam.leaderEmail)}
+                    className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 truncate"
+                  >
+                    💡 Use leader email: <span className="font-mono font-bold truncate">{currentTeam.leaderEmail}</span>
+                  </button>
+                )}
+
+                <div className="flex flex-col sm:flex-row items-stretch gap-2.5">
+                  <div className="relative flex-1">
+                    <input
+                      type="email"
+                      value={customEmail}
+                      onChange={(e) => setCustomEmail(e.target.value)}
+                      placeholder="student@example.com"
+                      className="w-full text-sm pl-3.5 pr-2 py-2.5 border border-indigo-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-2xs font-mono"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={handleDownloadCustomPdf}
-                      className="px-2.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition flex items-center gap-1 shrink-0 shadow-xs active:scale-95"
+                      className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center gap-1.5 shrink-0 shadow-xs active:scale-95 cursor-pointer"
                       title="Direct Download this Certificate (PDF)"
                     >
-                      <Download size={12} />
-                      PDF
+                      <Download size={14} /> Download PDF
                     </button>
                     <button
+                      type="button"
                       onClick={handleSendCustomCertificate}
                       disabled={sendingCustomEmail || !customEmail}
-                      className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 text-white font-bold text-xs rounded-lg transition flex items-center gap-1 shrink-0 shadow-xs active:scale-95"
+                      className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 text-white font-black text-xs uppercase tracking-wider rounded-xl transition flex items-center gap-1.5 shrink-0 shadow-xs active:scale-95 cursor-pointer"
                     >
-                      <Send size={12} className={sendingCustomEmail ? "animate-spin" : ""} />
-                      {sendingCustomEmail ? "..." : "Send"}
+                      <Send size={14} className={sendingCustomEmail ? "animate-spin" : ""} />
+                      {sendingCustomEmail ? "Sending..." : "Send Email"}
                     </button>
                   </div>
-
-                  {customEmailResult && (
-                    <div
-                      className={`text-[11px] font-medium p-2.5 rounded-lg flex items-center justify-between gap-2 animate-in fade-in duration-200 ${
-                        customEmailResult.success
-                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                          : "bg-rose-50 text-rose-800 border border-rose-200"
-                      }`}
-                    >
-                      <div className="flex items-center gap-1.5 truncate">
-                        {customEmailResult.success ? (
-                          <CheckCircle2 size={14} className="shrink-0 text-emerald-600" />
-                        ) : (
-                          <XCircle size={14} className="shrink-0 text-rose-600" />
-                        )}
-                        <span className="truncate">{customEmailResult.message}</span>
-                      </div>
-                      <button
-                        onClick={() => setCustomEmailResult(null)}
-                        className="text-slate-400 hover:text-slate-700 text-xs font-bold shrink-0 ml-1"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  )}
                 </div>
-              )}
-            </div>
+
+                {customEmailResult && (
+                  <div
+                    className={`text-xs font-bold p-3 rounded-xl flex items-center justify-between gap-2 animate-in fade-in duration-200 ${
+                      customEmailResult.success
+                        ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                        : "bg-rose-50 text-rose-800 border border-rose-200"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      {customEmailResult.success ? (
+                        <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+                      ) : (
+                        <XCircle size={16} className="shrink-0 text-rose-600" />
+                      )}
+                      <span className="truncate">{customEmailResult.message}</span>
+                    </div>
+                    <button
+                      onClick={() => setCustomEmailResult(null)}
+                      className="text-slate-400 hover:text-slate-700 text-sm font-bold shrink-0 ml-1"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
