@@ -1000,16 +1000,26 @@ export function AdminCertificates() {
             {/* Email Preview Body */}
             <div className="p-6 overflow-y-auto bg-slate-100 flex-1">
               <div className="max-w-xl mx-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
-                {/* Email Header */}
-                <div className="bg-gradient-to-r from-slate-950 via-blue-950 to-orange-600 text-white p-6 text-center">
-                  <span className="inline-block bg-white/20 border border-white/30 text-amber-300 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider mb-2">
+                {/* Email Header with Authentic Spider-Man SIH Badge & Luxury Banner */}
+                <div className="relative overflow-hidden bg-gradient-to-r from-slate-950 via-[#0a1931] to-[#ea580c] text-white p-7 text-center">
+                  <div className="flex justify-center mb-3">
+                    <img
+                      src="/sih_spiderman_badge_thumb.png"
+                      alt="SIH 2026 Badge"
+                      className="w-20 h-20 rounded-full border-2 border-amber-400 shadow-xl object-cover"
+                    />
+                  </div>
+                  <span className="inline-block bg-white/15 border border-white/30 text-amber-300 px-3.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider mb-2">
                     Official Recognition
                   </span>
-                  <h1 className="text-xl font-black text-white tracking-wide">Smart India Hackathon 2026</h1>
-                  <p className="text-slate-200 text-xs mt-1">
+                  <h1 className="text-xl sm:text-2xl font-black text-white tracking-wide">
+                    Smart India Hackathon 2026
+                  </h1>
+                  <p className="text-slate-200 text-xs mt-1 font-medium">
                     Internal Hackathon Round • Ministry of Education & AICTE Initiative
                   </p>
                 </div>
+
 
                 {/* Email Content */}
                 <div className="p-6 text-slate-700 text-sm space-y-4">
