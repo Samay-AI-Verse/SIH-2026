@@ -22,8 +22,10 @@ import {
   Sparkles,
   Edit3,
   Check,
-  HelpCircle
+  HelpCircle,
+  FileText
 } from "lucide-react";
+
 import {
   adminFetchTeams,
   adminFetchCertConfig,
@@ -45,6 +47,9 @@ export function AdminCertificates() {
 
   const [selectedTeamId, setSelectedTeamId] = useState("");
   const [selectedMemberIndex, setSelectedMemberIndex] = useState(0);
+  const [showEmailPreviewModal, setShowEmailPreviewModal] = useState(false);
+  const [emailPreviewType, setEmailPreviewType] = useState("single"); // "single" or "team"
+
 
   // Certificate Editable Content
   const [certData, setCertData] = useState({
@@ -388,13 +393,23 @@ export function AdminCertificates() {
             </button>
 
             <button
+              onClick={() => {
+                setEmailPreviewType("single");
+                setShowEmailPreviewModal(true);
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-600 text-white font-bold text-xs uppercase tracking-wider border border-blue-500/40 transition shadow-sm"
+            >
+              <Eye size={16} />
+              View Email Template
+            </button>
+
+            <button
               onClick={handlePrintCertificate}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-wider transition shadow-md"
             >
               <Download size={16} />
               Download Clean A4 PDF
             </button>
-
 
             <button
               onClick={handleBulkDispatch}
@@ -405,6 +420,7 @@ export function AdminCertificates() {
               {bulkDispatchActive ? "Dispatching..." : `Bulk Send (${filteredTeams.length} Teams)`}
             </button>
           </div>
+
         </div>
 
         {/* Progress Bar */}
@@ -915,6 +931,180 @@ export function AdminCertificates() {
           </div>
         </div>
       )}
+
+      {/* Interactive Email Format Preview Modal */}
+      {showEmailPreviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl border border-slate-200 flex flex-col animate-in fade-in zoom-in-95">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-blue-100 text-blue-800 rounded-xl">
+                  <Mail size={20} />
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-slate-900">Official Dispatch Email Format</h2>
+                  <p className="text-xs text-slate-500">Live preview of the actual email delivered to students/leaders</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 bg-slate-200 p-1 rounded-xl">
+                <button
+                  onClick={() => setEmailPreviewType("single")}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition ${
+                    emailPreviewType === "single"
+                      ? "bg-white text-indigo-900 shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  Single Student
+                </button>
+                <button
+                  onClick={() => setEmailPreviewType("team")}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition ${
+                    emailPreviewType === "team"
+                      ? "bg-white text-indigo-900 shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  Team Leader (All 6 Certs)
+                </button>
+              </div>
+            </div>
+
+            {/* Email Metadata Bar */}
+            <div className="bg-slate-100/80 px-6 py-3 border-b border-slate-200 text-xs space-y-1">
+              <div className="flex items-center text-slate-600">
+                <span className="w-16 font-bold text-slate-500 uppercase text-[10px]">From:</span>
+                <span className="font-mono text-slate-800">
+                  {config.smtp_from_name || "SIH Organizing Committee"} &lt;{config.smtp_user || "sih.organizing@gtmc.edu"}&gt;
+                </span>
+              </div>
+              <div className="flex items-center text-slate-600">
+                <span className="w-16 font-bold text-slate-500 uppercase text-[10px]">To:</span>
+                <span className="font-mono text-slate-800">
+                  {emailPreviewType === "single"
+                    ? (customEmail || "student@example.com")
+                    : (currentTeam?.leaderEmail || "team.leader@example.com")}
+                </span>
+              </div>
+              <div className="flex items-center text-slate-600">
+                <span className="w-16 font-bold text-slate-500 uppercase text-[10px]">Subject:</span>
+                <span className="font-bold text-slate-900">
+                  {emailPreviewType === "single"
+                    ? `Official Certificate for ${certData.studentName || "Participant"} • Smart India Hackathon 2026`
+                    : `Official Team Certificates Package: Team '${certData.teamName || "CyberKnights"}' • Smart India Hackathon 2026`}
+                </span>
+              </div>
+            </div>
+
+            {/* Email Preview Body */}
+            <div className="p-6 overflow-y-auto bg-slate-100 flex-1">
+              <div className="max-w-xl mx-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
+                {/* Email Header */}
+                <div className="bg-gradient-to-r from-slate-950 via-blue-950 to-orange-600 text-white p-6 text-center">
+                  <span className="inline-block bg-white/20 border border-white/30 text-amber-300 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider mb-2">
+                    Official Recognition
+                  </span>
+                  <h1 className="text-xl font-black text-white tracking-wide">Smart India Hackathon 2026</h1>
+                  <p className="text-slate-200 text-xs mt-1">
+                    Internal Hackathon Round • Ministry of Education & AICTE Initiative
+                  </p>
+                </div>
+
+                {/* Email Content */}
+                <div className="p-6 text-slate-700 text-sm space-y-4">
+                  <p className="font-semibold text-slate-900">
+                    {emailPreviewType === "single"
+                      ? `Dear ${certData.studentName || "Student"},`
+                      : `Dear ${certData.studentName || "Team Leader"} (Team Leader),`}
+                  </p>
+
+                  <p className="leading-relaxed">
+                    {emailPreviewType === "single"
+                      ? `Congratulations on your outstanding participation, technical excellence, and dedication representing Team ${certData.teamName} in the Smart India Hackathon 2026 Internal College Round!`
+                      : `Congratulations to you and all members of Team ${certData.teamName} for your innovative technical project and performance in the Smart India Hackathon 2026 Internal College Round!`}
+                  </p>
+
+                  {/* Highlight Package Box */}
+                  <div className="bg-slate-50 border-l-4 border-orange-500 p-4 rounded-r-xl border border-slate-200">
+                    <p className="font-bold text-slate-900 text-sm">
+                      {emailPreviewType === "single"
+                        ? "Official Certificate Attached:"
+                        : "Complete Team Certificate Package (6 Certificates):"}
+                    </p>
+                    <p className="text-xs text-slate-600 mt-1">
+                      {emailPreviewType === "single"
+                        ? `Your verified, high-resolution A4 digital certificate (Certificate_${(certData.studentName || "Student").replace(/\s+/g, "_")}.pdf) is attached to this email.`
+                        : `We have attached all official PDF certificates for every registered member of Team "${certData.teamName}" in this single email.`}
+                    </p>
+                  </div>
+
+                  {emailPreviewType === "team" && (
+                    <p className="text-xs text-slate-600 italic">
+                      Please forward the respective individual PDF certificates to each of your team members.
+                    </p>
+                  )}
+
+                  <p className="text-sm">Wishing you endless success and innovation in your future hackathons!</p>
+
+                  <div className="pt-4 border-t border-dashed border-slate-200">
+                    <p className="font-black text-slate-900 text-sm">SIH 2026 Organizing Committee</p>
+                    <p className="text-xs text-slate-500">Hackathon Management & Innovation Cell</p>
+                  </div>
+                </div>
+
+                {/* Attached Files Bar */}
+                <div className="bg-slate-50 p-4 border-t border-slate-200">
+                  <p className="text-[11px] font-black uppercase text-slate-600 mb-2 flex items-center gap-1.5">
+                    <FileText size={13} className="text-indigo-600" />
+                    {emailPreviewType === "single" ? "1 Attachment (PDF)" : "All 6 Team Certificates Attached (PDF)"}
+                  </p>
+                  <div className="space-y-1">
+                    {emailPreviewType === "single" ? (
+                      <div className="flex items-center justify-between bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs">
+                        <span className="font-medium text-slate-800">
+                          Certificate_{(certData.studentName || "Student").replace(/\s+/g, "_")}.pdf
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">1.4 MB</span>
+                      </div>
+                    ) : (
+                      (currentTeam?.members || [
+                        { name: "Leader" },
+                        { name: "Member 2" },
+                        { name: "Member 3" },
+                        { name: "Member 4" },
+                        { name: "Member 5" },
+                        { name: "Member 6" }
+                      ]).map((m, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs"
+                        >
+                          <span className="font-medium text-slate-800">
+                            Certificate_{(m.full_name || m.name || `Member_${idx + 1}`).replace(/\s+/g, "_")}_{currentTeam?.registrationId || "SIH"}.pdf
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">1.4 MB</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="p-4 border-t border-slate-200 flex items-center justify-end bg-white">
+              <button
+                onClick={() => setShowEmailPreviewModal(false)}
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-xs transition"
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+
 }

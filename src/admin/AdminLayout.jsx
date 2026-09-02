@@ -33,11 +33,13 @@ export function AdminLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="relative min-h-svh text-ink lg:grid lg:grid-cols-[270px_1fr] bg-slate-100/95">
+    <div className="relative min-h-svh text-ink bg-slate-100/95">
       <ColorMesh />
 
-      {/* Top Navigation Bar for Small Screens (Mobile / Tablet) */}
-      <header className="relative z-30 flex items-center justify-between overflow-hidden web-bg px-4 py-3 text-white lg:hidden">
+      <div className="lg:grid lg:grid-cols-[270px_1fr] min-h-svh">
+        {/* Top Navigation Bar for Small Screens (Mobile / Tablet) */}
+        <header className="relative z-30 flex items-center justify-between overflow-hidden web-bg px-4 py-3 text-white lg:hidden">
+
         <WebOverlay />
         <Link to="/admin" className="relative flex items-center gap-2">
           <SihLogo variant="dark" size="sm" />
@@ -152,7 +154,9 @@ export function AdminLayout() {
       <main className="min-w-0 p-4 sm:p-6 md:p-8">
         <Outlet />
       </main>
+      </div>
     </div>
   );
 }
+
 
