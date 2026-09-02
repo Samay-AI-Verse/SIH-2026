@@ -691,13 +691,28 @@ export function AdminCertificates() {
                   right: "8%"
                 }}
               >
-                {/* Dynamic Student Name (Sits right below Certificate) */}
+                {/* Dynamic Student Name with Auto-Scaling for Long Names */}
                 <div className="w-full">
-                  <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-black uppercase text-[#1e3a8a] tracking-wider drop-shadow-xs leading-tight">
+                  <h1
+                    className={`font-black uppercase text-[#1e3a8a] tracking-wider drop-shadow-xs leading-tight ${
+                      (certData.studentName || "").length > 25
+                        ? "text-sm sm:text-base md:text-xl lg:text-2xl"
+                        : (certData.studentName || "").length > 18
+                        ? "text-base sm:text-lg md:text-2xl lg:text-3xl"
+                        : "text-lg sm:text-2xl md:text-3xl lg:text-4xl"
+                    }`}
+                  >
                     {certData.studentName}
                   </h1>
-                  <div className="w-40 sm:w-56 md:w-72 h-0.5 sm:h-1 bg-[#ea580c] mx-auto mt-0.5" />
+                  <div
+                    className={`h-0.5 sm:h-1 bg-[#ea580c] mx-auto mt-0.5 ${
+                      (certData.studentName || "").length > 25
+                        ? "w-48 sm:w-64 md:w-80"
+                        : "w-36 sm:w-52 md:w-64"
+                    }`}
+                  />
                 </div>
+
 
                 {/* Elegant Team Presentation with Ornaments */}
                 <div className="flex items-center justify-center gap-2">
