@@ -175,10 +175,144 @@ export function AdminCertificates() {
     }));
   };
 
-  // Instant browser print / PDF download
+  // Instant clean certificate print / PDF export (No dashboard sidebar, no website headers)
   const handlePrintCertificate = () => {
-    window.print();
+    const student = certData.studentName || "Participant";
+    const team = certData.teamName || "Team";
+    const bgUrl = window.location.origin + "/sih_official_certificate_template.png?v=2";
+    
+    // Open a lightweight isolated print window
+    const win = window.open("", "_blank", "width=1200,height=850");
+    if (!win) {
+      window.print();
+      return;
+    }
+
+    win.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${student} - SIH 2026 Certificate</title>
+          <style>
+            @page {
+              size: A4 landscape;
+              margin: 0;
+            }
+            html, body {
+              margin: 0;
+              padding: 0;
+              width: 100vw;
+              height: 100vh;
+              overflow: hidden;
+              background: #ffffff;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-family: system-ui, -apple-system, sans-serif;
+            }
+            .cert-box {
+              position: relative;
+              width: 100vw;
+              height: 100vh;
+              max-width: 100%;
+              max-height: 100%;
+            }
+            .cert-bg {
+              position: absolute;
+              inset: 0;
+              width: 100%;
+              height: 100%;
+              object-fit: fill;
+            }
+            .cert-content {
+              position: absolute;
+              top: 54%;
+              bottom: 31.5%;
+              left: 10%;
+              right: 10%;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: space-between;
+              text-align: center;
+              z-index: 10;
+            }
+            .student-name {
+              font-size: 26pt;
+              font-weight: 900;
+              text-transform: uppercase;
+              color: #1e3a8a;
+              letter-spacing: 0.05em;
+              margin: 0;
+              line-height: 1;
+            }
+            .line-accent {
+              width: 280px;
+              height: 3px;
+              background-color: #ea580c;
+              margin: 6px auto 0 auto;
+            }
+            .team-row {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+              font-size: 13pt;
+              color: #475569;
+              font-style: italic;
+              font-family: Georgia, serif;
+            }
+            .team-dot {
+              width: 6px;
+              height: 6px;
+              border-radius: 50%;
+              background-color: #ea580c;
+            }
+            .team-name {
+              font-family: system-ui, sans-serif;
+              font-weight: 900;
+              font-style: normal;
+              color: #0f172a;
+              letter-spacing: 0.02em;
+            }
+            .desc {
+              font-size: 10.5pt;
+              color: #64748b;
+              max-width: 700px;
+              margin: 0;
+              line-height: 1.3;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="cert-box">
+            <img class="cert-bg" src="${bgUrl}" alt="Certificate Background" />
+            <div class="cert-content">
+              <div>
+                <h1 class="student-name">${student}</h1>
+                <div class="line-accent"></div>
+              </div>
+              <div class="team-row">
+                <span class="team-dot"></span>
+                <span>of Team <span class="team-name">${team}</span></span>
+                <span class="team-dot"></span>
+              </div>
+              <p class="desc">for active innovation, technical excellence, and committed participation in the Smart India Hackathon 2026 Internal College Round.</p>
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+              }, 400);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    win.document.close();
   };
+
 
   // Save config
   const handleSaveConfig = async (e) => {
@@ -568,59 +702,13 @@ export function AdminCertificates() {
         </div>
 
         {/* RIGHT COLUMN: Official Real-Style SIH 2026 Landscape Certificate Preview */}
-        <div className="lg:col-span-8 print:w-full print:p-0 print:m-0">
-          {/* Dedicated Print Style specifically for Certificate */}
-          <style>{`
-            @media print {
-              @page {
-                size: A4 landscape;
-                margin: 0 !important;
-              }
-              html, body, #root {
-                margin: 0 !important;
-                padding: 0 !important;
-                background: #ffffff !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                overflow: hidden !important;
-              }
-              body * {
-                visibility: hidden !important;
-              }
-              .cert-printable-sheet, .cert-printable-sheet * {
-                visibility: visible !important;
-              }
-              .cert-printable-sheet {
-                position: fixed !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                box-shadow: none !important;
-                border: none !important;
-                z-index: 999999 !important;
-                background: #ffffff !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-              }
-              .cert-printable-sheet img {
-                width: 100% !important;
-                height: 100% !important;
-                object-fit: fill !important;
-              }
-            }
-          `}</style>
-
-          <div className="bg-slate-300/60 p-2 sm:p-5 rounded-2xl border border-slate-300 shadow-inner overflow-x-auto print:p-0 print:m-0 print:bg-transparent print:border-none">
-            {/* The Print Container */}
+        <div className="lg:col-span-8">
+          <div className="bg-slate-300/60 p-2 sm:p-5 rounded-2xl border border-slate-300 shadow-inner overflow-x-auto">
+            {/* The Certificate Container */}
             <div
+              id="sih-certificate-render-node"
               ref={printRef}
-              className="cert-printable-sheet mx-auto bg-white text-slate-900 relative shadow-2xl rounded-md print:rounded-none overflow-hidden select-none"
+              className="mx-auto bg-white text-slate-900 relative shadow-2xl rounded-md overflow-hidden select-none"
               style={{
                 width: "100%",
                 maxWidth: "920px",
@@ -633,16 +721,17 @@ export function AdminCertificates() {
                 src="/sih_official_certificate_template.png?v=2"
                 alt="SIH Official Certificate Template"
                 className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+                crossOrigin="anonymous"
               />
 
-              {/* Exact Dynamic Text Overlay safely placed in the white gap (Y: 53% to 70%) */}
+              {/* Exact Dynamic Text Overlay safely placed in the white gap (Y: 53.5% to 69%) */}
               <div 
                 className="absolute inset-x-0 flex flex-col items-center justify-between text-center pointer-events-none z-10"
                 style={{
                   top: "54%",
-                  bottom: "31%",
-                  left: "12%",
-                  right: "12%"
+                  bottom: "31.5%",
+                  left: "10%",
+                  right: "10%"
                 }}
               >
                 {/* Dynamic Student Name (Sits right below Certificate) */}
@@ -673,20 +762,23 @@ export function AdminCertificates() {
             </div>
           </div>
 
-          {/* Quick Action bar underneath preview */}
-          <div className="print:hidden mt-3 flex items-center justify-between text-xs text-slate-600 px-2">
+          {/* Action bar underneath preview */}
+          <div className="mt-3 flex items-center justify-between text-xs text-slate-600 px-2">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <strong>Official Template Active:</strong> Clean Landscape A4 without website headers/sidebar.
+              <strong>High-Resolution Official Certificate:</strong> Perfect A4 Landscape layout.
             </span>
-            <button
-              onClick={handlePrintCertificate}
-              className="text-indigo-700 font-bold hover:underline flex items-center gap-1 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-2xs"
-            >
-              <Printer size={13} /> Direct Print A4 Landscape
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePrintCertificate}
+                className="text-indigo-700 font-bold hover:bg-indigo-50 flex items-center gap-1.5 bg-white px-3.5 py-1.5 rounded-lg border border-slate-200 shadow-xs transition"
+              >
+                <Download size={14} /> Download Clean A4 PDF
+              </button>
+            </div>
           </div>
         </div>
+
 
 
       </div>
