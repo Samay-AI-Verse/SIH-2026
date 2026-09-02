@@ -30,8 +30,10 @@ import {
   adminSaveCertConfig,
   adminTestSmtp,
   adminSendTeamCertificates,
-  adminSendCustomCertificate
+  adminSendCustomCertificate,
+  getCertificateSamplePreviewUrl
 } from "../services/apiService";
+
 
 export function AdminCertificates() {
   const [teams, setTeams] = useState([]);
@@ -180,143 +182,26 @@ export function AdminCertificates() {
     }));
   };
 
-  // Instant clean certificate print / PDF export (No dashboard sidebar, no website headers)
+  // Instant direct vector PDF download & clean print (Zero browser headers/footers/URLs)
   const handlePrintCertificate = () => {
-    const student = certData.studentName || "Participant";
-    const team = certData.teamName || "Team";
-    const bgUrl = window.location.origin + "/sih_official_certificate_template.png?v=2";
-    
-    // Open a lightweight isolated print window
-    const win = window.open("", "_blank", "width=1200,height=850");
-    if (!win) {
-      window.print();
-      return;
-    }
+    // 1. Direct Backend Vector PDF Download (100% clean, exact A4, no browser headers, no page numbers)
+    const directPdfUrl = getCertificateSamplePreviewUrl(
+      certData.studentName,
+      certData.teamName,
+      certData.collegeName,
+      certData.role
+    );
 
-    win.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${student} - SIH 2026 Certificate</title>
-          <style>
-            @page {
-              size: A4 landscape;
-              margin: 0;
-            }
-            html, body {
-              margin: 0;
-              padding: 0;
-              width: 100vw;
-              height: 100vh;
-              overflow: hidden;
-              background: #ffffff;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-family: system-ui, -apple-system, sans-serif;
-            }
-            .cert-box {
-              position: relative;
-              width: 100vw;
-              height: 100vh;
-              max-width: 100%;
-              max-height: 100%;
-            }
-            .cert-bg {
-              position: absolute;
-              inset: 0;
-              width: 100%;
-              height: 100%;
-              object-fit: fill;
-            }
-            .cert-content {
-              position: absolute;
-              top: 54%;
-              bottom: 31.5%;
-              left: 10%;
-              right: 10%;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: space-between;
-              text-align: center;
-              z-index: 10;
-            }
-            .student-name {
-              font-size: 26pt;
-              font-weight: 900;
-              text-transform: uppercase;
-              color: #1e3a8a;
-              letter-spacing: 0.05em;
-              margin: 0;
-              line-height: 1;
-            }
-            .line-accent {
-              width: 280px;
-              height: 3px;
-              background-color: #ea580c;
-              margin: 6px auto 0 auto;
-            }
-            .team-row {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 8px;
-              font-size: 13pt;
-              color: #475569;
-              font-style: italic;
-              font-family: Georgia, serif;
-            }
-            .team-dot {
-              width: 6px;
-              height: 6px;
-              border-radius: 50%;
-              background-color: #ea580c;
-            }
-            .team-name {
-              font-family: system-ui, sans-serif;
-              font-weight: 900;
-              font-style: normal;
-              color: #0f172a;
-              letter-spacing: 0.02em;
-            }
-            .desc {
-              font-size: 10.5pt;
-              color: #64748b;
-              max-width: 700px;
-              margin: 0;
-              line-height: 1.3;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="cert-box">
-            <img class="cert-bg" src="${bgUrl}" alt="Certificate Background" />
-            <div class="cert-content">
-              <div>
-                <h1 class="student-name">${student}</h1>
-                <div class="line-accent"></div>
-              </div>
-              <div class="team-row">
-                <span class="team-dot"></span>
-                <span>of Team <span class="team-name">${team}</span></span>
-                <span class="team-dot"></span>
-              </div>
-              <p class="desc">for active innovation, technical excellence, and committed participation in the Smart India Hackathon 2026 Internal College Round.</p>
-            </div>
-          </div>
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.print();
-              }, 400);
-            };
-          </script>
-        </body>
-      </html>
-    `);
-    win.document.close();
+    // Create an invisible anchor to trigger immediate vector PDF download
+    const link = document.createElement("a");
+    link.href = directPdfUrl;
+    link.download = `Certificate_${(certData.studentName || "Participant").replace(/\s+/g, "_")}.pdf`;
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
+
 
 
   // Save config
@@ -506,9 +391,10 @@ export function AdminCertificates() {
               onClick={handlePrintCertificate}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-wider transition shadow-md"
             >
-              <Printer size={16} />
-              Print / Save A4 PDF
+              <Download size={16} />
+              Download Clean A4 PDF
             </button>
+
 
             <button
               onClick={handleBulkDispatch}
