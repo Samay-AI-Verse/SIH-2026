@@ -135,6 +135,7 @@ export function AdminEvaluationSheets() {
   const [liveScores, setLiveScores] = useState({}); // { [teamKey]: { c1, c2, c3, c4, c5 } }
   const [customTitles, setCustomTitles] = useState({}); // { [teamKey]: editedTitle }
   const [includeBlankRows, setIncludeBlankRows] = useState(true);
+  const [orientation, setOrientation] = useState("landscape"); // "landscape" or "portrait"
 
   async function loadData() {
     setLoading(true);
@@ -274,11 +275,11 @@ export function AdminEvaluationSheets() {
           "Team Name": t.teamName || t.team_name || t.name,
           "Leader Name": t.leaderName || t.leader_name || "",
           "Problem Statement": problemTitle,
-          "C1: Problem & Inno (10M)": liveScores[teamKey]?.c1 ?? "",
-          "C2: UI/UX Design (10M)": liveScores[teamKey]?.c2 ?? "",
-          "C3: Tech Stack & HW (10M)": liveScores[teamKey]?.c3 ?? "",
-          "C4: Working Demo (10M)": liveScores[teamKey]?.c4 ?? "",
-          "C5: PPT & Q&A (10M)": liveScores[teamKey]?.c5 ?? "",
+          "C1: Idea and Innovation (10M)": liveScores[teamKey]?.c1 ?? "",
+          "C2: Implementation (15M)": liveScores[teamKey]?.c2 ?? "",
+          "C3: Demo and Functionality (10M)": liveScores[teamKey]?.c3 ?? "",
+          "C4: Communication and Presentation (10M)": liveScores[teamKey]?.c4 ?? "",
+          "C5: Question and Answering (5M)": liveScores[teamKey]?.c5 ?? "",
           "Total Score (Max 50)": getTeamTotal(teamKey, "judge"),
         };
       });
@@ -302,15 +303,15 @@ export function AdminEvaluationSheets() {
       <style>{`
         @media print {
           @page {
-            size: A4 portrait;
-            margin: 8mm 6mm 8mm 6mm;
+            size: A4 ${orientation};
+            margin: ${orientation === "landscape" ? "6mm 5mm 6mm 5mm" : "8mm 6mm 8mm 6mm"};
           }
           html, body {
             background: #ffffff !important;
             color: #000000 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            font-size: 8.5pt !important;
+            font-size: ${orientation === "landscape" ? "8pt" : "8.5pt"} !important;
           }
           .print-watermark-fixed {
             display: flex !important;
@@ -318,7 +319,7 @@ export function AdminEvaluationSheets() {
             top: 50% !important;
             left: 50% !important;
             transform: translate(-50%, -50%) !important;
-            width: 380px !important;
+            width: ${orientation === "landscape" ? "420px" : "340px"} !important;
             max-width: 80% !important;
             opacity: 0.07 !important;
             z-index: 0 !important;
@@ -369,6 +370,36 @@ export function AdminEvaluationSheets() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            {/* Orientation Toggle: Landscape vs Portrait */}
+            <div className="inline-flex items-center rounded-xl bg-slate-100 p-1 border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setOrientation("landscape")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition ${
+                  orientation === "landscape"
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+                title="A4 Landscape Layout (Recommended for 10-column Jury Evaluation Matrix)"
+              >
+                <span className="w-3.5 h-2.5 border-2 border-current rounded-xs inline-block"></span>
+                Landscape
+              </button>
+              <button
+                type="button"
+                onClick={() => setOrientation("portrait")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition ${
+                  orientation === "portrait"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+                title="A4 Portrait Layout"
+              >
+                <span className="w-2.5 h-3.5 border-2 border-current rounded-xs inline-block"></span>
+                Portrait
+              </button>
+            </div>
+
             <Button
               variant="outline"
               size="sm"
@@ -383,9 +414,20 @@ export function AdminEvaluationSheets() {
               href="/Goodies/SIH_2026_MASTER_EVALUATION_AND_SWAG_KIT.pdf"
               download="SIH_2026_MASTER_EVALUATION_AND_SWAG_KIT.pdf"
               className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-white hover:bg-slate-800 transition shadow-sm"
+              title="Download combined Master Evaluation & Swag Kit PDF"
             >
               <Download size={14} className="text-amber-400" />
               Download Master PDF
+            </a>
+
+            <a
+              href="/Goodies/SIH_2026_Final_Judge_Evaluation_ScoreSheet.pdf"
+              download="SIH_2026_Final_Judge_Evaluation_ScoreSheet.pdf"
+              className="inline-flex items-center gap-2 rounded-xl bg-indigo-700 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-white hover:bg-indigo-800 transition shadow-sm"
+              title="Download standalone official Jury Evaluation Sheet PDF"
+            >
+              <Download size={14} className="text-amber-300" />
+              Download Jury PDF
             </a>
 
             <Button
@@ -394,7 +436,7 @@ export function AdminEvaluationSheets() {
               className="gap-2 font-black text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20"
             >
               <Printer size={15} />
-              Print Score Sheet
+              Print ({orientation === "landscape" ? "Landscape" : "Portrait"})
             </Button>
           </div>
         </div>
@@ -626,8 +668,23 @@ export function AdminEvaluationSheets() {
             </div>
           )}
           {activeSheet === "judge" && (
-            <div>
-              <b>Official SIH Matrix (50 Marks Total):</b> C1: Problem & Inno (10M) | C2: UI/UX (10M) | C3: Tech Stack & HW/SW (10M) | C4: Working Demo (10M) | C5: PPT & Q&A (10M)
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 w-full">
+              <span className="font-extrabold text-slate-900 text-[12px]">Official Jury Scoring Matrix (50M Total):</span>
+              <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-900 px-2 py-0.5 rounded font-bold text-[11px] border border-blue-200">
+                <span className="font-mono">C1:</span> Idea & Innovation <b className="text-blue-700">(10M)</b>
+              </span>
+              <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded font-bold text-[11px] border border-emerald-200">
+                <span className="font-mono">C2:</span> Implementation <b className="text-emerald-700">(15M)</b>
+              </span>
+              <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded font-bold text-[11px] border border-indigo-200">
+                <span className="font-mono">C3:</span> Demo & Functionality <b className="text-indigo-700">(10M)</b>
+              </span>
+              <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 px-2 py-0.5 rounded font-bold text-[11px] border border-amber-200">
+                <span className="font-mono">C4:</span> Communication & Presentation <b className="text-amber-700">(10M)</b>
+              </span>
+              <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-900 px-2 py-0.5 rounded font-bold text-[11px] border border-purple-200">
+                <span className="font-mono">C5:</span> Question & Answering <b className="text-purple-700">(5M)</b>
+              </span>
             </div>
           )}
           {activeSheet === "swag" && (
@@ -753,11 +810,11 @@ export function AdminEvaluationSheets() {
                   <th className="border border-slate-500 py-2.5 px-2 w-28">Team ID</th>
                   <th className="border border-slate-500 py-2.5 px-2 w-40 text-left">Team Name</th>
                   <th className="border border-slate-500 py-2.5 px-2 text-left">Problem Statement / Project Title</th>
-                  <th className="border border-slate-500 py-2 px-1 w-20">C1: Problem<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
-                  <th className="border border-slate-500 py-2 px-1 w-20">C2: UI/UX<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
-                  <th className="border border-slate-500 py-2 px-1 w-20">C3: Tech<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
-                  <th className="border border-slate-500 py-2 px-1 w-20">C4: Demo<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
-                  <th className="border border-slate-500 py-2 px-1 w-20">C5: PPT<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
+                  <th className="border border-slate-500 py-2 px-1 w-24">C1: Idea & Innovation<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
+                  <th className="border border-slate-500 py-2 px-1 w-24">C2: Implementation<br/><span className="text-[9px] font-normal text-slate-300">(15M)</span></th>
+                  <th className="border border-slate-500 py-2 px-1 w-24">C3: Demo & Functionality<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
+                  <th className="border border-slate-500 py-2 px-1 w-28">C4: Comm. & Presentation<br/><span className="text-[9px] font-normal text-slate-300">(10M)</span></th>
+                  <th className="border border-slate-500 py-2 px-1 w-24">C5: Question & Answering<br/><span className="text-[9px] font-normal text-slate-300">(5M)</span></th>
                   <th className="border border-slate-500 py-2.5 px-2 w-20 bg-indigo-900">Total<br/><span className="text-[9px] font-normal text-slate-300">(/50)</span></th>
                 </tr>
               </thead>
@@ -799,7 +856,7 @@ export function AdminEvaluationSheets() {
                         <input
                           type="number"
                           min="0"
-                          max="10"
+                          max="15"
                           value={score.c2 ?? ""}
                           onChange={(e) => handleScoreChange(teamKey, "c2", e.target.value)}
                           placeholder="—"
@@ -832,7 +889,7 @@ export function AdminEvaluationSheets() {
                         <input
                           type="number"
                           min="0"
-                          max="10"
+                          max="5"
                           value={score.c5 ?? ""}
                           onChange={(e) => handleScoreChange(teamKey, "c5", e.target.value)}
                           placeholder="—"

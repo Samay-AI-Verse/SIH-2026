@@ -17,6 +17,7 @@ const links = [
   { to: "/admin/registrations", label: "Registrations & Teams", icon: Shield },
   { to: "/admin/selections", label: "Selections & Approvals", icon: BadgeCheck },
   { to: "/admin/final-teams", label: "Final Approved Teams", icon: Trophy },
+  { to: "/admin/certificates", label: "Certificates & Dispatch", icon: Award },
   { to: "/admin/students", label: "Student Explorer", icon: GraduationCap },
   { to: "/admin/budget", label: "Budget & Ledger", icon: IndianRupee },
   { to: "/admin/payments", label: "Payment Verification", icon: Wallet },

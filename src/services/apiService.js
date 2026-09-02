@@ -617,4 +617,40 @@ export async function adminToggleTimelinePublish(published) {
   });
 }
 
+// Certificate Hub & Email Dispatch
+export async function adminFetchCertConfig() {
+  return api("/api/admin/certificates/config");
+}
+
+export async function adminSaveCertConfig(payload) {
+  return api("/api/admin/certificates/config", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function adminTestSmtp(payload) {
+  return api("/api/admin/certificates/test-smtp", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function adminSendTeamCertificates(teamId) {
+  return api(`/api/admin/certificates/send-team/${teamId}`, {
+    method: "POST",
+  });
+}
+
+export function getMemberCertificateDownloadUrl(memberId) {
+  const token = getAdminToken();
+  return `${API_BASE}/api/admin/certificates/member/${memberId}?token=${encodeURIComponent(token || "")}`;
+}
+
+export function getCertificateSamplePreviewUrl(studentName, teamName, college, role) {
+  const token = getAdminToken();
+  return `${API_BASE}/api/admin/certificates/preview?student_name=${encodeURIComponent(studentName || "Participant Name")}&team_name=${encodeURIComponent(teamName || "Code Mavericks")}&college=${encodeURIComponent(college || "GTMC College")}&role=${encodeURIComponent(role || "Leader")}&token=${encodeURIComponent(token || "")}`;
+}
+
+
 
