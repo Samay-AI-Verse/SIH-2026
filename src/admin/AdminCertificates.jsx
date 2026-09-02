@@ -256,12 +256,27 @@ export function AdminCertificates() {
     }
   };
 
-  // Bulk dispatch
+  // Bulk dispatch with 2-Step Safety Verification
   const handleBulkDispatch = async () => {
-    const conf = window.confirm(
-      `Dispatch certificates to all ${filteredTeams.length} teams?\nEach leader will receive certificates for their members via email.`
+    // STEP 1: Initial Warning & Count
+    const step1 = window.confirm(
+      `⚠️ STEP 1 of 2: BULK EMAIL DISPATCH INITIATION\n\n` +
+      `You are about to trigger official certificate dispatch for ${filteredTeams.length} teams.\n` +
+      `Each team's leader will receive an automated email containing PDF certificates for all 6 members.\n\n` +
+      `Do you want to proceed to Step 2 Verification?`
     );
-    if (!conf) return;
+    if (!step1) return;
+
+    // STEP 2: Explicit Security Confirmation Phrase
+    const confirmationText = window.prompt(
+      `🔒 STEP 2 of 2: FINAL CONFIRMATION\n\n` +
+      `To prevent accidental mass emails to students, please type "SEND CERTS" (without quotes) below to start dispatch:`
+    );
+
+    if (confirmationText?.trim().toUpperCase() !== "SEND CERTS") {
+      alert("Dispatch cancelled. The confirmation text did not match 'SEND CERTS'. No emails were sent.");
+      return;
+    }
 
     setBulkDispatchActive(true);
     let count = 0;
@@ -287,8 +302,9 @@ export function AdminCertificates() {
       await new Promise((r) => setTimeout(r, 2500));
     }
     setBulkDispatchActive(false);
-    alert("Bulk dispatch complete!");
+    alert(`Bulk dispatch complete! Successfully dispatched certificates to ${count} teams.`);
   };
+
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto p-2 sm:p-4 print:p-0 print:m-0">
