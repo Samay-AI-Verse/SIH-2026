@@ -590,43 +590,31 @@ export function AdminCertificates() {
 
               {/* Exact Dynamic Text Overlay mapped to template coordinates */}
               <div className="absolute inset-0 flex flex-col items-center pointer-events-none z-10">
-                {/* Dynamic Student Name (Aligned right into the center body below "Certificate") */}
+                {/* Dynamic Student Name & Team Name (Aligned safely below the green Certificate script) */}
                 <div
                   className="w-full text-center px-8"
                   style={{
-                    marginTop: "51.5%"
+                    marginTop: "52%"
                   }}
                 >
-                  <p className="text-[10px] sm:text-xs md:text-sm italic font-serif text-slate-600 mb-1">
-                    This is proudly presented to
-                  </p>
-                  <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-black uppercase text-[#1e3a8a] tracking-wider drop-shadow-xs">
+                  <h1 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black uppercase text-[#1e3a8a] tracking-wider drop-shadow-xs">
                     {certData.studentName}
                   </h1>
-                  <div className="w-48 sm:w-64 md:w-80 h-0.5 sm:h-1 bg-[#ea580c] mx-auto mt-1" />
+                  <div className="w-40 sm:w-56 md:w-72 h-0.5 sm:h-1 bg-[#ea580c] mx-auto mt-1" />
 
-                  {/* Team Name and Role */}
-                  <p className="text-[10px] sm:text-xs md:text-sm font-bold text-slate-800 mt-2 sm:mt-3">
-                    of Team <span className="text-[#1e3a8a] font-black">"{certData.teamName}"</span> as{" "}
-                    <span className="text-[#ea580c] font-black">
-                      {certData.role === "Leader" ? "Team Leader" : "Active Team Member"}
-                    </span>
+                  {/* Team Name Only (No role, no college) */}
+                  <p className="text-[11px] sm:text-xs md:text-sm font-bold text-slate-800 mt-2 sm:mt-3">
+                    Team: <span className="text-[#1e3a8a] font-black">"{certData.teamName}"</span>
                   </p>
 
-                  {/* College / Institution */}
-                  {certData.collegeName && (
-                    <p className="text-[9px] sm:text-[11px] md:text-xs text-slate-600 font-medium italic mt-0.5">
-                      representing {certData.collegeName}
-                    </p>
-                  )}
-
                   <p className="text-[8px] sm:text-[10px] md:text-[11px] text-slate-500 max-w-xl mx-auto mt-2 leading-tight hidden sm:block">
-                    for exemplary technical innovation, teamwork, and dedicated participation in Smart India Hackathon 2026.
+                    for active innovation, technical excellence, and committed participation in the Smart India Hackathon 2026 Internal College Round.
                   </p>
                 </div>
               </div>
             </div>
           </div>
+
 
           {/* Quick Action bar underneath preview */}
           <div className="print:hidden mt-3 flex items-center justify-between text-xs text-slate-600 px-2">
