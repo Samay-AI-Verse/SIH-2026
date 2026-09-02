@@ -602,14 +602,22 @@ export function AdminCertificates() {
                   </h1>
                   <div className="w-40 sm:w-56 md:w-72 h-0.5 sm:h-1 bg-[#ea580c] mx-auto mt-1" />
 
-                  {/* Team Name Only (No role, no college) */}
-                  <p className="text-[11px] sm:text-xs md:text-sm font-bold text-slate-800 mt-2 sm:mt-3">
-                    Team: <span className="text-[#1e3a8a] font-black">"{certData.teamName}"</span>
-                  </p>
+                  {/* Elegant Team Presentation with Ornaments */}
+                  <div className="flex items-center justify-center gap-2 mt-2 sm:mt-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c]" />
+                    <p className="text-[11px] sm:text-xs md:text-sm font-medium text-slate-600 font-serif italic">
+                      of Team{" "}
+                      <span className="font-sans font-black not-italic text-slate-900 tracking-wide text-xs sm:text-sm md:text-base ml-1">
+                        {certData.teamName}
+                      </span>
+                    </p>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c]" />
+                  </div>
 
                   <p className="text-[8px] sm:text-[10px] md:text-[11px] text-slate-500 max-w-xl mx-auto mt-2 leading-tight hidden sm:block">
                     for active innovation, technical excellence, and committed participation in the Smart India Hackathon 2026 Internal College Round.
                   </p>
+
                 </div>
               </div>
             </div>
