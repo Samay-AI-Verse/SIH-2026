@@ -550,10 +550,19 @@ export function AdminCertificates() {
         success: false,
         message: errorDetail
       });
-      alert(
-        `⚠️ Failed to Send Email:\n\n${errorDetail}\n\n` +
-        `Note: If SMTP credentials are not configured, click the "SMTP & Signatures" button at the top and enter your Gmail address and 16-character App Password.`
-      );
+
+      if (errorDetail.toLowerCase().includes("smtp") || errorDetail.toLowerCase().includes("credential")) {
+        const wantToOpen = window.confirm(
+          `⚠️ SMTP CREDENTIALS NOT CONFIGURED!\n\n` +
+          `To send real emails to teams, please save your Gmail address and 16-character Google App Password.\n\n` +
+          `Would you like to open the "SMTP & Signatures" settings right now to set it up?`
+        );
+        if (wantToOpen) {
+          setShowConfigModal(true);
+        }
+      } else {
+        alert(`⚠️ Failed to Send Email:\n\n${errorDetail}`);
+      }
     } finally {
       setSendingTeamEmail(false);
     }
@@ -1426,6 +1435,25 @@ export function AdminCertificates() {
               </div>
             </div>
 
+            {/* SMTP Not Configured Helper Banner */}
+            {!config.is_smtp_configured && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle size={16} className="text-amber-600 shrink-0" />
+                  <span>
+                    <strong>Gmail SMTP Not Configured:</strong> Connect your Gmail & App Password to enable real email sending.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowConfigModal(true)}
+                  className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-black rounded-lg shrink-0 text-xs shadow-2xs transition cursor-pointer flex items-center justify-center gap-1"
+                >
+                  <Sliders size={12} /> Configure Gmail SMTP
+                </button>
+              </div>
+            )}
+
             {/* TAB 1: DEDICATED TEAM PACKAGE */}
             {dispatchTab === "team" && (
               <div className="space-y-4 bg-gradient-to-br from-indigo-50/90 via-blue-50/60 to-white p-4 sm:p-5 rounded-2xl border border-indigo-200 shadow-xs animate-in fade-in duration-150">
@@ -1732,8 +1760,11 @@ export function AdminCertificates() {
                       value={config.smtp_pass}
                       onChange={(e) => setConfig({ ...config, smtp_pass: e.target.value })}
                       className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg"
-                      placeholder="16 letters code"
+                      placeholder="16 letters code (e.g. abcd efgh ijkl mnop)"
                     />
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      💡 Generate at: <strong>Google Account → Security → 2-Step Verification → App Passwords</strong> (Select 'Mail').
+                    </p>
                   </div>
                 </div>
 
