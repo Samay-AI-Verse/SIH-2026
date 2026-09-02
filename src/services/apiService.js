@@ -636,9 +636,10 @@ export async function adminTestSmtp(payload) {
   });
 }
 
-export async function adminSendTeamCertificates(teamId) {
+export async function adminSendTeamCertificates(teamId, payload = {}) {
   return api(`/api/admin/certificates/send-team/${teamId}`, {
     method: "POST",
+    body: JSON.stringify(payload),
   });
 }
 
@@ -659,6 +660,39 @@ export function getCertificateSamplePreviewUrl(studentName, teamName, college, r
   const token = getAdminToken();
   return `${API_BASE}/api/admin/certificates/preview?student_name=${encodeURIComponent(studentName || "Participant Name")}&team_name=${encodeURIComponent(teamName || "Code Mavericks")}&college=${encodeURIComponent(college || "GTMC College")}&role=${encodeURIComponent(role || "Leader")}&token=${encodeURIComponent(token || "")}`;
 }
+
+export async function lookupCertificates(emailOrQuery) {
+  return api("/api/certificates/lookup", {
+    method: "POST",
+    body: JSON.stringify({ query: emailOrQuery }),
+  });
+}
+
+export function getPublicMemberCertificateUrl(memberId, preview = false) {
+  return `${API_BASE}/api/certificates/member/${memberId}${preview ? "?preview=true" : ""}`;
+}
+
+export function getPublicTeamCertificateZipUrl(teamId) {
+  return `${API_BASE}/api/certificates/team/${teamId}/zip`;
+}
+
+export function getAdminTeamCertificateZipUrl(teamId) {
+  const token = getAdminToken();
+  return `${API_BASE}/api/admin/certificates/team/${teamId}/zip?token=${encodeURIComponent(token || "")}`;
+}
+
+export function getCustomCertificateDownloadUrl({ studentName, teamName, collegeName, role, certType, preview = false }) {
+  const params = new URLSearchParams({
+    student_name: studentName || "Participant",
+    team_name: teamName || "",
+    college_name: collegeName || "",
+    role: role || "Participant",
+    cert_type: certType || "Participation",
+    preview: preview ? "true" : "false"
+  });
+  return `${API_BASE}/api/certificates/custom-download?${params.toString()}`;
+}
+
 
 
 

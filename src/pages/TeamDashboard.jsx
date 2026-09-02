@@ -22,7 +22,10 @@ import {
   X,
   Save,
   User,
-  Calendar
+  Calendar,
+  Award,
+  Download,
+  Eye
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Field, TextInput } from "../components/ui/Field";
@@ -393,11 +396,16 @@ export function TeamDashboard() {
                       </div>
                     </div>
 
-                    {/* Edit Member Action */}
-                    <div className="mt-4 pt-3 border-t border-web/15 flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">
-                        {member.is_leader ? "Primary Contact" : "Roster Member"}
-                      </span>
+                    {/* Edit & Download Member Action */}
+                    <div className="mt-4 pt-3 border-t border-web/15 flex items-center justify-between gap-1.5 flex-wrap">
+                      <a
+                        href={`/api/certificates/member/${member.id}`}
+                        download={`Certificate_${(member.name || member.full_name || "Student").replace(/\s+/g, "_")}.pdf`}
+                        className="inline-flex items-center gap-1 rounded-lg border-2 border-web bg-web hover:bg-slate-800 text-white px-2.5 py-1 text-xs font-black uppercase transition shadow-xs"
+                        title="Download official participation certificate PDF"
+                      >
+                        <Download size={12} /> Certificate
+                      </a>
                       <button
                         type="button"
                         onClick={() => {
@@ -418,6 +426,98 @@ export function TeamDashboard() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* OFFICIAL PARTICIPATION CERTIFICATES DOWNLOAD SECTION */}
+            <div className="rounded-2xl sm:rounded-3xl border-3 sm:border-4 border-web bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-950 text-white p-5 sm:p-7 shadow-comic">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/15 pb-5">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-400/20 text-cyan-300 border border-cyan-400/30 text-xs font-black uppercase tracking-wider mb-2">
+                    <Award size={13} className="text-cyan-400" />
+                    Official Verified Certificates
+                  </div>
+                  <h3 className="font-display text-2xl sm:text-3xl text-white flex items-center gap-2">
+                    Smart India Hackathon 2026 Certificates
+                  </h3>
+                  <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
+                    Official verified A4 Landscape participation certificates are ready. Download your individual certificate or grab the entire team package in a single ZIP file.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <a
+                    href={`/api/certificates/team/${data.team.id}/zip`}
+                    download={`Team_Certificates_${(data.team.team_name || "Team").replace(/\s+/g, "_")}.zip`}
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 px-4 py-2.5 font-black text-xs uppercase tracking-wider text-slate-950 transition shadow-md active:scale-95"
+                  >
+                    <Download size={16} />
+                    Download All Certificates (.ZIP)
+                  </a>
+                </div>
+              </div>
+
+              {/* Individual Members Certificate Download List */}
+              <div className="mt-5">
+                <p className="text-xs font-black uppercase tracking-wider text-cyan-300 mb-3">
+                  Direct Download for Registered Members:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {(data.members || []).map((m, idx) => {
+                    const isMatchedStudent = email && m.email && m.email.toLowerCase() === email.toLowerCase().trim();
+                    return (
+                      <div
+                        key={m.id || idx}
+                        className={`p-3.5 rounded-xl border-2 transition flex flex-col justify-between ${
+                          isMatchedStudent
+                            ? "bg-white/20 border-cyan-400 ring-2 ring-cyan-400/50"
+                            : "bg-white/10 border-white/15 hover:border-white/30"
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-white/20 text-white">
+                              {m.is_leader || idx === 0 ? "👑 Leader" : `Member ${idx + 1}`}
+                            </span>
+                            {isMatchedStudent && (
+                              <span className="text-[10px] font-black bg-cyan-400 text-slate-950 px-2 py-0.5 rounded">
+                                Your Certificate
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="font-bold text-sm text-white truncate" title={m.name || m.full_name}>
+                            {m.name || m.full_name}
+                          </h4>
+                          {m.email && (
+                            <p className="text-[11px] text-slate-300 font-mono truncate" title={m.email}>
+                              {m.email}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center gap-2">
+                          <a
+                            href={`/api/certificates/member/${m.id}`}
+                            download={`Certificate_${(m.name || m.full_name || "Student").replace(/\s+/g, "_")}.pdf`}
+                            className="flex-1 py-1.5 px-3 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black text-xs rounded-lg transition flex items-center justify-center gap-1.5 shadow-sm"
+                          >
+                            <Download size={13} />
+                            Download PDF
+                          </a>
+                          <a
+                            href={`/api/certificates/member/${m.id}?preview=true`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg transition text-xs font-bold"
+                            title="Preview Certificate"
+                          >
+                            <Eye size={13} />
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 

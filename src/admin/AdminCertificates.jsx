@@ -23,7 +23,15 @@ import {
   Edit3,
   Check,
   HelpCircle,
-  FileText
+  FileText,
+  User,
+  RotateCcw,
+  Package,
+  CheckCheck,
+  ExternalLink,
+  FileDown,
+  Archive,
+  ArrowDownToLine
 } from "lucide-react";
 
 import {
@@ -33,7 +41,13 @@ import {
   adminTestSmtp,
   adminSendTeamCertificates,
   adminSendCustomCertificate,
-  getCertificateSamplePreviewUrl
+  getCertificateSamplePreviewUrl,
+  lookupCertificates,
+  getPublicMemberCertificateUrl,
+  getPublicTeamCertificateZipUrl,
+  getAdminTeamCertificateZipUrl,
+  getMemberCertificateDownloadUrl,
+  getCustomCertificateDownloadUrl
 } from "../services/apiService";
 
 
@@ -49,6 +63,13 @@ export function AdminCertificates() {
   const [selectedMemberIndex, setSelectedMemberIndex] = useState(0);
   const [showEmailPreviewModal, setShowEmailPreviewModal] = useState(false);
   const [emailPreviewType, setEmailPreviewType] = useState("single"); // "single" or "team"
+
+  // Team Package Dispatch state
+  const [dispatchTab, setDispatchTab] = useState("team"); // "team" (all 6 certs in single mail) | "single"
+  const [teamTargetEmail, setTeamTargetEmail] = useState("");
+  const [teamCcMembers, setTeamCcMembers] = useState(true);
+  const [sendingTeamEmail, setSendingTeamEmail] = useState(false);
+  const [teamEmailResult, setTeamEmailResult] = useState(null);
 
 
   // Certificate Editable Content
@@ -89,6 +110,14 @@ export function AdminCertificates() {
   const [bulkDispatchActive, setBulkDispatchActive] = useState(false);
   const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0, currentTeam: "" });
 
+  // Direct Participant / Student Certificate Downloader state
+  const [lookupQuery, setLookupQuery] = useState("");
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupResult, setLookupResult] = useState(null);
+  const [lookupError, setLookupError] = useState("");
+  const [downloadingZipId, setDownloadingZipId] = useState(null);
+  const [downloadingPdfId, setDownloadingPdfId] = useState(null);
+
   const printRef = useRef(null);
 
   const loadData = async () => {
@@ -113,6 +142,11 @@ export function AdminCertificates() {
           collegeName: first.college || prev.collegeName,
           role: "Leader"
         }));
+        const leaderEmail = leader?.email || first.leaderEmail || "";
+        if (leaderEmail) {
+          setCustomEmail(leaderEmail);
+          setTeamTargetEmail(leaderEmail);
+        }
       }
 
       if (configData) {
@@ -140,24 +174,62 @@ export function AdminCertificates() {
     loadData();
   }, []);
 
-  // Filtered teams list
+  // Filtered teams list with comprehensive fast search
   const filteredTeams = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return teams;
-    return teams.filter(
-      (t) =>
-        t.name?.toLowerCase().includes(q) ||
-        t.registrationId?.toLowerCase().includes(q) ||
-        t.leaderName?.toLowerCase().includes(q) ||
-        t.leaderEmail?.toLowerCase().includes(q) ||
-        t.college?.toLowerCase().includes(q)
-    );
+    const raw = search.trim().toLowerCase();
+    if (!raw) return teams;
+
+    // Tokens for multi-word queries ("code craft", "vikram code")
+    const tokens = raw.split(/\s+/).filter(Boolean);
+    const compactRaw = raw.replace(/\s+/g, "");
+
+    return teams.filter((t) => {
+      const teamName = (t.teamName || t.team_name || t.name || "").toLowerCase();
+      const compactTeamName = teamName.replace(/\s+/g, "");
+      const leaderName = (t.leaderName || t.leader_name || "").toLowerCase();
+      const leaderEmail = (t.leaderEmail || t.leader_email || t.email || "").toLowerCase();
+      const regId = (t.registrationId || t.registration_id || t.id || "").toLowerCase();
+      const college = (t.college || t.university || "").toLowerCase();
+
+      // Check all team members (names and emails)
+      const members = t.members || [];
+      const memberNames = members.map((m) => (m.full_name || m.name || "").toLowerCase()).join(" ");
+      const memberEmails = members.map((m) => (m.email || "").toLowerCase()).join(" ");
+
+      // Direct substring & space-insensitive matching
+      if (
+        teamName.includes(raw) ||
+        compactTeamName.includes(compactRaw) ||
+        leaderName.includes(raw) ||
+        leaderEmail.includes(raw) ||
+        regId.includes(raw) ||
+        college.includes(raw) ||
+        memberNames.includes(raw) ||
+        memberEmails.includes(raw)
+      ) {
+        return true;
+      }
+
+      // Multi-token match across all fields
+      const combinedText = `${teamName} ${leaderName} ${leaderEmail} ${regId} ${college} ${memberNames} ${memberEmails}`;
+      return tokens.every((token) => combinedText.includes(token));
+    });
   }, [teams, search]);
 
   // Current active team
   const currentTeam = useMemo(() => {
     return teams.find((t) => t.id === selectedTeamId) || teams[0] || null;
   }, [teams, selectedTeamId]);
+
+  // Auto-select first matching team during search if current team is filtered out
+  useEffect(() => {
+    if (search.trim() && filteredTeams.length > 0) {
+      const isCurrentInResults = filteredTeams.some((t) => t.id === selectedTeamId);
+      if (!isCurrentInResults) {
+        handleSelectTeam(filteredTeams[0]);
+      }
+    }
+  }, [filteredTeams, search, selectedTeamId]);
 
   // When team selection changes, pick first member
   const handleSelectTeam = (team) => {
@@ -174,6 +246,14 @@ export function AdminCertificates() {
       studentName: member?.full_name || member?.name || team.leaderName || "Student Name",
       role: isLeader ? "Leader" : "Member"
     }));
+
+    if (member?.email) {
+      setCustomEmail(member.email);
+    } else if (team.leaderEmail) {
+      setCustomEmail(team.leaderEmail);
+    }
+    setTeamTargetEmail(team.leaderEmail || team.email || "");
+    setTeamEmailResult(null);
   };
 
   // When clicking a member inside the team
@@ -185,6 +265,32 @@ export function AdminCertificates() {
       collegeName: member.college || currentTeam?.college || prev.collegeName,
       role: member.is_leader ? "Leader" : "Member"
     }));
+
+    if (member.email) {
+      setCustomEmail(member.email);
+    } else if (member.is_leader && currentTeam?.leaderEmail) {
+      setCustomEmail(currentTeam.leaderEmail);
+    }
+  };
+
+  // Reset editable cert fields back to currently selected member
+  const handleResetToSelectedMember = () => {
+    if (!currentTeam) return;
+    const members = currentTeam.members || [];
+    const member = members[selectedMemberIndex] || members[0];
+    const isLeader = member ? member.is_leader : true;
+    setCertData((prev) => ({
+      ...prev,
+      studentName: member?.full_name || member?.name || currentTeam.leaderName || "Student Name",
+      teamName: currentTeam.name || currentTeam.teamName || "Team",
+      collegeName: currentTeam.college || prev.collegeName,
+      role: isLeader ? "Leader" : "Member"
+    }));
+    if (member?.email) {
+      setCustomEmail(member.email);
+    } else if (currentTeam.leaderEmail) {
+      setCustomEmail(currentTeam.leaderEmail);
+    }
   };
 
   // Instant direct vector PDF download & clean print (Zero browser headers/footers/URLs)
@@ -205,6 +311,120 @@ export function AdminCertificates() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleDownloadTeamZip = (teamId, teamName) => {
+    setDownloadingZipId(teamId);
+    try {
+      const url = getAdminTeamCertificateZipUrl(teamId);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Team_Certificates_${(teamName || "Team").replace(/\s+/g, "_")}.zip`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      alert("Download failed: " + (err.message || "Unknown error"));
+    } finally {
+      setTimeout(() => setDownloadingZipId(null), 1200);
+    }
+  };
+
+  const handleDownloadMemberPdf = (memberId, memberName, teamRegId) => {
+    setDownloadingPdfId(memberId);
+    try {
+      const url = getMemberCertificateDownloadUrl(memberId);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Certificate_${(memberName || "Student").replace(/\s+/g, "_")}_${teamRegId || "SIH"}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      alert("Download failed: " + (err.message || "Unknown error"));
+    } finally {
+      setTimeout(() => setDownloadingPdfId(null), 1200);
+    }
+  };
+
+  const handleDownloadCustomPdf = () => {
+    const url = getCustomCertificateDownloadUrl({
+      studentName: certData.studentName,
+      teamName: certData.teamName,
+      collegeName: certData.collegeName,
+      role: certData.role,
+      certType: certData.certType,
+      preview: false
+    });
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Certificate_${(certData.studentName || "Participant").replace(/\s+/g, "_")}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleLookupCertificates = async (e) => {
+    if (e) e.preventDefault();
+    const q = lookupQuery.trim();
+    if (!q) {
+      setLookupResult(null);
+      setLookupError("");
+      return;
+    }
+    setLookupLoading(true);
+    setLookupError("");
+    try {
+      const res = await lookupCertificates(q);
+      setLookupResult(res);
+    } catch (err) {
+      const qLower = q.toLowerCase();
+      const matchedTeam = teams.find((t) =>
+        (t.leaderEmail && t.leaderEmail.toLowerCase().includes(qLower)) ||
+        (t.name && t.name.toLowerCase().includes(qLower)) ||
+        (t.registrationId && t.registrationId.toLowerCase().includes(qLower)) ||
+        ((t.members || []).some(
+          (m) =>
+            (m.email && m.email.toLowerCase().includes(qLower)) ||
+            (m.full_name && m.full_name.toLowerCase().includes(qLower)) ||
+            (m.name && m.name.toLowerCase().includes(qLower))
+        ))
+      );
+      if (matchedTeam) {
+        const matchedMember = (matchedTeam.members || []).find(
+          (m) =>
+            (m.email && m.email.toLowerCase() === qLower) ||
+            (m.full_name && m.full_name.toLowerCase().includes(qLower)) ||
+            (m.name && m.name.toLowerCase().includes(qLower))
+        );
+        setLookupResult({
+          success: true,
+          team: {
+            id: matchedTeam.id,
+            team_name: matchedTeam.name || matchedTeam.teamName,
+            registration_id: matchedTeam.registrationId || matchedTeam.registration_id,
+            college: matchedTeam.college,
+            leader_name: matchedTeam.leaderName,
+            leader_email: matchedTeam.leaderEmail,
+            zip_download_url: `/api/certificates/team/${matchedTeam.id}/zip`
+          },
+          matched_member_id: matchedMember?.id || matchedTeam.members?.[0]?.id,
+          members: (matchedTeam.members || []).map((m, idx) => ({
+            id: m.id,
+            name: m.full_name || m.name,
+            email: m.email,
+            role: m.is_leader || idx === 0 ? "Leader" : "Member",
+            is_leader: m.is_leader || idx === 0,
+            download_url: `/api/certificates/member/${m.id}`
+          }))
+        });
+      } else {
+        setLookupError(err.message || `No records found for "${q}". Please check student email, leader email, or registration ID.`);
+        setLookupResult(null);
+      }
+    } finally {
+      setLookupLoading(false);
+    }
   };
 
 
@@ -259,29 +479,62 @@ export function AdminCertificates() {
     }
   };
 
-  // Send single team email
-  const handleSendSingleTeam = async (team) => {
+  // Send single team email package with all 6 certificates
+  const handleSendSingleTeam = async (team = null, customRecipient = null, ccMembers = null) => {
+    const targetTeam = team || currentTeam;
+    if (!targetTeam) return;
+
+    const recipient = (customRecipient || teamTargetEmail || targetTeam.leaderEmail || targetTeam.email || "").trim();
+    if (!recipient || !recipient.includes("@")) {
+      alert("Please enter a valid recipient email address for this team.");
+      return;
+    }
+
+    const useCc = ccMembers !== null ? ccMembers : teamCcMembers;
+    const members = targetTeam.members || [];
+    const membersCount = members.length || 6;
+    const teamName = targetTeam.name || targetTeam.teamName || "Team";
+
     const conf = window.confirm(
-      `Send all member certificates for "${team.name}" to Leader email:\n${team.leaderEmail}?`
+      `📦 DISPATCH TEAM PACKAGE (${membersCount} CERTIFICATES)\n\n` +
+      `Team: "${teamName}"\n` +
+      `Recipient Email: ${recipient}\n` +
+      (useCc ? `CC: All registered members with email\n\n` : `\n`) +
+      `Send all ${membersCount} certificates in a single official email package now?`
     );
     if (!conf) return;
 
+    setSendingTeamEmail(true);
+    setTeamEmailResult(null);
     setSendStatuses((prev) => ({
       ...prev,
-      [team.id]: { status: "sending", message: "Dispatching..." }
+      [targetTeam.id]: { status: "sending", message: "Dispatching..." }
     }));
 
     try {
-      const res = await adminSendTeamCertificates(team.id);
+      const res = await adminSendTeamCertificates(targetTeam.id, {
+        target_email: recipient,
+        cc_members: useCc
+      });
       setSendStatuses((prev) => ({
         ...prev,
-        [team.id]: { status: "sent", message: `Delivered (${res.certificates_count} certs)` }
+        [targetTeam.id]: { status: "sent", message: `Delivered (${res.certificates_count || membersCount} certs)` }
       }));
+      setTeamEmailResult({
+        success: true,
+        message: res.message || `Delivered all ${res.certificates_count || membersCount} certificates to ${recipient}!`
+      });
     } catch (err) {
       setSendStatuses((prev) => ({
         ...prev,
-        [team.id]: { status: "failed", message: err.message || "Failed" }
+        [targetTeam.id]: { status: "failed", message: err.message || "Failed" }
       }));
+      setTeamEmailResult({
+        success: false,
+        message: err.message || "Failed to dispatch team certificates package."
+      });
+    } finally {
+      setSendingTeamEmail(false);
     }
   };
 
@@ -366,7 +619,7 @@ export function AdminCertificates() {
 
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto p-2 sm:p-4 print:p-0 print:m-0">
+    <div className="space-y-6 max-w-[1640px] mx-auto p-2 sm:p-4 print:p-0 print:m-0">
       {/* Top Banner (Hidden when printing certificate) */}
       <div className="print:hidden relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 p-6 sm:p-8 text-white shadow-xl border border-white/10">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -411,6 +664,28 @@ export function AdminCertificates() {
               Download Clean A4 PDF
             </button>
 
+            {currentTeam && (
+              <button
+                onClick={() => handleDownloadTeamZip(currentTeam.id, currentTeam.name)}
+                disabled={downloadingZipId === currentTeam.id}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition shadow-md disabled:opacity-50"
+                title={`Download ZIP package of all ${(currentTeam?.members || []).length || 6} certificates for ${currentTeam?.name}`}
+              >
+                <Archive size={16} />
+                {downloadingZipId === currentTeam.id ? "Packing ZIP..." : `Download Team ZIP (${(currentTeam?.members || []).length || 6})`}
+              </button>
+            )}
+
+            <button
+              onClick={() => handleSendSingleTeam(currentTeam)}
+              disabled={sendingTeamEmail || !currentTeam}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider transition shadow-md disabled:opacity-50"
+              title={`Send all ${(currentTeam?.members || []).length || 6} certificates for ${currentTeam?.name || 'selected team'} in a single email`}
+            >
+              <Package size={16} />
+              {sendingTeamEmail ? "Sending Team Package..." : `Send Selected Team (${(currentTeam?.members || []).length || 6} Certs)`}
+            </button>
+
             <button
               onClick={handleBulkDispatch}
               disabled={bulkDispatchActive || loading || filteredTeams.length === 0}
@@ -447,43 +722,264 @@ export function AdminCertificates() {
         )}
       </div>
 
-      {/* Main Studio Grid: Left Explorer + Right Live Preview */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 print:block">
-        {/* LEFT COLUMN: Team & Member Explorer (Hidden when printing) */}
-        <div className="print:hidden lg:col-span-4 space-y-4">
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
+      {/* DIRECT CERTIFICATE DOWNLOADER BY EMAIL / REG ID */}
+      <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-950 rounded-3xl p-5 sm:p-6 text-white shadow-xl border border-blue-800/60">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-cyan-300 border border-blue-400/30 text-xs font-black uppercase tracking-wider mb-2">
+              <Sparkles size={13} className="text-cyan-400" />
+              Direct Participant Download Hub
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+              <Download size={22} className="text-cyan-400" />
+              Direct Certificate Download by Participant Email
+            </h2>
+            <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
+              Enter any student's email, team leader's email, or registration ID to immediately download verified A4 PDF certificates or full team ZIP bundles with one click.
+            </p>
+          </div>
+        </div>
+
+        {/* Search Input Bar */}
+        <form onSubmit={handleLookupCertificates} className="mt-4 flex flex-col sm:flex-row items-stretch gap-2.5">
+          <div className="relative flex-1">
+            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              value={lookupQuery}
+              onChange={(e) => setLookupQuery(e.target.value)}
+              placeholder="Enter Student Email (e.g. rahul@gmail.com), Leader Email, or Reg ID..."
+              className="w-full pl-11 pr-8 py-3 bg-white/10 hover:bg-white/15 focus:bg-white text-white focus:text-slate-900 border border-white/20 focus:border-cyan-400 rounded-2xl text-xs sm:text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-cyan-500/30 transition shadow-inner font-mono"
+            />
+            {lookupQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setLookupQuery("");
+                  setLookupResult(null);
+                  setLookupError("");
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white bg-white/10 hover:bg-white/20 p-1 rounded-full text-xs transition"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          <button
+            type="submit"
+            disabled={lookupLoading || !lookupQuery.trim()}
+            className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-lg transition flex items-center justify-center gap-2 shrink-0 active:scale-95 cursor-pointer"
+          >
+            {lookupLoading ? (
+              <RefreshCw size={16} className="animate-spin text-slate-950" />
+            ) : (
+              <Search size={16} className="text-slate-950" />
+            )}
+            {lookupLoading ? "Searching..." : "Find & Direct Download"}
+          </button>
+        </form>
+
+        {/* Search Error */}
+        {lookupError && (
+          <div className="mt-4 p-3.5 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-200 text-xs font-bold flex items-center justify-between gap-2 animate-in fade-in duration-200">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={16} className="text-rose-400 shrink-0" />
+              <span>{lookupError}</span>
+            </div>
+            <button
+              onClick={() => setLookupError("")}
+              className="text-rose-300 hover:text-white text-xs font-bold"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* Search Result Card */}
+        {lookupResult?.team && (
+          <div className="mt-5 p-5 bg-white text-slate-900 rounded-2xl border-2 border-cyan-400 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className="px-2.5 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[11px] font-black font-mono">
+                    {lookupResult.team.registration_id || "SIH-2026"}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[11px] font-black">
+                    ✓ Verified Hackathon Record
+                  </span>
+                  {lookupResult.matched_member_id && (
+                    <span className="px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-900 text-[11px] font-black flex items-center gap-1">
+                      <CheckCircle2 size={12} className="text-amber-600" />
+                      Matched Student Found
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-2xl font-black text-slate-900">
+                  {lookupResult.team.team_name}
+                </h3>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  {lookupResult.team.college || "College / Institution"} • Leader: <strong>{lookupResult.team.leader_name}</strong> ({lookupResult.team.leader_email})
+                </p>
+              </div>
+
+              {/* Fast Team Download Action */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => handleDownloadTeamZip(lookupResult.team.id, lookupResult.team.team_name)}
+                  disabled={downloadingZipId === lookupResult.team.id}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs uppercase tracking-wider shadow-md transition flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Archive size={16} />
+                  {downloadingZipId === lookupResult.team.id ? "Packing ZIP..." : `Download All ${lookupResult.members?.length || 6} Certs (.ZIP)`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const matchedTeamObj = teams.find((t) => t.id === lookupResult.team.id);
+                    if (matchedTeamObj) handleSelectTeam(matchedTeamObj);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider transition flex items-center gap-1.5"
+                >
+                  <Eye size={15} /> Open in Studio
+                </button>
+              </div>
+            </div>
+
+            {/* Members Direct Download Roster */}
+            <div className="mt-4">
+              <p className="text-xs font-black uppercase tracking-wider text-slate-700 mb-3 flex items-center justify-between">
+                <span>Team Members ({lookupResult.members?.length || 0}) — Direct 1-Click PDF Download:</span>
+                <span className="text-[11px] font-normal text-slate-500">click any button to download high-res A4 PDF</span>
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {(lookupResult.members || []).map((m, idx) => {
+                  const isMatched = m.id === lookupResult.matched_member_id;
+                  const isDownloading = downloadingPdfId === m.id;
+
+                  return (
+                    <div
+                      key={m.id || idx}
+                      className={`p-3.5 rounded-xl border-2 transition flex flex-col justify-between ${
+                        isMatched
+                          ? "bg-amber-50/80 border-amber-400 ring-2 ring-amber-400/30"
+                          : "bg-slate-50 border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span
+                            className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                              m.is_leader
+                                ? "bg-amber-500 text-slate-950"
+                                : "bg-slate-200 text-slate-700"
+                            }`}
+                          >
+                            {m.is_leader ? "👑 Team Leader" : `Member ${idx + 1}`}
+                          </span>
+                          {isMatched && (
+                            <span className="text-[10px] font-bold text-amber-700 bg-amber-200/70 px-1.5 py-0.5 rounded">
+                              Target Match
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-bold text-sm text-slate-900 truncate" title={m.name}>
+                          {m.name}
+                        </h4>
+                        {m.email && (
+                          <p className="text-[11px] text-slate-500 font-mono truncate" title={m.email}>
+                            {m.email}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="mt-3 pt-2.5 border-t border-slate-200 flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadMemberPdf(m.id, m.name, lookupResult.team.registration_id)}
+                          disabled={isDownloading}
+                          className="flex-1 py-1.5 px-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-black text-xs rounded-lg transition flex items-center justify-center gap-1.5 shadow-xs"
+                        >
+                          <Download size={13} className={isDownloading ? "animate-spin" : ""} />
+                          {isDownloading ? "Downloading..." : "Download PDF"}
+                        </button>
+                        <a
+                          href={`/api/certificates/member/${m.id}?preview=true`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg transition text-xs font-bold"
+                          title="Preview in new browser tab"
+                        >
+                          <ExternalLink size={13} />
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Main Studio Grid: Left Directory + Center Live Stage + Right Quick Editor */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 print:block items-start">
+        {/* COLUMN 1: Team & Member Directory (Hidden when printing) */}
+        <div className="print:hidden lg:col-span-3 space-y-4">
+          {/* Team Selector Box */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs">
+            <div className="flex items-center justify-between mb-2.5">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <Users size={16} className="text-blue-600" />
-                Select Team ({filteredTeams.length})
+                <Users size={15} className="text-blue-600" />
+                Teams ({filteredTeams.length}{search.trim() ? `/${teams.length}` : ""})
               </h3>
               <button
                 onClick={loadData}
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg transition"
-                title="Refresh"
+                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg transition"
+                title="Refresh team list"
               >
-                <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+                <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
               </button>
             </div>
 
             {/* Search Input */}
-            <div className="relative mb-3">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <div className="relative mb-2.5">
+              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search team, leader or ID..."
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/30"
+                placeholder="Search team, student, leader, ID..."
+                className="w-full pl-7 pr-7 py-1.5 text-xs bg-slate-50 hover:bg-white border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 transition shadow-2xs"
               />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center text-[10px] font-bold transition"
+                  title="Clear search"
+                >
+                  ✕
+                </button>
+              )}
             </div>
 
             {/* Team List Scrollbox */}
-            <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-xl">
+            <div className="max-h-[250px] overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-xl">
               {loading ? (
-                <div className="p-8 text-center text-xs text-slate-400">Loading teams...</div>
+                <div className="p-6 text-center text-xs text-slate-400">Loading teams...</div>
               ) : filteredTeams.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-400">No teams found.</div>
+                <div className="p-6 text-center text-xs text-slate-400 space-y-1.5">
+                  <p className="font-bold text-slate-600">No teams match "{search}"</p>
+                  <p className="text-[10px] text-slate-400">Search by team name, student name, leader or registration ID</p>
+                  <button
+                    onClick={() => setSearch("")}
+                    className="text-[11px] text-blue-600 hover:underline font-bold pt-1 block mx-auto"
+                  >
+                    Clear search
+                  </button>
+                </div>
               ) : (
                 filteredTeams.map((team) => {
                   const isSelected = team.id === selectedTeamId;
@@ -493,24 +989,24 @@ export function AdminCertificates() {
                     <div
                       key={team.id}
                       onClick={() => handleSelectTeam(team)}
-                      className={`p-3 cursor-pointer transition flex items-center justify-between gap-2 ${
+                      className={`p-2.5 cursor-pointer transition flex items-center justify-between gap-1.5 ${
                         isSelected
-                          ? "bg-blue-50/90 border-l-4 border-blue-600"
+                          ? "bg-blue-50/95 border-l-4 border-blue-600"
                           : "hover:bg-slate-50"
                       }`}
                     >
-                      <div className="min-w-0">
-                        <p className={`font-black text-xs truncate ${isSelected ? "text-blue-900" : "text-slate-800"}`}>
+                      <div className="min-w-0 flex-1">
+                        <p className={`font-black text-xs truncate ${isSelected ? "text-blue-950" : "text-slate-800"}`}>
                           {team.name || team.teamName}
                         </p>
-                        <p className="text-[11px] text-slate-500 truncate">
-                          {team.leaderName} • {team.leaderEmail}
+                        <p className="text-[10px] text-slate-500 truncate">
+                          {team.leaderName}
                         </p>
                       </div>
 
-                      <div className="shrink-0 flex items-center gap-1.5">
+                      <div className="shrink-0 flex items-center gap-1">
                         {sendState?.status === "sent" && (
-                          <CheckCircle2 size={14} className="text-emerald-600" title="Email Delivered" />
+                          <CheckCircle2 size={13} className="text-emerald-600" title="Delivered" />
                         )}
                         <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-mono font-bold">
                           {(team.members || []).length || 6}p
@@ -525,37 +1021,49 @@ export function AdminCertificates() {
 
           {/* Active Team Members Selector */}
           {currentTeam && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-700">
-                  Team Members in "{currentTeam.name}"
+            <div className="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs">
+              <div className="flex items-center justify-between mb-2.5">
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 truncate max-w-[130px]" title={currentTeam.name}>
+                  Members: {currentTeam.name}
                 </h3>
-                <button
-                  onClick={() => handleSendSingleTeam(currentTeam)}
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition"
-                >
-                  <Mail size={12} /> Send to Leader
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => handleDownloadTeamZip(currentTeam.id, currentTeam.name)}
+                    disabled={downloadingZipId === currentTeam.id}
+                    className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 px-2 py-0.5 rounded transition"
+                    title="Direct Download all member certificates as a ZIP archive"
+                  >
+                    <Archive size={11} /> {downloadingZipId === currentTeam.id ? "..." : "ZIP"}
+                  </button>
+                  <button
+                    onClick={() => handleSendSingleTeam(currentTeam)}
+                    disabled={sendingTeamEmail}
+                    className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 disabled:opacity-50 px-2 py-0.5 rounded transition"
+                    title="Email all certificates for this team in a single mail"
+                  >
+                    <Package size={11} /> Send
+                  </button>
+                </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-0.5">
                 {(currentTeam.members || []).map((m, idx) => {
                   const isSelected = idx === selectedMemberIndex;
                   return (
-                    <button
+                    <div
                       key={m.id || idx}
                       onClick={() => handleSelectMember(m, idx)}
-                      className={`w-full text-left px-3 py-2 rounded-xl transition text-xs flex items-center justify-between ${
+                      className={`w-full text-left px-2.5 py-2 rounded-xl transition text-xs flex items-center justify-between cursor-pointer ${
                         isSelected
                           ? "bg-indigo-600 text-white font-bold shadow-xs"
                           : "bg-slate-50 hover:bg-slate-100 text-slate-700"
                       }`}
                     >
-                      <span className="truncate">
-                        {m.full_name || m.name}
+                      <span className="truncate flex items-center gap-1">
+                        <span className="truncate">{m.full_name || m.name}</span>
                         {m.is_leader && (
                           <span
-                            className={`ml-2 text-[10px] px-1.5 py-0.5 rounded font-black uppercase ${
+                            className={`text-[9px] px-1 py-0.2 rounded font-black uppercase shrink-0 ${
                               isSelected ? "bg-white/20 text-white" : "bg-amber-100 text-amber-800"
                             }`}
                           >
@@ -563,122 +1071,37 @@ export function AdminCertificates() {
                           </span>
                         )}
                       </span>
-                      <span className="text-[10px] opacity-75">Click to Preview</span>
-                    </button>
+                      <div className="flex items-center gap-1 shrink-0 ml-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadMemberPdf(m.id, m.full_name || m.name, currentTeam?.registrationId);
+                          }}
+                          className={`p-1 rounded transition ${
+                            isSelected
+                              ? "hover:bg-white/20 text-white"
+                              : "hover:bg-slate-200 text-slate-500 hover:text-blue-600"
+                          }`}
+                          title={`Download ${m.full_name || m.name}'s Certificate (PDF)`}
+                        >
+                          <Download size={12} />
+                        </button>
+                        <span className="text-[9px] opacity-75">Select</span>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
             </div>
           )}
-
-          {/* Live Quick Editor Card */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-              <Edit3 size={15} className="text-amber-600" />
-              Quick Content Editor
-            </h3>
-
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600 mb-1">Student Name</label>
-              <input
-                type="text"
-                value={certData.studentName}
-                onChange={(e) => setCertData({ ...certData, studentName: e.target.value })}
-                className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded-lg font-bold text-slate-900"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Team Name</label>
-                <input
-                  type="text"
-                  value={certData.teamName}
-                  onChange={(e) => setCertData({ ...certData, teamName: e.target.value })}
-                  className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Role</label>
-                <select
-                  value={certData.role}
-                  onChange={(e) => setCertData({ ...certData, role: e.target.value })}
-                  className="w-full text-xs px-2 py-1.5 border border-slate-300 rounded-lg bg-white"
-                >
-                  <option value="Leader">Team Leader</option>
-                  <option value="Member">Team Member</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600 mb-1">Certificate Type</label>
-              <select
-                value={certData.certType}
-                onChange={(e) => setCertData({ ...certData, certType: e.target.value })}
-                className="w-full text-xs px-2 py-1.5 border border-slate-300 rounded-lg bg-white font-bold text-blue-900"
-              >
-                <option value="PARTICIPATION">CERTIFICATE OF PARTICIPATION</option>
-                <option value="MERIT & EXCELLENCE">CERTIFICATE OF MERIT & EXCELLENCE</option>
-                <option value="WINNER (1ST PLACE)">CERTIFICATE OF WINNER (1ST PLACE)</option>
-                <option value="RUNNER UP">CERTIFICATE OF RUNNER UP</option>
-                <option value="APPRECIATION">CERTIFICATE OF APPRECIATION</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600 mb-1">College / Institution</label>
-              <input
-                type="text"
-                value={certData.collegeName}
-                onChange={(e) => setCertData({ ...certData, collegeName: e.target.value })}
-                className="w-full text-xs px-3 py-1.5 border border-slate-300 rounded-lg"
-              />
-            </div>
-
-            {/* Direct Email Dispatch for Custom/Corrected Student */}
-            <div className="pt-2 border-t border-slate-100 space-y-2">
-              <label className="block text-[11px] font-black uppercase text-indigo-900 tracking-wider">
-                Send to Specific Student Email
-              </label>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="email"
-                  value={customEmail}
-                  onChange={(e) => setCustomEmail(e.target.value)}
-                  placeholder="student@example.com"
-                  className="flex-1 text-xs px-2.5 py-1.5 border border-indigo-200 rounded-lg bg-indigo-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-                <button
-                  onClick={handleSendCustomCertificate}
-                  disabled={sendingCustomEmail || !customEmail}
-                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 text-white font-bold text-xs rounded-lg transition flex items-center gap-1 shrink-0 shadow-xs"
-                >
-                  <Send size={12} className={sendingCustomEmail ? "animate-spin" : ""} />
-                  {sendingCustomEmail ? "Sending..." : "Send"}
-                </button>
-              </div>
-              {customEmailResult && (
-                <div
-                  className={`text-[11px] font-medium p-2 rounded-lg flex items-center gap-1.5 ${
-                    customEmailResult.success
-                      ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                      : "bg-rose-50 text-rose-800 border border-rose-200"
-                  }`}
-                >
-                  {customEmailResult.success ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
-                  <span>{customEmailResult.message}</span>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
 
 
-        {/* RIGHT COLUMN: Official Real-Style SIH 2026 Landscape Certificate Preview */}
-        <div className="lg:col-span-8">
-          <div className="bg-slate-300/60 p-3 sm:p-6 rounded-2xl border border-slate-300 shadow-inner overflow-x-auto flex items-center justify-center">
-            {/* The Certificate Container with larger desktop scaling */}
+        {/* COLUMN 2: Official Real-Style SIH 2026 Landscape Certificate Preview */}
+        <div className="lg:col-span-5 xl:col-span-6 space-y-3">
+          <div className="bg-slate-300/60 p-2 sm:p-4 rounded-2xl border border-slate-300 shadow-inner overflow-x-auto flex items-center justify-center">
+            {/* The Certificate Container with responsive scaling */}
             <div
               id="sih-certificate-render-node"
               ref={printRef}
@@ -697,8 +1120,6 @@ export function AdminCertificates() {
                 crossOrigin="anonymous"
               />
 
-
-
               {/* Exact Dynamic Text Overlay safely placed in the white gap (Y: 52% to 70%) */}
               <div 
                 className="absolute inset-x-0 flex flex-col items-center justify-between text-center pointer-events-none z-10"
@@ -714,10 +1135,10 @@ export function AdminCertificates() {
                   <h1
                     className={`font-black uppercase text-[#1e3a8a] tracking-wider drop-shadow-xs leading-tight ${
                       (certData.studentName || "").length > 25
-                        ? "text-sm sm:text-base md:text-xl lg:text-2xl"
+                        ? "text-xs sm:text-sm md:text-lg lg:text-xl xl:text-2xl"
                         : (certData.studentName || "").length > 18
-                        ? "text-base sm:text-lg md:text-2xl lg:text-3xl"
-                        : "text-lg sm:text-2xl md:text-3xl lg:text-4xl"
+                        ? "text-sm sm:text-base md:text-xl lg:text-2xl xl:text-3xl"
+                        : "text-base sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl"
                     }`}
                   >
                     {certData.studentName}
@@ -725,19 +1146,18 @@ export function AdminCertificates() {
                   <div
                     className={`h-0.5 sm:h-1 bg-[#ea580c] mx-auto mt-0.5 ${
                       (certData.studentName || "").length > 25
-                        ? "w-48 sm:w-64 md:w-80"
-                        : "w-36 sm:w-52 md:w-64"
+                        ? "w-40 sm:w-56 md:w-72"
+                        : "w-32 sm:w-44 md:w-60"
                     }`}
                   />
                 </div>
 
-
                 {/* Elegant Team Presentation with Ornaments */}
                 <div className="flex items-center justify-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c]" />
-                  <p className="text-xs sm:text-sm md:text-base font-medium text-slate-600 font-serif italic">
+                  <p className="text-[11px] sm:text-xs md:text-sm lg:text-base font-medium text-slate-600 font-serif italic">
                     of Team{" "}
-                    <span className="font-sans font-black not-italic text-slate-900 tracking-wide text-xs sm:text-sm md:text-base ml-1">
+                    <span className="font-sans font-black not-italic text-slate-900 tracking-wide text-[11px] sm:text-xs md:text-sm lg:text-base ml-1">
                       {certData.teamName}
                     </span>
                   </p>
@@ -745,33 +1165,398 @@ export function AdminCertificates() {
                 </div>
 
                 {/* Description */}
-                <p className="text-[9px] sm:text-[11px] md:text-xs text-slate-500 max-w-2xl mx-auto leading-tight">
+                <p className="text-[8px] sm:text-[10px] md:text-xs text-slate-500 max-w-2xl mx-auto leading-tight">
                   for active innovation, technical excellence, and committed participation in the Smart India Hackathon 2026 Internal College Round.
                 </p>
               </div>
             </div>
           </div>
 
-
           {/* Action bar underneath preview */}
-          <div className="mt-3 flex items-center justify-between text-xs text-slate-600 px-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 px-1">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <strong>High-Resolution Official Certificate:</strong> Perfect A4 Landscape layout.
+              <strong className="text-slate-700">Live Stage:</strong> Official A4 Landscape (300 DPI Vector)
             </span>
             <div className="flex items-center gap-2">
               <button
-                onClick={handlePrintCertificate}
-                className="text-indigo-700 font-bold hover:bg-indigo-50 flex items-center gap-1.5 bg-white px-3.5 py-1.5 rounded-lg border border-slate-200 shadow-xs transition"
+                onClick={() => {
+                  setEmailPreviewType("single");
+                  setShowEmailPreviewModal(true);
+                }}
+                className="text-slate-700 font-bold hover:bg-slate-100 flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-xs transition"
               >
-                <Download size={14} /> Download Clean A4 PDF
+                <Eye size={13} className="text-blue-600" /> Preview Email
+              </button>
+              <button
+                onClick={() => handleSendSingleTeam(currentTeam)}
+                disabled={sendingTeamEmail || !currentTeam}
+                className="text-blue-900 font-bold bg-blue-50 hover:bg-blue-100 border border-blue-200 flex items-center gap-1.5 px-3 py-1.5 rounded-lg shadow-xs transition disabled:opacity-50"
+                title={`Send all ${(currentTeam?.members || []).length || 6} certificates for ${currentTeam?.name || 'team'} in a single email`}
+              >
+                <Package size={13} className="text-blue-700" /> Send {(currentTeam?.members || []).length || 6} Certs to Team
+              </button>
+              <button
+                onClick={handlePrintCertificate}
+                className="text-white font-bold bg-indigo-600 hover:bg-indigo-500 flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg shadow-xs transition"
+              >
+                <Download size={13} /> Download Clean A4 PDF
               </button>
             </div>
           </div>
         </div>
 
 
+        {/* COLUMN 3: Right-Side Quick Content Editor & Instant Email Dispatch */}
+        <div className="print:hidden lg:col-span-4 xl:col-span-3 space-y-4 lg:sticky lg:top-4">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-md p-4 space-y-3.5">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                  <Edit3 size={15} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                    Quick Content Editor
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-medium">Real-time dynamic overlay</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live Sync
+              </span>
+            </div>
 
+            {/* Form Fields */}
+            <div className="space-y-3">
+              {/* Student Name */}
+              <div>
+                <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
+                  <User size={12} className="text-blue-600" />
+                  Student Name
+                </label>
+                <input
+                  type="text"
+                  value={certData.studentName}
+                  onChange={(e) => setCertData({ ...certData, studentName: e.target.value })}
+                  placeholder="Enter student full name"
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl font-bold text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs"
+                />
+              </div>
+
+              {/* Team Name and Role */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
+                    <Users size={12} className="text-indigo-600" />
+                    Team Name
+                  </label>
+                  <input
+                    type="text"
+                    value={certData.teamName}
+                    onChange={(e) => setCertData({ ...certData, teamName: e.target.value })}
+                    placeholder="Team Name"
+                    className="w-full text-xs px-2.5 py-2 border border-slate-300 rounded-xl font-medium text-slate-800 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs"
+                  />
+                </div>
+                <div>
+                  <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
+                    <Award size={12} className="text-amber-600" />
+                    Role
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={certData.role}
+                      onChange={(e) => setCertData({ ...certData, role: e.target.value })}
+                      className="w-full text-xs px-2.5 py-2 border border-slate-300 rounded-xl font-medium text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs appearance-none pr-7 cursor-pointer"
+                    >
+                      <option value="Leader">Team Leader</option>
+                      <option value="Member">Team Member</option>
+                    </select>
+                    <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Certificate Type */}
+              <div>
+                <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
+                  <Award size={12} className="text-emerald-600" />
+                  Certificate Type
+                </label>
+                <div className="relative">
+                  <select
+                    value={certData.certType}
+                    onChange={(e) => setCertData({ ...certData, certType: e.target.value })}
+                    className="w-full text-xs px-2.5 py-2 border border-blue-200 rounded-xl font-bold text-blue-900 bg-blue-50/40 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs appearance-none pr-7 cursor-pointer"
+                  >
+                    <option value="PARTICIPATION">📜 CERTIFICATE OF PARTICIPATION</option>
+                    <option value="MERIT & EXCELLENCE">🌟 CERTIFICATE OF MERIT & EXCELLENCE</option>
+                    <option value="WINNER (1ST PLACE)">🏆 CERTIFICATE OF WINNER (1ST PLACE)</option>
+                    <option value="RUNNER UP">🥈 CERTIFICATE OF RUNNER UP</option>
+                    <option value="APPRECIATION">🎖️ CERTIFICATE OF APPRECIATION</option>
+                  </select>
+                  <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-blue-600 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* College / Institution */}
+              <div>
+                <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
+                  <Building size={12} className="text-slate-600" />
+                  College / Institution
+                </label>
+                <input
+                  type="text"
+                  value={certData.collegeName}
+                  onChange={(e) => setCertData({ ...certData, collegeName: e.target.value })}
+                  placeholder="College Name"
+                  className="w-full text-xs px-2.5 py-2 border border-slate-300 rounded-xl text-slate-800 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs"
+                />
+              </div>
+            </div>
+
+            {/* Quick Reset Link */}
+            <div className="flex items-center justify-end pt-0.5">
+              <button
+                type="button"
+                onClick={handleResetToSelectedMember}
+                className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-indigo-600 transition"
+                title="Reset fields to the current selected team member"
+              >
+                <RotateCcw size={11} /> Reset to Selected Member
+              </button>
+            </div>
+
+            {/* DEDICATED CERTIFICATE EMAIL DISPATCH HUB */}
+            <div className="pt-3 border-t border-slate-200 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                  <Mail size={13} className="text-blue-600" />
+                  Email Dispatch Hub
+                </label>
+                {/* Mode Switcher Tabs */}
+                <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-[10px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setDispatchTab("team")}
+                    className={`px-2 py-0.5 rounded-md transition flex items-center gap-1 ${
+                      dispatchTab === "team"
+                        ? "bg-indigo-600 text-white shadow-2xs font-black"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <Package size={11} /> Team (All 6)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDispatchTab("single")}
+                    className={`px-2 py-0.5 rounded-md transition flex items-center gap-1 ${
+                      dispatchTab === "single"
+                        ? "bg-indigo-600 text-white shadow-2xs font-black"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <User size={11} /> Single Student
+                  </button>
+                </div>
+              </div>
+
+              {/* TAB 1: DEDICATED TEAM PACKAGE (All 6 member certificates in a single email) */}
+              {dispatchTab === "team" && (
+                <div className="space-y-2.5 bg-gradient-to-br from-indigo-50/70 via-blue-50/50 to-slate-50 p-3 rounded-xl border border-indigo-200/90 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black text-indigo-950 flex items-center gap-1 truncate max-w-[170px]">
+                      <Package size={12} className="text-indigo-600 shrink-0" />
+                      <span className="truncate">{currentTeam?.name || "Team Package"}</span>
+                    </span>
+                    <span className="text-[9px] font-black bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded shrink-0">
+                      All {(currentTeam?.members || []).length || 6} Certs Attached
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 mb-0.5">
+                      Send to Team Email (Leader or Custom):
+                    </label>
+                    <input
+                      type="email"
+                      value={teamTargetEmail}
+                      onChange={(e) => setTeamTargetEmail(e.target.value)}
+                      placeholder="leader@example.com"
+                      className="w-full text-xs px-2.5 py-1.5 border border-indigo-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono shadow-2xs"
+                    />
+                  </div>
+
+                  {/* CC Members Checkbox */}
+                  <label className="flex items-center gap-2 cursor-pointer pt-0.5 text-[11px] text-slate-700 select-none">
+                    <input
+                      type="checkbox"
+                      checked={teamCcMembers}
+                      onChange={(e) => setTeamCcMembers(e.target.checked)}
+                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5"
+                    />
+                    <span className="font-medium text-[10px]">
+                      Also CC all registered members with email
+                    </span>
+                  </label>
+
+                  {/* Members Included List */}
+                  <div className="space-y-1 bg-white/80 p-2 rounded-lg border border-indigo-100 text-[10px]">
+                    <p className="font-bold text-slate-600 uppercase text-[9px] tracking-wider flex items-center gap-1 mb-1">
+                      <CheckCheck size={11} className="text-emerald-600" />
+                      All {(currentTeam?.members || []).length || 6} Member PDFs Attached:
+                    </p>
+                    <div className="max-h-20 overflow-y-auto space-y-0.5 pr-1">
+                      {(currentTeam?.members || []).map((m, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-slate-700">
+                          <span className="truncate flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                            <span className="truncate font-medium">{m.full_name || m.name}</span>
+                          </span>
+                          <span className="text-[9px] text-slate-400 font-mono shrink-0 ml-1">
+                            {m.is_leader ? "Leader" : "Member"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Dispatch Team Button */}
+                  <button
+                    onClick={() => handleSendSingleTeam(currentTeam)}
+                    disabled={sendingTeamEmail || !teamTargetEmail}
+                    className="w-full py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 disabled:opacity-50 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    <Send size={12} className={sendingTeamEmail ? "animate-spin" : ""} />
+                    {sendingTeamEmail
+                      ? "Dispatching 6 Certificates..."
+                      : `Send All ${(currentTeam?.members || []).length || 6} Certs in Single Mail`}
+                  </button>
+
+                  {/* Direct Team ZIP Download Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadTeamZip(currentTeam?.id, currentTeam?.name)}
+                    disabled={downloadingZipId === currentTeam?.id || !currentTeam}
+                    className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    <Archive size={12} />
+                    {downloadingZipId === currentTeam?.id ? "Packing ZIP..." : "Direct Download Entire Team Package (.ZIP)"}
+                  </button>
+
+                  {/* Feedback Message */}
+                  {teamEmailResult && (
+                    <div
+                      className={`text-[11px] font-medium p-2.5 rounded-lg flex items-center justify-between gap-2 animate-in fade-in duration-200 ${
+                        teamEmailResult.success
+                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                          : "bg-rose-50 text-rose-800 border border-rose-200"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 truncate">
+                        {teamEmailResult.success ? (
+                          <CheckCircle2 size={14} className="shrink-0 text-emerald-600" />
+                        ) : (
+                          <XCircle size={14} className="shrink-0 text-rose-600" />
+                        )}
+                        <span className="truncate">{teamEmailResult.message}</span>
+                      </div>
+                      <button
+                        onClick={() => setTeamEmailResult(null)}
+                        className="text-slate-400 hover:text-slate-700 text-xs font-bold shrink-0 ml-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 2: SINGLE STUDENT CERTIFICATE */}
+              {dispatchTab === "single" && (
+                <div className="space-y-2.5 bg-gradient-to-br from-indigo-50/60 via-slate-50/50 to-blue-50/40 p-3 rounded-xl border border-indigo-100 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-indigo-950 flex items-center gap-1 truncate max-w-[180px]">
+                      <User size={12} className="text-indigo-600 shrink-0" />
+                      <span className="truncate">{certData.studentName}</span>
+                    </span>
+                    <span className="text-[9px] font-bold bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded">
+                      1 Certificate
+                    </span>
+                  </div>
+
+                  {/* Quick Fill suggestion if leaderEmail exists and differs */}
+                  {currentTeam?.leaderEmail && customEmail !== currentTeam.leaderEmail && (
+                    <button
+                      type="button"
+                      onClick={() => setCustomEmail(currentTeam.leaderEmail)}
+                      className="text-[10px] text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 truncate"
+                    >
+                      💡 Use leader email: <span className="font-mono font-bold truncate">{currentTeam.leaderEmail}</span>
+                    </button>
+                  )}
+
+                  <div className="flex items-center gap-1.5">
+                    <div className="relative flex-1">
+                      <input
+                        type="email"
+                        value={customEmail}
+                        onChange={(e) => setCustomEmail(e.target.value)}
+                        placeholder="student@example.com"
+                        className="w-full text-xs pl-2.5 pr-2 py-2 border border-indigo-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-2xs font-mono"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleDownloadCustomPdf}
+                      className="px-2.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition flex items-center gap-1 shrink-0 shadow-xs active:scale-95"
+                      title="Direct Download this Certificate (PDF)"
+                    >
+                      <Download size={12} />
+                      PDF
+                    </button>
+                    <button
+                      onClick={handleSendCustomCertificate}
+                      disabled={sendingCustomEmail || !customEmail}
+                      className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 text-white font-bold text-xs rounded-lg transition flex items-center gap-1 shrink-0 shadow-xs active:scale-95"
+                    >
+                      <Send size={12} className={sendingCustomEmail ? "animate-spin" : ""} />
+                      {sendingCustomEmail ? "..." : "Send"}
+                    </button>
+                  </div>
+
+                  {customEmailResult && (
+                    <div
+                      className={`text-[11px] font-medium p-2.5 rounded-lg flex items-center justify-between gap-2 animate-in fade-in duration-200 ${
+                        customEmailResult.success
+                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                          : "bg-rose-50 text-rose-800 border border-rose-200"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 truncate">
+                        {customEmailResult.success ? (
+                          <CheckCircle2 size={14} className="shrink-0 text-emerald-600" />
+                        ) : (
+                          <XCircle size={14} className="shrink-0 text-rose-600" />
+                        )}
+                        <span className="truncate">{customEmailResult.message}</span>
+                      </div>
+                      <button
+                        onClick={() => setCustomEmailResult(null)}
+                        className="text-slate-400 hover:text-slate-700 text-xs font-bold shrink-0 ml-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Configuration & SMTP Modal (Same as before) */}
