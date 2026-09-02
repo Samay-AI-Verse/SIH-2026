@@ -482,25 +482,39 @@ export function AdminCertificates() {
   // Send single team email package with all 6 certificates
   const handleSendSingleTeam = async (team = null, customRecipient = null, ccMembers = null) => {
     const targetTeam = team || currentTeam;
-    if (!targetTeam) return;
-
-    const recipient = (customRecipient || teamTargetEmail || targetTeam.leaderEmail || targetTeam.email || "").trim();
-    if (!recipient || !recipient.includes("@")) {
-      alert("Please enter a valid recipient email address for this team.");
+    if (!targetTeam) {
+      alert("Please select a team from the list first.");
       return;
+    }
+
+    const teamName = targetTeam.name || targetTeam.teamName || targetTeam.team_name || "Selected Team";
+    const leaderEmail = targetTeam.leaderEmail || targetTeam.leader_email || targetTeam.email || (targetTeam.members?.[0]?.email) || "";
+    let recipient = (customRecipient || teamTargetEmail || leaderEmail || "").trim();
+
+    if (!recipient || !recipient.includes("@")) {
+      const promptEmail = window.prompt(
+        `Leader email not found for team "${teamName}".\nPlease enter the recipient email address to send the 6 certificates to:`,
+        ""
+      );
+      if (!promptEmail || !promptEmail.includes("@")) {
+        alert("A valid email address is required to dispatch certificates.");
+        return;
+      }
+      recipient = promptEmail.trim();
+      setTeamTargetEmail(recipient);
     }
 
     const useCc = ccMembers !== null ? ccMembers : teamCcMembers;
     const members = targetTeam.members || [];
     const membersCount = members.length || 6;
-    const teamName = targetTeam.name || targetTeam.teamName || "Team";
 
     const conf = window.confirm(
-      `📦 DISPATCH TEAM PACKAGE (${membersCount} CERTIFICATES)\n\n` +
-      `Team: "${teamName}"\n` +
-      `Recipient Email: ${recipient}\n` +
-      (useCc ? `CC: All registered members with email\n\n` : `\n`) +
-      `Send all ${membersCount} certificates in a single official email package now?`
+      `✉️ CONFIRM DEDICATED TEAM DISPATCH\n\n` +
+      `• Team: "${teamName}"\n` +
+      `• Recipient: ${recipient}\n` +
+      `• Certificates: All ${membersCount} member PDFs will be attached in 1 email package.\n` +
+      (useCc ? `• CC Copy: Sending copy to all team member emails.\n\n` : `\n`) +
+      `Send all ${membersCount} certificates now?`
     );
     if (!conf) return;
 
@@ -520,19 +534,26 @@ export function AdminCertificates() {
         ...prev,
         [targetTeam.id]: { status: "sent", message: `Delivered (${res.certificates_count || membersCount} certs)` }
       }));
+      const successMsg = res.message || `Successfully sent all ${res.certificates_count || membersCount} certificates to ${recipient}!`;
       setTeamEmailResult({
         success: true,
-        message: res.message || `Delivered all ${res.certificates_count || membersCount} certificates to ${recipient}!`
+        message: successMsg
       });
+      alert(`🎉 SUCCESS!\n\n${successMsg}`);
     } catch (err) {
+      const errorDetail = err.message || "Failed to dispatch team certificates.";
       setSendStatuses((prev) => ({
         ...prev,
-        [targetTeam.id]: { status: "failed", message: err.message || "Failed" }
+        [targetTeam.id]: { status: "failed", message: errorDetail }
       }));
       setTeamEmailResult({
         success: false,
-        message: err.message || "Failed to dispatch team certificates package."
+        message: errorDetail
       });
+      alert(
+        `⚠️ Failed to Send Email:\n\n${errorDetail}\n\n` +
+        `Note: If SMTP credentials are not configured, click the "SMTP & Signatures" button at the top and enter your Gmail address and 16-character App Password.`
+      );
     } finally {
       setSendingTeamEmail(false);
     }
@@ -1022,28 +1043,43 @@ export function AdminCertificates() {
           {/* Active Team Members Selector */}
           {currentTeam && (
             <div className="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs">
-              <div className="flex items-center justify-between mb-2.5">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 truncate max-w-[130px]" title={currentTeam.name}>
-                  Members: {currentTeam.name}
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 truncate max-w-[140px]" title={currentTeam.name || currentTeam.teamName}>
+                  Members: {currentTeam.name || currentTeam.teamName || "Team"}
                 </h3>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
-                    onClick={() => handleDownloadTeamZip(currentTeam.id, currentTeam.name)}
+                    onClick={() => handleDownloadTeamZip(currentTeam.id, currentTeam.name || currentTeam.teamName)}
                     disabled={downloadingZipId === currentTeam.id}
-                    className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 px-2 py-0.5 rounded transition"
+                    className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 px-2 py-0.5 rounded transition cursor-pointer"
                     title="Direct Download all member certificates as a ZIP archive"
                   >
                     <Archive size={11} /> {downloadingZipId === currentTeam.id ? "..." : "ZIP"}
                   </button>
-                  <button
-                    onClick={() => handleSendSingleTeam(currentTeam)}
-                    disabled={sendingTeamEmail}
-                    className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 disabled:opacity-50 px-2 py-0.5 rounded transition"
-                    title="Email all certificates for this team in a single mail"
-                  >
-                    <Package size={11} /> Send
-                  </button>
                 </div>
+              </div>
+
+              {/* Dedicated Big One-Click Send Button */}
+              <div className="mb-2.5 p-2.5 bg-gradient-to-br from-indigo-50 via-blue-50 to-slate-50 rounded-xl border border-indigo-200 shadow-2xs space-y-1.5">
+                <div className="flex items-center justify-between text-[10px] text-slate-600 font-bold">
+                  <span className="truncate flex items-center gap-1">
+                    <Mail size={11} className="text-indigo-600 shrink-0" />
+                    <span className="truncate">To: {currentTeam.leaderEmail || currentTeam.email || "Leader"}</span>
+                  </span>
+                  <span className="text-[9px] bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded font-mono font-bold shrink-0">
+                    {(currentTeam.members || []).length || 6} Certs
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleSendSingleTeam(currentTeam)}
+                  disabled={sendingTeamEmail}
+                  className="w-full py-2 px-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 disabled:opacity-50 text-white font-black text-xs rounded-lg shadow-sm transition flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                  title="Send all 6 certificates to this team via single email"
+                >
+                  <Send size={13} className={sendingTeamEmail ? "animate-spin" : ""} />
+                  {sendingTeamEmail ? "Dispatching 6 Certificates..." : "✉️ Send All 6 Certs to Team"}
+                </button>
               </div>
 
               <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-0.5">
