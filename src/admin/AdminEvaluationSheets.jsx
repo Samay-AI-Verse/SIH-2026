@@ -322,9 +322,9 @@ export function AdminEvaluationSheets() {
             top: 50% !important;
             left: 50% !important;
             transform: translate(-50%, -50%) !important;
-            width: ${orientation === "landscape" ? "360px" : "280px"} !important;
-            max-width: 80% !important;
-            opacity: 0.16 !important;
+            width: ${orientation === "landscape" ? "520px" : "400px"} !important;
+            max-width: 85% !important;
+            opacity: 0.18 !important;
             z-index: 50 !important;
             pointer-events: none !important;
             align-items: center !important;
@@ -332,6 +332,7 @@ export function AdminEvaluationSheets() {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
+
           .print-sheet-content {
             position: relative !important;
             z-index: 1 !important;
@@ -673,23 +674,24 @@ export function AdminEvaluationSheets() {
           {activeSheet === "judge" && (
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 w-full">
               <span className="font-extrabold text-slate-900 text-[12px]">Official Jury Scoring Matrix (50M Total):</span>
-              <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-900 px-2 py-0.5 rounded font-bold text-[11px] border border-blue-200">
-                <span className="font-mono">C1:</span> Idea & Innovation <b className="text-blue-700">(10M)</b>
+              <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-900 px-2.5 py-1 rounded-md font-bold text-[11px] border border-blue-200">
+                Idea & Innovation <b className="text-blue-700">(10M)</b>
               </span>
-              <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded font-bold text-[11px] border border-emerald-200">
-                <span className="font-mono">C2:</span> Implementation <b className="text-emerald-700">(15M)</b>
+              <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-900 px-2.5 py-1 rounded-md font-bold text-[11px] border border-emerald-200">
+                Implementation <b className="text-emerald-700">(15M)</b>
               </span>
-              <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded font-bold text-[11px] border border-indigo-200">
-                <span className="font-mono">C3:</span> Demo & Functionality <b className="text-indigo-700">(10M)</b>
+              <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-900 px-2.5 py-1 rounded-md font-bold text-[11px] border border-indigo-200">
+                Demo & Functionality <b className="text-indigo-700">(10M)</b>
               </span>
-              <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 px-2 py-0.5 rounded font-bold text-[11px] border border-amber-200">
-                <span className="font-mono">C4:</span> Communication & Presentation <b className="text-amber-700">(10M)</b>
+              <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 px-2.5 py-1 rounded-md font-bold text-[11px] border border-amber-200">
+                Communication & Presentation <b className="text-amber-700">(10M)</b>
               </span>
-              <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-900 px-2 py-0.5 rounded font-bold text-[11px] border border-purple-200">
-                <span className="font-mono">C5:</span> Question & Answering <b className="text-purple-700">(5M)</b>
+              <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-900 px-2.5 py-1 rounded-md font-bold text-[11px] border border-purple-200">
+                Question & Answering <b className="text-purple-700">(5M)</b>
               </span>
             </div>
           )}
+
           {activeSheet === "swag" && (
             <div>
               <b>Kit Protocol:</b> Verify Student ID & Issue: ID Badge, Welcome Bag, T-Shirt, Stickers/Swag & Food Coupons.
@@ -806,15 +808,16 @@ export function AdminEvaluationSheets() {
         {/* ========================================================================= */}
         {activeSheet === "judge" && (
           <div className="overflow-x-auto relative">
-            {/* Dedicated watermark behind jury list table */}
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden z-0 print:hidden opacity-10 select-none">
+            {/* Dedicated large watermark behind jury list table */}
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden z-0 print:hidden opacity-15 select-none">
               <img
                 src="/sih_official_logo.png?v=3"
                 alt="Smart India Hackathon Official Watermark"
-                className="w-[420px] max-w-[60%] object-contain"
+                className="w-[580px] max-w-[75%] object-contain drop-shadow-sm"
               />
             </div>
             <table className="w-full border-collapse border border-slate-400 text-xs relative z-1">
+
               <thead>
                 <tr className="bg-slate-900 text-white text-[11px] font-bold text-center">
                   <th className="border border-slate-500 py-2.5 px-2 w-8">#</th>
