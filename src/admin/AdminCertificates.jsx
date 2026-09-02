@@ -65,7 +65,8 @@ export function AdminCertificates() {
   const [emailPreviewType, setEmailPreviewType] = useState("single"); // "single" or "team"
 
   // Team Package Dispatch state
-  const [dispatchTab, setDispatchTab] = useState("team"); // "team" (all 6 certs in single mail) | "single"
+  const [dispatchTab, setDispatchTab] = useState("team"); // "team" (all 6 certs in single mail) | "single" (selected member) | "custom" (any manual student)
+  const [editorMode, setEditorMode] = useState("team"); // "team" (synced with selected team) | "custom" (free manual entry)
   const [teamTargetEmail, setTeamTargetEmail] = useState("");
   const [teamCcMembers, setTeamCcMembers] = useState(true);
   const [sendingTeamEmail, setSendingTeamEmail] = useState(false);
@@ -286,11 +287,46 @@ export function AdminCertificates() {
       collegeName: currentTeam.college || prev.collegeName,
       role: isLeader ? "Leader" : "Member"
     }));
-    if (member?.email) {
-      setCustomEmail(member.email);
-    } else if (currentTeam.leaderEmail) {
-      setCustomEmail(currentTeam.leaderEmail);
-    }
+    const email = member?.email || currentTeam.leaderEmail || "";
+    setCustomEmail(email);
+    setEditorMode("team");
+  };
+
+  const handleSwitchToCustomMode = () => {
+    setEditorMode("custom");
+    setDispatchTab("custom");
+  };
+
+  const handleClearCustomFields = () => {
+    setEditorMode("custom");
+    setDispatchTab("custom");
+    setCertData((prev) => ({
+      ...prev,
+      studentName: "",
+      teamName: "Individual Participant",
+      collegeName: "",
+      role: "Participant",
+      certType: "PARTICIPATION"
+    }));
+    setCustomEmail("");
+    setCustomEmailResult(null);
+  };
+
+  const handleCopyFromSelectedMember = () => {
+    if (!currentTeam) return;
+    const members = currentTeam.members || [];
+    const member = members[selectedMemberIndex] || members[0];
+    const isLeader = member ? member.is_leader : true;
+    setCertData((prev) => ({
+      ...prev,
+      studentName: member?.full_name || member?.name || currentTeam.leaderName || "Student Name",
+      teamName: currentTeam.name || currentTeam.teamName || "Team",
+      collegeName: currentTeam.college || prev.collegeName,
+      role: isLeader ? "Leader" : "Member"
+    }));
+    const email = member?.email || currentTeam.leaderEmail || "";
+    setCustomEmail(email);
+    setCustomEmailResult(null);
   };
 
   // Instant direct vector PDF download & clean print (Zero browser headers/footers/URLs)
@@ -1265,18 +1301,29 @@ export function AdminCertificates() {
                 Certificate Content Editor & Dedicated Dispatch Hub
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Customize certificate fields dynamically or dispatch packages directly to team leaders & members.
+                Customize certificate fields dynamically, enter custom student details manually, or dispatch packages directly.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={handleResetToSelectedMember}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition shadow-2xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition shadow-2xs cursor-pointer"
             >
-              <RotateCcw size={14} className="text-indigo-600" /> Reset Fields to Current Member
+              <RotateCcw size={14} className="text-indigo-600" /> Reset to Current Member
+            </button>
+            <button
+              type="button"
+              onClick={handleSwitchToCustomMode}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer ${
+                editorMode === "custom"
+                  ? "bg-amber-500 text-slate-950 font-black shadow-xs ring-2 ring-amber-400/40"
+                  : "bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200"
+              }`}
+            >
+              <Sparkles size={14} className="text-amber-700" /> ✨ Custom Student Mode
             </button>
           </div>
         </div>
@@ -1297,11 +1344,62 @@ export function AdminCertificates() {
                   <p className="text-[11px] text-slate-400 font-medium">Real-time dynamic canvas overlay</p>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Live Sync Active
-              </span>
+
+              {/* Mode Toggle inside Editor */}
+              <div className="flex items-center bg-white p-0.5 rounded-xl border border-slate-200 text-xs font-bold shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditorMode("team");
+                    handleResetToSelectedMember();
+                  }}
+                  className={`px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer text-xs ${
+                    editorMode === "team"
+                      ? "bg-indigo-600 text-white font-black shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Users size={12} /> Team Member
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSwitchToCustomMode}
+                  className={`px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer text-xs ${
+                    editorMode === "custom"
+                      ? "bg-amber-600 text-white font-black shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Sparkles size={12} /> Custom Student
+                </button>
+              </div>
             </div>
+
+            {/* Custom Mode Banner with Quick Actions */}
+            {editorMode === "custom" && (
+              <div className="p-3 bg-amber-50/90 border border-amber-300 rounded-xl text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs animate-in fade-in duration-150">
+                <span className="flex items-center gap-1.5 font-bold">
+                  <Sparkles size={14} className="text-amber-600 shrink-0" />
+                  Custom Student Mode Active: Enter any name & email manually.
+                </span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleClearCustomFields}
+                    className="px-2.5 py-1 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-[11px] font-bold transition cursor-pointer"
+                  >
+                    ➕ Blank Form
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCopyFromSelectedMember}
+                    className="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[11px] font-bold transition cursor-pointer"
+                  >
+                    👥 Copy from Team
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Content Fields */}
             <div className="space-y-4">
@@ -1309,14 +1407,29 @@ export function AdminCertificates() {
               <div>
                 <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
                   <User size={14} className="text-blue-600" />
-                  Student Full Name
+                  Student Full Name <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={certData.studentName}
                   onChange={(e) => setCertData({ ...certData, studentName: e.target.value })}
-                  placeholder="Enter student full name"
+                  placeholder="e.g. Rahul Sharma"
                   className="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl font-bold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs"
+                />
+              </div>
+
+              {/* Student Email Address */}
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
+                  <Mail size={14} className="text-indigo-600" />
+                  Student Email Address <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={customEmail}
+                  onChange={(e) => setCustomEmail(e.target.value)}
+                  placeholder="student@example.com"
+                  className="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl font-mono text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition shadow-2xs"
                 />
               </div>
 
@@ -1325,20 +1438,20 @@ export function AdminCertificates() {
                 <div>
                   <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
                     <Users size={14} className="text-indigo-600" />
-                    Team Name
+                    Team / Project Name
                   </label>
                   <input
                     type="text"
                     value={certData.teamName}
                     onChange={(e) => setCertData({ ...certData, teamName: e.target.value })}
-                    placeholder="Team Name"
+                    placeholder="e.g. CyberKnights or Individual"
                     className="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl font-bold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs"
                   />
                 </div>
                 <div>
                   <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
                     <Award size={14} className="text-amber-600" />
-                    Role
+                    Role / Designation
                   </label>
                   <div className="relative">
                     <select
@@ -1348,6 +1461,11 @@ export function AdminCertificates() {
                     >
                       <option value="Leader">Team Leader</option>
                       <option value="Member">Team Member</option>
+                      <option value="Participant">Individual Participant</option>
+                      <option value="Winner">Winner / 1st Place</option>
+                      <option value="Runner Up">Runner-Up</option>
+                      <option value="Mentor">Mentor / Guide</option>
+                      <option value="Volunteer">Volunteer</option>
                     </select>
                     <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
@@ -1380,13 +1498,13 @@ export function AdminCertificates() {
               <div>
                 <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
                   <Building size={14} className="text-slate-600" />
-                  College / Institution
+                  College / Institution / Organization
                 </label>
                 <input
                   type="text"
                   value={certData.collegeName}
                   onChange={(e) => setCertData({ ...certData, collegeName: e.target.value })}
-                  placeholder="College Name"
+                  placeholder="College / Institution Name"
                   className="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-2xs"
                 />
               </div>
@@ -1408,29 +1526,43 @@ export function AdminCertificates() {
                 </div>
               </div>
 
-              {/* Mode Switcher Tabs */}
+              {/* Mode Switcher Tabs (3 Tabs: Team Package | Selected Member | Custom Student) */}
               <div className="flex items-center bg-white p-1 rounded-xl border border-slate-200 text-xs font-bold shadow-2xs">
                 <button
                   type="button"
                   onClick={() => setDispatchTab("team")}
-                  className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
+                  className={`px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer text-xs ${
                     dispatchTab === "team"
                       ? "bg-indigo-600 text-white shadow-xs font-black"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <Package size={13} /> Team Package (All 6)
+                  <Package size={13} /> Team Package
                 </button>
                 <button
                   type="button"
-                  onClick={() => setDispatchTab("single")}
-                  className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
+                  onClick={() => {
+                    setDispatchTab("single");
+                    setEditorMode("team");
+                  }}
+                  className={`px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer text-xs ${
                     dispatchTab === "single"
                       ? "bg-indigo-600 text-white shadow-xs font-black"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <User size={13} /> Single Student
+                  <User size={13} /> Selected Member
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSwitchToCustomMode}
+                  className={`px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer text-xs ${
+                    dispatchTab === "custom"
+                      ? "bg-amber-600 text-white shadow-xs font-black"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Sparkles size={13} /> Custom Student
                 </button>
               </div>
             </div>
@@ -1558,7 +1690,7 @@ export function AdminCertificates() {
                     </div>
                     <button
                       onClick={() => setTeamEmailResult(null)}
-                      className="text-slate-400 hover:text-slate-700 text-sm font-bold shrink-0 ml-1"
+                      className="text-slate-400 hover:text-slate-700 text-sm font-bold shrink-0 ml-1 cursor-pointer"
                     >
                       ✕
                     </button>
@@ -1567,16 +1699,16 @@ export function AdminCertificates() {
               </div>
             )}
 
-            {/* TAB 2: SINGLE STUDENT CERTIFICATE */}
+            {/* TAB 2: SELECTED TEAM MEMBER CERTIFICATE */}
             {dispatchTab === "single" && (
               <div className="space-y-4 bg-gradient-to-br from-indigo-50/60 via-slate-50/50 to-blue-50/40 p-4 sm:p-5 rounded-2xl border border-indigo-100 shadow-xs animate-in fade-in duration-150">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-black uppercase tracking-wider text-indigo-950 flex items-center gap-1.5 truncate">
                     <User size={15} className="text-indigo-600 shrink-0" />
-                    <span className="truncate">{certData.studentName}</span>
+                    <span className="truncate">{certData.studentName || "Selected Member"}</span>
                   </span>
-                  <span className="text-xs font-bold bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-lg">
-                    1 Individual Certificate
+                  <span className="text-xs font-bold bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-lg shrink-0">
+                    Team: {currentTeam?.name || "Team Member"}
                   </span>
                 </div>
 
@@ -1585,41 +1717,45 @@ export function AdminCertificates() {
                   <button
                     type="button"
                     onClick={() => setCustomEmail(currentTeam.leaderEmail)}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 truncate"
+                    className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 truncate cursor-pointer"
                   >
                     💡 Use leader email: <span className="font-mono font-bold truncate">{currentTeam.leaderEmail}</span>
                   </button>
                 )}
 
-                <div className="flex flex-col sm:flex-row items-stretch gap-2.5">
-                  <div className="relative flex-1">
-                    <input
-                      type="email"
-                      value={customEmail}
-                      onChange={(e) => setCustomEmail(e.target.value)}
-                      placeholder="student@example.com"
-                      className="w-full text-sm pl-3.5 pr-2 py-2.5 border border-indigo-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-2xs font-mono"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleDownloadCustomPdf}
-                      className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center gap-1.5 shrink-0 shadow-xs active:scale-95 cursor-pointer"
-                      title="Direct Download this Certificate (PDF)"
-                    >
-                      <Download size={14} /> Download PDF
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSendCustomCertificate}
-                      disabled={sendingCustomEmail || !customEmail}
-                      className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 text-white font-black text-xs uppercase tracking-wider rounded-xl transition flex items-center gap-1.5 shrink-0 shadow-xs active:scale-95 cursor-pointer"
-                    >
-                      <Send size={14} className={sendingCustomEmail ? "animate-spin" : ""} />
-                      {sendingCustomEmail ? "Sending..." : "Send Email"}
-                    </button>
-                  </div>
+                {/* Full-width Recipient Email Input */}
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Send Certificate to Email Address <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={customEmail}
+                    onChange={(e) => setCustomEmail(e.target.value)}
+                    placeholder="student@example.com"
+                    className="w-full text-sm px-3.5 py-2.5 border border-indigo-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-2xs font-mono"
+                  />
+                </div>
+
+                {/* Action Buttons: Clean Side-by-Side Row (Never Squished) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleDownloadCustomPdf}
+                    className="py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 shadow-sm active:scale-95 cursor-pointer"
+                    title="Direct Download this Certificate (PDF)"
+                  >
+                    <Download size={14} /> Download PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendCustomCertificate}
+                    disabled={sendingCustomEmail || !customEmail}
+                    className="py-3 px-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 shadow-sm active:scale-95 cursor-pointer"
+                  >
+                    <Send size={14} className={sendingCustomEmail ? "animate-spin" : ""} />
+                    {sendingCustomEmail ? "Sending Email..." : "Send Certificate Email"}
+                  </button>
                 </div>
 
                 {customEmailResult && (
@@ -1640,7 +1776,130 @@ export function AdminCertificates() {
                     </div>
                     <button
                       onClick={() => setCustomEmailResult(null)}
-                      className="text-slate-400 hover:text-slate-700 text-sm font-bold shrink-0 ml-1"
+                      className="text-slate-400 hover:text-slate-700 text-sm font-bold shrink-0 ml-1 cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 3: CUSTOM / MANUAL STUDENT CERTIFICATE */}
+            {dispatchTab === "custom" && (
+              <div className="space-y-4 bg-gradient-to-br from-amber-50/80 via-orange-50/40 to-white p-4 sm:p-5 rounded-2xl border border-amber-200 shadow-xs animate-in fade-in duration-150">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-black uppercase tracking-wider text-amber-950 flex items-center gap-1.5 truncate">
+                    <Sparkles size={16} className="text-amber-600 shrink-0" />
+                    <span>Custom Student Certificate</span>
+                  </span>
+                  <span className="text-xs font-black bg-amber-100 text-amber-900 px-2.5 py-1 rounded-lg border border-amber-300 shrink-0">
+                    Manual Dispatch
+                  </span>
+                </div>
+
+                {/* Recipient Details Preview Card */}
+                <div className="p-3 bg-white/90 rounded-xl border border-amber-200/80 space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium">Recipient Name:</span>
+                    <span className="font-bold text-slate-900 truncate max-w-[200px]">
+                      {certData.studentName || "(Enter name in editor)"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium">Certificate Type:</span>
+                    <span className="font-bold text-blue-700">{certData.certType}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium">Team / Organization:</span>
+                    <span className="font-semibold text-slate-700 truncate max-w-[200px]">
+                      {certData.teamName} • {certData.collegeName || "Institution"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Full-width Recipient Email Input */}
+                <div className="space-y-1">
+                  <label className="flex items-center justify-between text-xs font-bold text-slate-700">
+                    <span>Send To Student Email <span className="text-rose-500">*</span></span>
+                    {currentTeam?.leaderEmail && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomEmail(currentTeam.leaderEmail)}
+                        className="text-[11px] text-amber-700 hover:text-amber-900 underline font-normal cursor-pointer"
+                      >
+                        Use {currentTeam.name} leader email
+                      </button>
+                    )}
+                  </label>
+                  <input
+                    type="email"
+                    value={customEmail}
+                    onChange={(e) => setCustomEmail(e.target.value)}
+                    placeholder="student.name@gmail.com"
+                    className="w-full text-sm px-3.5 py-2.5 border border-amber-300 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition shadow-2xs font-mono"
+                  />
+                </div>
+
+                {/* Side-by-Side Action Buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleDownloadCustomPdf}
+                    className="py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 shadow-sm active:scale-95 cursor-pointer"
+                    title="Direct Download this Custom Certificate (PDF)"
+                  >
+                    <Download size={14} /> Download PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendCustomCertificate}
+                    disabled={sendingCustomEmail || !customEmail || !certData.studentName}
+                    className="py-3 px-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 shadow-sm active:scale-95 cursor-pointer"
+                  >
+                    <Send size={14} className={sendingCustomEmail ? "animate-spin" : ""} />
+                    {sendingCustomEmail ? "Sending Certificate..." : "Email to Student"}
+                  </button>
+                </div>
+
+                {/* Quick helpers */}
+                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleClearCustomFields}
+                    className="hover:text-slate-800 underline cursor-pointer"
+                  >
+                    ➕ Blank / New Student
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCopyFromSelectedMember}
+                    className="hover:text-slate-800 underline cursor-pointer"
+                  >
+                    👥 Copy current team details
+                  </button>
+                </div>
+
+                {/* Feedback Message */}
+                {customEmailResult && (
+                  <div
+                    className={`text-xs font-bold p-3 rounded-xl flex items-center justify-between gap-2 animate-in fade-in duration-200 ${
+                      customEmailResult.success
+                        ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                        : "bg-rose-50 text-rose-800 border border-rose-200"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      {customEmailResult.success ? (
+                        <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+                      ) : (
+                        <XCircle size={16} className="shrink-0 text-rose-600" />
+                      )}
+                      <span className="truncate">{customEmailResult.message}</span>
+                    </div>
+                    <button
+                      onClick={() => setCustomEmailResult(null)}
+                      className="text-slate-400 hover:text-slate-700 text-sm font-bold shrink-0 ml-1 cursor-pointer"
                     >
                       ✕
                     </button>
