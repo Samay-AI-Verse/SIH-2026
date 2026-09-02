@@ -673,13 +673,14 @@ export function AdminCertificates() {
                 boxSizing: "border-box"
               }}
             >
-              {/* Official Certificate Background Image */}
+              {/* Official Certificate Background Image (Updated Final with Spider-Man SIH Badge) */}
               <img
-                src="/sih_official_certificate_template.png?v=3"
+                src="/sih_spiderman_certificate_2026.png"
                 alt="SIH Official Certificate Template"
                 className="absolute inset-0 w-full h-full object-fill pointer-events-none"
                 crossOrigin="anonymous"
               />
+
 
 
               {/* Exact Dynamic Text Overlay safely placed in the white gap (Y: 52% to 70%) */}
