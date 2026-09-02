@@ -675,11 +675,12 @@ export function AdminCertificates() {
             >
               {/* Official Certificate Background Image */}
               <img
-                src="/sih_official_certificate_template.png?v=2"
+                src="/sih_official_certificate_template.png?v=3"
                 alt="SIH Official Certificate Template"
                 className="absolute inset-0 w-full h-full object-fill pointer-events-none"
                 crossOrigin="anonymous"
               />
+
 
               {/* Exact Dynamic Text Overlay safely placed in the white gap (Y: 52% to 70%) */}
               <div 
