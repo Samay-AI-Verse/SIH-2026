@@ -66,7 +66,8 @@ export async function api(path, options = {}) {
     const targetBase = targets[i];
     const fullUrl = `${targetBase}${path}`;
     try {
-      const response = await fetchWithTimeout(fullUrl, requestOptions, 15000);
+      const isLongOp = path.includes("certificates") || path.includes("send-team") || path.includes("send-custom") || path.includes("generate");
+      const response = await fetchWithTimeout(fullUrl, requestOptions, isLongOp ? 120000 : 25000);
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         if (response.status === 401 && token) {
