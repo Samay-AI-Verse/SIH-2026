@@ -34,15 +34,10 @@ export function AdminLayout() {
 
   return (
     <div className="relative min-h-svh text-ink lg:grid lg:grid-cols-[270px_1fr] bg-slate-100/95">
-      <div className="print:hidden">
-        <ColorMesh />
-      </div>
-
-
+      <ColorMesh />
 
       {/* Top Navigation Bar for Small Screens (Mobile / Tablet) */}
-      <header className="relative z-30 flex items-center justify-between overflow-hidden web-bg px-4 py-3 text-white lg:hidden print:hidden">
-
+      <header className="relative z-30 flex items-center justify-between overflow-hidden web-bg px-4 py-3 text-white lg:hidden">
         <WebOverlay />
         <Link to="/admin" className="relative flex items-center gap-2">
           <SihLogo variant="dark" size="sm" />
@@ -112,7 +107,7 @@ export function AdminLayout() {
       )}
 
       {/* Desktop Sidebar (>= lg) */}
-      <aside className="hidden lg:relative lg:flex lg:flex-col lg:justify-between overflow-hidden web-bg p-4 sm:p-5 text-white lg:min-h-svh border-r-2 border-web/20 print:hidden">
+      <aside className="hidden lg:relative lg:flex lg:flex-col lg:justify-between overflow-hidden web-bg p-4 sm:p-5 text-white lg:min-h-svh border-r-2 border-web/20">
         <WebOverlay />
         <div className="relative">
           <Link to="/admin" className="flex items-center justify-center py-1 text-center w-full">
@@ -154,10 +149,9 @@ export function AdminLayout() {
       </aside>
 
       {/* Main Content Viewport */}
-      <main className="min-w-0 p-4 sm:p-6 md:p-8 print:p-0 print:m-0">
+      <main className="min-w-0 p-4 sm:p-6 md:p-8">
         <Outlet />
       </main>
-
     </div>
   );
 }
