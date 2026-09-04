@@ -678,6 +678,8 @@ export function getPublicTeamCertificateZipUrl(teamId) {
   return `${API_BASE}/api/certificates/team/${teamId}/zip`;
 }
 
+export const getTeamCertificatesZipUrl = getPublicTeamCertificateZipUrl;
+
 export function getAdminTeamCertificateZipUrl(teamId) {
   const token = getAdminToken();
   return `${API_BASE}/api/admin/certificates/team/${teamId}/zip?token=${encodeURIComponent(token || "")}`;
@@ -693,6 +695,36 @@ export function getCustomCertificateDownloadUrl({ studentName, teamName, college
     preview: preview ? "true" : "false"
   });
   return `${API_BASE}/api/certificates/custom-download?${params.toString()}`;
+}
+
+/**
+ * Robust binary file downloader that fetches the actual PDF/ZIP stream
+ * and triggers a client-side blob download with the clean filename.
+ */
+export async function downloadFileFromUrl(url, fallbackFilename = "Certificate.pdf") {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const blob = await res.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+
+    const disposition = res.headers.get("Content-Disposition");
+    let filename = fallbackFilename;
+    if (disposition && disposition.includes("filename=")) {
+      const match = disposition.match(/filename="?([^";]+)"?/);
+      if (match && match[1]) filename = match[1].trim();
+    }
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+  } catch (err) {
+    console.error("Direct blob download error, falling back to window.open:", err);
+    window.open(url, "_blank");
+  }
 }
 
 

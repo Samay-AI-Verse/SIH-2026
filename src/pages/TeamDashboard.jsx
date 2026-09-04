@@ -35,13 +35,46 @@ import { WhatsAppCard } from "../components/WhatsAppCard";
 import { api } from "../lib/api";
 import { formatINR } from "../utils/cn";
 import { getTeamSession } from "../lib/session";
-import { updateTeamMember, fetchTeamBundle } from "../services/apiService";
+import { 
+  updateTeamMember, 
+  fetchTeamBundle, 
+  getPublicMemberCertificateUrl, 
+  getPublicTeamCertificateZipUrl, 
+  downloadFileFromUrl 
+} from "../services/apiService";
 
 export function TeamDashboard() {
   const [searchParams] = useSearchParams();
   const initialEmail = searchParams.get("email") || "";
   const initialTeam = searchParams.get("team") || searchParams.get("teamName") || "";
   const initialRegId = searchParams.get("regId") || searchParams.get("registrationId") || "";
+
+  const [downloadingCertId, setDownloadingCertId] = useState(null);
+  const [downloadingZip, setDownloadingZip] = useState(false);
+
+  const handleDownloadMemberCert = async (m, e) => {
+    if (e) e.preventDefault();
+    setDownloadingCertId(m.id);
+    try {
+      const url = getPublicMemberCertificateUrl(m.id, false);
+      const cleanName = (m.name || m.full_name || "Student").replace(/\s+/g, "_");
+      await downloadFileFromUrl(url, `Certificate_${cleanName}.pdf`);
+    } finally {
+      setDownloadingCertId(null);
+    }
+  };
+
+  const handleDownloadAllZip = async (teamId, teamName, e) => {
+    if (e) e.preventDefault();
+    setDownloadingZip(true);
+    try {
+      const url = getPublicTeamCertificateZipUrl(teamId);
+      const cleanTeam = (teamName || "Team").replace(/\s+/g, "_");
+      await downloadFileFromUrl(url, `Team_Certificates_${cleanTeam}.zip`);
+    } finally {
+      setDownloadingZip(false);
+    }
+  };
 
   const [email, setEmail] = useState(initialEmail);
   const [teamName, setTeamName] = useState(initialTeam);
@@ -398,14 +431,16 @@ export function TeamDashboard() {
 
                     {/* Edit & Download Member Action */}
                     <div className="mt-4 pt-3 border-t border-web/15 flex items-center justify-between gap-1.5 flex-wrap">
-                      <a
-                        href={`/api/certificates/member/${member.id}`}
-                        download={`Certificate_${(member.name || member.full_name || "Student").replace(/\s+/g, "_")}.pdf`}
-                        className="inline-flex items-center gap-1 rounded-lg border-2 border-web bg-web hover:bg-slate-800 text-white px-2.5 py-1 text-xs font-black uppercase transition shadow-xs"
+                      <button
+                        type="button"
+                        disabled={downloadingCertId === member.id}
+                        onClick={(e) => handleDownloadMemberCert(member, e)}
+                        className="inline-flex items-center gap-1 rounded-lg border-2 border-web bg-web hover:bg-slate-800 disabled:opacity-50 text-white px-2.5 py-1 text-xs font-black uppercase transition shadow-xs cursor-pointer active:scale-95"
                         title="Download official participation certificate PDF"
                       >
-                        <Download size={12} /> Certificate
-                      </a>
+                        <Download size={12} className={downloadingCertId === member.id ? "animate-spin" : ""} />
+                        {downloadingCertId === member.id ? "Downloading..." : "Certificate"}
+                      </button>
                       <button
                         type="button"
                         onClick={() => {
@@ -419,7 +454,7 @@ export function TeamDashboard() {
                             year: member.year || "3rd Year"
                           });
                         }}
-                        className="inline-flex items-center gap-1 rounded-lg border-2 border-web/30 bg-white hover:bg-gold/40 px-2.5 py-1 text-xs font-black uppercase text-web transition shadow-xs"
+                        className="inline-flex items-center gap-1 rounded-lg border-2 border-web/30 bg-white hover:bg-gold/40 px-2.5 py-1 text-xs font-black uppercase text-web transition shadow-xs cursor-pointer"
                       >
                         <Edit3 size={12} /> Edit Details
                       </button>
@@ -446,14 +481,15 @@ export function TeamDashboard() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <a
-                    href={`/api/certificates/team/${data.team.id}/zip`}
-                    download={`Team_Certificates_${(data.team.team_name || "Team").replace(/\s+/g, "_")}.zip`}
-                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 px-4 py-2.5 font-black text-xs uppercase tracking-wider text-slate-950 transition shadow-md active:scale-95"
+                  <button
+                    type="button"
+                    disabled={downloadingZip}
+                    onClick={(e) => handleDownloadAllZip(data.team.id, data.team.team_name, e)}
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 disabled:opacity-50 px-4 py-2.5 font-black text-xs uppercase tracking-wider text-slate-950 transition shadow-md active:scale-95 cursor-pointer"
                   >
-                    <Download size={16} />
-                    Download All Certificates (.ZIP)
-                  </a>
+                    <Download size={16} className={downloadingZip ? "animate-spin" : ""} />
+                    {downloadingZip ? "Generating ZIP Package..." : "Download All Certificates (.ZIP)"}
+                  </button>
                 </div>
               </div>
 
@@ -465,6 +501,7 @@ export function TeamDashboard() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {(data.members || []).map((m, idx) => {
                     const isMatchedStudent = email && m.email && m.email.toLowerCase() === email.toLowerCase().trim();
+                    const isDownloading = downloadingCertId === m.id;
                     return (
                       <div
                         key={m.id || idx}
@@ -496,20 +533,21 @@ export function TeamDashboard() {
                         </div>
 
                         <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center gap-2">
-                          <a
-                            href={`/api/certificates/member/${m.id}`}
-                            download={`Certificate_${(m.name || m.full_name || "Student").replace(/\s+/g, "_")}.pdf`}
-                            className="flex-1 py-1.5 px-3 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black text-xs rounded-lg transition flex items-center justify-center gap-1.5 shadow-sm"
+                          <button
+                            type="button"
+                            disabled={isDownloading}
+                            onClick={(e) => handleDownloadMemberCert(m, e)}
+                            className="flex-1 py-1.5 px-3 bg-cyan-400 hover:bg-cyan-300 disabled:opacity-50 text-slate-950 font-black text-xs rounded-lg transition flex items-center justify-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
                           >
-                            <Download size={13} />
-                            Download PDF
-                          </a>
+                            <Download size={13} className={isDownloading ? "animate-spin" : ""} />
+                            {isDownloading ? "Downloading..." : "Download PDF"}
+                          </button>
                           <a
-                            href={`/api/certificates/member/${m.id}?preview=true`}
+                            href={getPublicMemberCertificateUrl(m.id, true)}
                             target="_blank"
                             rel="noreferrer"
                             className="p-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg transition text-xs font-bold"
-                            title="Preview Certificate"
+                            title="Preview Certificate in browser"
                           >
                             <Eye size={13} />
                           </a>

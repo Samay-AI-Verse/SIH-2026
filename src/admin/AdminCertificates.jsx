@@ -47,7 +47,8 @@ import {
   getPublicTeamCertificateZipUrl,
   getAdminTeamCertificateZipUrl,
   getMemberCertificateDownloadUrl,
-  getCustomCertificateDownloadUrl
+  getCustomCertificateDownloadUrl,
+  downloadFileFromUrl
 } from "../services/apiService";
 
 
@@ -349,41 +350,33 @@ export function AdminCertificates() {
     document.body.removeChild(link);
   };
 
-  const handleDownloadTeamZip = (teamId, teamName) => {
+  const handleDownloadTeamZip = async (teamId, teamName) => {
     setDownloadingZipId(teamId);
     try {
       const url = getAdminTeamCertificateZipUrl(teamId);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `Team_Certificates_${(teamName || "Team").replace(/\s+/g, "_")}.zip`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const cleanTeam = (teamName || "Team").replace(/\s+/g, "_");
+      await downloadFileFromUrl(url, `Team_Certificates_${cleanTeam}.zip`);
     } catch (err) {
       alert("Download failed: " + (err.message || "Unknown error"));
     } finally {
-      setTimeout(() => setDownloadingZipId(null), 1200);
+      setDownloadingZipId(null);
     }
   };
 
-  const handleDownloadMemberPdf = (memberId, memberName, teamRegId) => {
+  const handleDownloadMemberPdf = async (memberId, memberName, teamRegId) => {
     setDownloadingPdfId(memberId);
     try {
-      const url = getMemberCertificateDownloadUrl(memberId);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `Certificate_${(memberName || "Student").replace(/\s+/g, "_")}_${teamRegId || "SIH"}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const url = getPublicMemberCertificateUrl(memberId, false);
+      const cleanName = (memberName || "Student").replace(/\s+/g, "_");
+      await downloadFileFromUrl(url, `Certificate_${cleanName}_${teamRegId || "SIH"}.pdf`);
     } catch (err) {
       alert("Download failed: " + (err.message || "Unknown error"));
     } finally {
-      setTimeout(() => setDownloadingPdfId(null), 1200);
+      setDownloadingPdfId(null);
     }
   };
 
-  const handleDownloadCustomPdf = () => {
+  const handleDownloadCustomPdf = async () => {
     const url = getCustomCertificateDownloadUrl({
       studentName: certData.studentName,
       teamName: certData.teamName,
@@ -392,12 +385,8 @@ export function AdminCertificates() {
       certType: certData.certType,
       preview: false
     });
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `Certificate_${(certData.studentName || "Participant").replace(/\s+/g, "_")}.pdf`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const cleanName = (certData.studentName || "Participant").replace(/\s+/g, "_");
+    await downloadFileFromUrl(url, `Certificate_${cleanName}.pdf`);
   };
 
   const handleLookupCertificates = async (e) => {
@@ -442,7 +431,7 @@ export function AdminCertificates() {
             college: matchedTeam.college,
             leader_name: matchedTeam.leaderName,
             leader_email: matchedTeam.leaderEmail,
-            zip_download_url: `/api/certificates/team/${matchedTeam.id}/zip`
+            zip_download_url: getPublicTeamCertificateZipUrl(matchedTeam.id)
           },
           matched_member_id: matchedMember?.id || matchedTeam.members?.[0]?.id,
           members: (matchedTeam.members || []).map((m, idx) => ({
@@ -451,7 +440,7 @@ export function AdminCertificates() {
             email: m.email,
             role: m.is_leader || idx === 0 ? "Leader" : "Member",
             is_leader: m.is_leader || idx === 0,
-            download_url: `/api/certificates/member/${m.id}`
+            download_url: getPublicMemberCertificateUrl(m.id)
           }))
         });
       } else {
@@ -971,7 +960,7 @@ export function AdminCertificates() {
                           {isDownloading ? "Downloading..." : "Download PDF"}
                         </button>
                         <a
-                          href={`/api/certificates/member/${m.id}?preview=true`}
+                          href={getPublicMemberCertificateUrl(m.id, true)}
                           target="_blank"
                           rel="noreferrer"
                           className="p-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg transition text-xs font-bold"
