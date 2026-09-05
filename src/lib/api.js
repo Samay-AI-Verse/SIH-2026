@@ -1,9 +1,8 @@
 const PRIMARY_URL = (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim())
   ? import.meta.env.VITE_API_URL.trim()
-  : "https://sih-2026-990895080781.asia-south1.run.app";
+  : "https://sih-2026-backend.onrender.com";
 
 const FALLBACK_URLS = [
-  "https://sih-2026-990895080781.asia-south1.run.app",
   "https://sih-2026-backend.onrender.com",
 ].filter((url, index, self) => url !== PRIMARY_URL && self.indexOf(url) === index);
 

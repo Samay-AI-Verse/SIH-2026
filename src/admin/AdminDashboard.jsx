@@ -36,17 +36,14 @@ export function AdminDashboard() {
   }, []);
 
   const stats = useMemo(() => {
-    const rawTotalTeams = serverStats?.total_teams ?? teams.length;
-    // Cap dashboard displayed teams and financial calculations to official 90 teams
-    const totalTeams = Math.min(rawTotalTeams, 90);
-    const totalCandidates = totalTeams * 6;
-    const rawConfirmed = serverStats?.paid_teams ?? teams.filter((item) => item.registrationStatus === "CONFIRMED" || item.paymentStatus === "SUCCESS").length;
-    const confirmed = Math.min(rawConfirmed, 90);
+    const totalTeams = serverStats?.total_teams ?? teams.length;
+    const totalCandidates = serverStats?.total_members ?? (teams.length > 0 ? teams.reduce((sum, t) => sum + (t.members?.length || 6), 0) : totalTeams * 6);
+    const confirmed = serverStats?.paid_teams ?? teams.filter((item) => item.registrationStatus === "CONFIRMED" || item.paymentStatus === "SUCCESS").length;
     const pending = serverStats?.pending_teams ?? payments.filter((item) => item.status === "PROCESSING" || item.status === "PENDING").length;
-    const revenue = confirmed * 300;
+    const revenue = serverStats?.total_revenue ?? (confirmed * 300);
     const expenses = serverStats?.total_expenses ?? budget?.total_expenses ?? 0;
     const netBalance = revenue - expenses;
-    const selected = Math.min(serverStats?.selected_problems_count ?? teams.filter((item) => item.selectedProblemId).length, 90);
+    const selected = serverStats?.selected_problems_count ?? teams.filter((item) => item.selectedProblemId).length;
     const available = problems.filter((item) => item.status === "AVAILABLE" && item.id !== "OPEN_INNOVATION").length;
 
     return { totalTeams, totalCandidates, confirmed, pending, revenue, expenses, netBalance, selected, available };
