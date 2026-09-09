@@ -23,6 +23,7 @@ import { AdminSettings, AdminUsers } from "./admin/AdminSettings";
 import { AdminStudents } from "./admin/AdminStudents";
 import { AdminBudget } from "./admin/AdminBudget";
 import { AdminFinalTeams } from "./admin/AdminFinalTeams";
+import { AdminFinalRoundSelection } from "./admin/AdminFinalRoundSelection";
 import { AdminSecurity } from "./admin/AdminSecurity";
 import { AdminAttendanceSheet } from "./admin/AdminAttendanceSheet";
 import { AdminEvaluationSheets } from "./admin/AdminEvaluationSheets";
@@ -76,6 +77,8 @@ export default function App() {
             <Route path="registrations" element={<AdminRegistrations />} />
             <Route path="teams" element={<AdminTeams />} />
             <Route path="final-teams" element={<AdminFinalTeams />} />
+            <Route path="final-round" element={<AdminFinalRoundSelection />} />
+            <Route path="finalists" element={<AdminFinalRoundSelection />} />
             <Route path="certificates" element={<AdminCertificates />} />
             <Route path="certs" element={<AdminCertificates />} />
             <Route path="attendance" element={<AdminAttendanceSheet />} />

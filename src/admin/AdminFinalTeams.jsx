@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { 
   Trophy, 
   Search, 
@@ -15,7 +16,8 @@ import {
   Shield,
   Image as ImageIcon,
   Copy,
-  Check
+  Check,
+  Award
 } from "lucide-react";
 import { adminFetchTeams, adminUpdateTeamName, subscribeTable } from "../services/apiService";
 import { downloadCsv, formatDate } from "../utils/cn";
@@ -195,7 +197,14 @@ export function AdminFinalTeams() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            to="/admin/final-round"
+            className="flex items-center gap-2 py-2.5 px-4 text-xs sm:text-sm font-black uppercase bg-gold text-web hover:bg-gold-light transition shadow-comic border-2 border-web rounded-xl"
+          >
+            <Trophy size={16} className="text-spidey" /> Pick Top 25 Finalists & PDF
+          </Link>
+
           <Button
             onClick={load}
             variant="secondary"
@@ -206,7 +215,7 @@ export function AdminFinalTeams() {
 
           <Button
             onClick={handleExportCsv}
-            className="flex items-center gap-2 py-2.5 px-5 text-xs sm:text-sm font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-comic border-2 border-emerald-800"
+            className="flex items-center gap-2 py-2.5 px-4 text-xs sm:text-sm font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-comic border-2 border-emerald-800"
           >
             <FileSpreadsheet size={16} /> Export Excel / CSV
           </Button>
